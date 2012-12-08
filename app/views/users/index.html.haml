@@ -1,0 +1,4 @@
+= maintabs do
+	- tab t("#{resource_class}.index"), :active => true do
+		= users_grid(collection,paginate(collection))
+	= collectiondropdownmenu

@@ -5,8 +5,8 @@ class Mediafile < ActiveRecord::Base
   has_one     :settings,  :foreign_key => "idFile", :class_name => Mediasetting.name
   has_one     :details,   :foreign_key => "idFile", :class_name => Streamdetail.name
   
-  VIDEOTHUMBPREFIX = "#{Rails.root}/../userdata/Thumbnails/Video"
-  FANTHUMBPREFIX   = "#{Rails.root}/../userdata/Thumbnails/Video/Fanart"
+  VIDEOTHUMBPREFIX = "#{Rails.root}/Thumbnails/Video"
+  FANTHUMBPREFIX   = "#{Rails.root}/Thumbnails/Video/Fanart"
   
   @thumbnail = nil
   
@@ -47,7 +47,7 @@ class Mediafile < ActiveRecord::Base
       hash = Mediafile.crc32(pathfilename)
       result.merge!({:video  => hash}) if File.exists?(Mediafile.video_thumbnail(hash))
       result.merge!({:fanart => hash}) if File.exists?(Mediafile.fanart_thumbnail(hash))
-      printf "determine_cached_thumbnails %p %p\n", self, result
+      #printf "determine_cached_thumbnails %p %p\n", self, result
       @thumbnail = result
     end
     @thumbnail

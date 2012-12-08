@@ -28,6 +28,15 @@ Borg::Application.routes.draw do
     get 'page/:page', :action => :index, :on => :collection
   end
   
+  resources :users do
+    get 'page/:page', :action => :index, :on => :collection
+  end
+  
+  resources :user_sessions
+  match 'login'  => "user_sessions#new",     :as => :login
+  match 'logout' => "user_sessions#destroy", :as => :logout
+  
+  
   root :to => 'movies#overview'
   
 end

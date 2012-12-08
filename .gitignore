@@ -26,3 +26,6 @@ db/schema.rb
  # ignore static stylesheets and cache
 public/cache/**/*
 public/stylesheets/*.css
+
+ # ignore static stylesheets and cache
+Thumbnails/**/*

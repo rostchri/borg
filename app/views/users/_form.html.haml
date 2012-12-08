@@ -1,0 +1,9 @@
+= form.inputs do
+	= form.input :login, :input_html => {:disabled => !resource.new_record? }
+	= form.input :givenname
+	= form.input :surname
+	= form.input :email, :input_html => {:disabled => !resource.new_record? }
+	= form.input :password,              :input_html => {:disabled => !(current_user == resource ||  resource.new_record?) }
+	= form.input :password_confirmation, :input_html => {:disabled => !(current_user == resource ||  resource.new_record?) }
+	= form.actions do
+		= form.action :submit, :button_html => {:class => "btn-large btn-primary"}, :label => params[:action] == "new" ? t("register") : t("save")

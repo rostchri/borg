@@ -11,6 +11,7 @@
 // GO AFTER THE REQUIRES BELOW.
 //
 //= require jquery
+// jquery_ujs needed for destroy-confirmations
 //= require jquery_ujs
 //= require_tree .
 //= require borg
@@ -18,5 +19,3 @@
 //= require kickstrap
 //= require cycle
 //= require imagesloaded
-
-

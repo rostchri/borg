@@ -1,0 +1,5 @@
+= maintabs do
+	- tab t("#{resource_class}.index"), :url => collection_path
+	- tab t("#{resource_class}.show", :login => resource.login), :active => true do
+		= user_grid(resource)
+	= resourcedropdownmenu(resource.login)

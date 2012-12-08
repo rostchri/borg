@@ -1,10 +1,27 @@
 de:
+  commands: Befehle
+  save: Speichern
+  login: Anmelden
+  register: Neue Benutzerkennung registrieren
   login_needed: Für die angeforderte Seite ist eine Authorisierung erforderlich
   nologin_needed: Für die angeforderte Seite ist keine Authorisierung erforderlich
   totalitems: Anzahl
   firstpage: Erste Seite
   lastpage: Letzte Seite
   actions: Aktion
+  
+  
+  User:
+    show: "Über diesen Benutzer"
+    index: Alle Benutzer
+    new: Neuer Benutzer
+    created: "Der Benutzer '%{name}' wurde erstellt. Eine Aktivierungs-Email wird an '%{email}' geschickt"
+    notcreated: "Der Benutzer wurde nicht erstellt. Es gab ein Problem beim Einrichten des Benutzers"
+    updated: "Der Benutzer '%{name}' wurde erfolgreich aktualisiert"
+    activated: "Dein Benutzer '%{name}' wurde erfolgreich aktiviert"
+    destroyed: Benutzer gelöscht
+    delete: "Benutzer '%{name}' löschen?"
+  
     
   make_resourceful:
     create:

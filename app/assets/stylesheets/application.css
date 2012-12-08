@@ -13,4 +13,5 @@
  *= require kickstrap
  *= require borg-less
  *= require borg
+ *= require formtastic-bootstrap
  */

@@ -1,0 +1,6 @@
+.form_user_session
+	= semantic_form_for @user_session do |form|
+		= form.input :login, :label => User.human_attribute_name('login'), :required => false
+		= form.input :password, :label => User.human_attribute_name('password'), :required => false
+		= form.actions do
+			=form.action :submit, :label => t("login"), :button_html => { :class => "btn-large btn-primary", :id => "loginbutton"}
