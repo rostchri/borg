@@ -24,10 +24,10 @@ gem 'formtastic-bootstrap', :git => 'git://github.com/cgunther/formtastic-bootst
 # kickstrap
 #gem 'kickstrap_rails', :git => 'https://github.com/tonic20/kickstrap_rails.git'
 
-#gem 'tablegrid', :git => 'https://github.com/rostchri/tablegrid.git'
-#gem 'railstrap', :git => 'https://github.com/rostchri/railstrap.git', :branch => 'develop'
-gem 'tablegrid', :path => '~/bo/programming/github/tablegrid'
-gem 'railstrap', :path => '~/bo/programming/github/railstrap'
+gem 'tablegrid', :git => 'https://github.com/rostchri/tablegrid.git'
+gem 'railstrap', :git => 'https://github.com/rostchri/railstrap.git', :branch => 'develop'
+#gem 'tablegrid', :path => '~/bo/programming/github/tablegrid'
+#gem 'railstrap', :path => '~/bo/programming/github/railstrap'
 
 # kickstrap - really no longer needed?
 gem 'less-rails' # kickstrap_rails needs this. deps are missing in kickstrap_rails. see environment.rb too
