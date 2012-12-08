@@ -14,8 +14,8 @@ end
 
 group :production do
   # postgres-database
-  gem 'pg'
-  #gem 'mysql2'
+  # gem 'pg'
+  gem 'mysql2'
 end
 
 
