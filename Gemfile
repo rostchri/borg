@@ -11,13 +11,12 @@ group :development, :test do
   gem 'mysql2'
 end
 
-
 group :production do
   # postgres-database
   # gem 'pg'
+  # mysql-database
   gem 'mysql2'
 end
-
 
 gem 'authlogic'
 gem "inherited_resources"
