@@ -12,7 +12,7 @@
 //
 // require jquery
 // jquery_ujs needed for destroy-confirmations
-// require jquery_ujs
+//= require jquery_ujs
 //= require_tree .
 //= require borg
 //= require tablegrid
