@@ -27,5 +27,6 @@ db/schema.rb
 public/cache/**/*
 public/stylesheets/*.css
 
- # ignore static stylesheets and cache
+ # ignore some files
 Thumbnails/**/*
+notpublic/**/*
