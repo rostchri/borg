@@ -1,0 +1,6 @@
+= modaldialog :class => "modalmoviedetails", :title => movie.localtitle do |md|
+	- md.set :preview do 
+		- buttonlabel = "Inhalt"
+		- buttonlabel = movie.plot[0..80] unless movie.plot.nil? ||  movie.plot.empty?
+		- buttonlabel = movie.tagline[0..80] unless movie.tagline.nil? ||  movie.tagline.empty?
+		= link_to "#{buttonlabel}...", moviedetails_path(movie,md.htmlid),  :"data-toggle" => "modal", :"data-target" => "##{md.htmlid}", :remote => true # , :class => "to_modal" #, :rel => "tooltip", :title => "Inhalt", :remote => true

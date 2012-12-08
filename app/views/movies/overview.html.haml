@@ -1,0 +1,4 @@
+= collapsible_group :connected => true, :show => false do |maingroup|
+	- @views.each do |view|
+		= maingroup.item :id => view[:id], :title => "#{view[:title]} (#{view[:count]})", :body => ajax_spinner_image do |item|
+			- item.set :ajaxurl => view[:url]

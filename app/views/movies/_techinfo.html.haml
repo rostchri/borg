@@ -1,0 +1,13 @@
+= modaldialog :title => movie.localtitle do |md|
+	- md.set :preview do 
+		- buttonlabel = "Techinfos"
+		- codec  = movie.details.strVideoCodec unless movie.details.nil? ||  movie.details.strVideoCodec.nil?
+		- res    = "#{movie.details.iVideoWidth}x#{movie.details.iVideoHeight}" unless movie.details.nil? ||  movie.details.iVideoWidth.nil? || movie.details.iVideoHeight.nil?
+		- buttonlabel = codec unless codec.nil?
+		- buttonlabel += " " + res unless res.nil?
+		= link_to buttonlabel, "#", :"data-toggle" => "modal", :"data-target" => "##{md.htmlid}"
+	- md.set :body do
+		%div.settings
+			= movie.settings
+		%div.streamdetails
+			= render :partial => "streamdetails/streamdetail", :object => movie.details

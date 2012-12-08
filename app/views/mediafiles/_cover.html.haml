@@ -1,0 +1,29 @@
+- animate |= false
+- classes ||= []
+
+%div{:class => [:moviecover] + classes, :id => "cover_#{mediafile.id}"}
+	- unless mediafile.video_thumbnail.nil?
+		= image_tag(url_for(:controller => :mediafiles, :action => :video_thumbnail, :hash => mediafile.video_thumbnail), :class=>"cover local")
+	- else
+		= image_tag(mediafile.movie.cover.first, :class=>"cover remote") unless mediafile.movie.cover.empty?
+
+	- if animate
+		- mediafile.movie.cover.each do |image|
+			= image_tag(image, :class=>"cover remote", :style => "display: none;")
+
+
+- if animate
+	:javascript
+		$(document).ready(function() {
+			$('#cover_#{mediafile.id}').imagesLoaded( function( $images, $proper, $broken ) {
+				console.log($(this).attr('id') + ': ' + $proper.length + '/' + $images.length + ' images total have been properly loaded (' + $broken.length + ' broken images)');
+				$(this).cycle({
+			 		fx: 'blindX,blindY,blindZ,cover,curtainX,curtainY,fade,fadeZoom,growX,growY,scrollUp,scrollDown,scrollLeft,scrollRight,scrollHorz,scrollVert,shuffle,slideX,slideY,toss,turnUp,turnDown,turnLeft,turnRight,uncover,wipe,zoom',
+					sync: true,
+					random: 1,
+			 		speed: 1000,
+					timeout: 5000,
+					randomizeEffects: 1,
+			 	});
+			});
+		});

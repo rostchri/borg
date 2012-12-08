@@ -1,0 +1,4 @@
+= collapsible_group :connected => true, :show => false do |maingroup|
+	- collection.each do |genre|
+		= maingroup.item  :id => "genre_#{genre.id}", :title => "#{genre.name} (#{genre.movies.count})", :body => ajax_spinner_image do |item|
+			- item.set :ajaxurl => movies_path(:by_genre=>[genre], :collapsible_item => "genre_#{genre.id}")

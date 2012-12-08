@@ -1,0 +1,4 @@
+- classes = []
+- classes = ["label","label-warning"] if title_path_mismatch
+%span{:class => classes}
+	= link_to mediapath.topdirectory, mediapath_path(mediapath), :rel => "tooltip", :title => mediapath.strPath

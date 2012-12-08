@@ -1,0 +1,32 @@
+= render "mediafiles/fanart", :mediafile => movie.file, :animate => true, :cssclass => "fanartbackground"
+.row-fluid
+	.movieoverview
+		.head
+			.localtitle.offset1
+				%h3= movie.localtitle
+			.year
+				= movie.year
+			.originaltitle
+				= movie.originaltitle
+		= render "mediafiles/cover", :mediafile => movie.file, :animate => true, :classes => ["span2"]
+		.plotcontent.span8
+			- unless movie.tagline.nil? ||  movie.tagline.empty?
+				%p.lead.tagline
+					= movie.tagline
+			%br
+			.plot
+				= movie.plot
+
+=# render "movies/details_image_fanart", :movie => movie
+-# .moviedetails
+-# 	= render "mediafiles/fanart", :mediafile => movie.file, :animate => true
+-# 	= render "mediafiles/cover", :mediafile => movie.file, :animate => true
+-# 	.textcontent
+-# 		%h3.title
+-# 			= movie.localtitle
+-# 		- unless movie.tagline.nil? ||  movie.tagline.empty?
+-# 			%p.lead.tagline
+-# 				= movie.tagline
+-# 		%br
+-# 		.plot
+-# 			= movie.plot

@@ -1,0 +1,137 @@
+de:
+  login_needed: Für die angeforderte Seite ist eine Authorisierung erforderlich
+  nologin_needed: Für die angeforderte Seite ist keine Authorisierung erforderlich
+  totalitems: Anzahl
+  firstpage: Erste Seite
+  lastpage: Letzte Seite
+  actions: Aktion
+    
+  make_resourceful:
+    create:
+      success: "Anlegen erfolgreich"
+      fails: "Fehler beim Anlegen"
+    update:
+      success: "Änderung erfolgreich gesichert"
+      fails:  "Fehler beim Sichern"
+    destroy:
+      success: "Löschvorgang erfolgreich"
+      fails:  "Fehler beim Löschen"
+      
+  authlogic:
+    error_messages:
+      login_blank: darf nicht leer sein
+      login_not_found: ist nicht korrekt
+      password_blank: darf nicht leer sein
+      password_invalid: ist nicht korrekt
+      no_authentication_details: Bitte alle Felder ausfüllen
+    attributes:
+      user_session:
+        username: Benutzername
+        password: Passwort
+        remember_me: Benutzeranmeldung dauerhaft speichern
+
+
+
+
+  formtastic:
+    yes: "Ja"
+    no: "Nein"
+    hints:
+      proposal:
+        email: "Falls Feedback vom Hersteller erwünscht ist, muss hier eine gültige Email-Adresse hinterlegt werden."
+        feedback: "Feedback vom Hersteller erwünscht?"
+  
+  form:
+    ok: 'OK'
+    add: '%{model} anlegen'
+    accept: '%{model} speichern'
+    delete: '%{model} löschen'
+    confirm: '%{model} "%{modelidentifier}" wirklich löschen?'
+    cancel: 'Abbrechen'
+    save: 'Speichern'
+    edit: '%{model} bearbeiten'
+    
+  
+  time:
+    formats:
+      short: "%d.%m.%y"
+      short_with_time: "%d.%m.%y %H:%M"
+      
+      
+  users:
+    table:
+      empty: Keine Mitarbeiter gemäß der Suchkriterien gefunden
+      gv4795: 'Der Benutzername "%{userid}" ist für das Internetbrowsing im RACF momentan freigeschaltet. GV4795 ist vorhanden.'
+      nogv4795: 'Der Benutzername "%{userid}" ist für das Internetbrowsing im RACF momentan nicht freigeschaltet. GV4795 fehlt.'
+    index:
+      empty: Keine Mitarbeiter gefunden
+    role:
+      masteradmin: Masteradministrator
+      siteadmin: Bankadministrator
+      admin: Administrator
+      supporter: Supporter
+      gv4795: gv4795
+    form:
+      defaultprofile: Standardprofil
+      
+  activerecord:
+    errors:
+      models:
+        supportpage:
+          attributes:
+            parent:
+              invalid: '"%{value}" ist als übergeordnetes Kapitel nicht erlaubt'
+    models:
+      movie: 
+        one: Film
+        other: Filme
+      mediafile:
+        one: Datei
+        other: Dateien
+      mediapath:
+        one: Verzeichnis
+        other: Verzeichnisse
+      streamdetail:
+        one: Videoinformation
+        other: Videoinformationen
+      mediasetting:
+        one: Technische Information
+        other: Technische Informationen
+      genre:
+        one: Genre
+        other: Genres
+    attributes:
+      genre:
+        movies: Filme
+        name: Genre
+      movie:
+        movie: Film
+        index: "#"
+        arguments: Argumente
+        location: Ort
+        path: Verzeichnisname
+        file: Dateiname(n)
+        settings: Technische Information
+        streamdetails: Videoinformation
+        content: Filminhalt
+        title: Deutscher Filmtitel (Jahr) + Originaltitel
+        rating: Bewertung (Anzahl)
+        techinfo: Technische Daten
+        localtitle: Deutscher Filmtitel
+        plot_summary: Filminhalt
+        tagline: Tagline
+        votes: Ratingvotes
+        rating: Rating
+        author: Autor
+        year: Releasejahr
+        c08: Alternative Cover
+        imdbid: IMDB-ID
+        runtime: Laufzeit
+        c13: Top 250
+        genres: Genre
+        director: Director
+        originaltitle: Originaltitel
+        studio: Studio
+        c19: Trailer
+        c20: Alternative Fanart
+        country: Land

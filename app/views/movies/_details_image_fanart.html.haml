@@ -1,0 +1,12 @@
+- unless movie.file.fanart_thumbnail.nil?
+	:javascript
+		$(document).ready(function() {
+			$('.moviedetails').css('background', "url('#{url_for(:controller => :mediafiles, :action => :fanart_thumbnail, :hash => movie.file.fanart_thumbnail)}') no-repeat center center fixed" );
+			$('.moviedetails').css('-webkit-background-size', "cover");
+			$('.moviedetails').css('-moz-background-size', "cover");
+			$('.moviedetails').css('-o-background-size', "cover");
+			$('.moviedetails').css('background-size', "cover");
+		});
+- else
+	:javascript
+		$('.moviedetails').css('background-image', "none" )

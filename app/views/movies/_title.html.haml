@@ -1,0 +1,9 @@
+%span{:class => "label label-info", :rel => "tooltip", :title => "Deutscher Titel"}
+	= movie.localtitle
+%span.label.label-info{:rel => "tooltip", :title => "Erscheinungsjahr"}
+	= movie.year
+%small
+	%em
+		%span.label{:rel => "tooltip", :title => "Original Titel"}
+			= movie.originaltitle
+	= link_to "#{movie.imdbid}", "http://www.imdb.de/title/#{movie.imdbid}",  :rel => "tooltip", :title => "IMDB"

@@ -1,0 +1,3 @@
+- unless current_page.last?
+	%li{:class=>"last next"}
+		= link_to_unless current_page.last?, railstrap_image('icon-fast-forward'), url, {:remote => remote}

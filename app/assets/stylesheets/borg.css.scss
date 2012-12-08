@@ -1,0 +1,141 @@
+#navigation {
+	.navbar {
+		margin-bottom: 0;
+	}
+}
+
+#maincontent {
+	.container-fluid {
+		padding: 0px;
+		margin: 0px;
+	}
+}
+
+
+
+.navbar-search input.search-query {
+	background-color: #626262;
+	color: #ccc;
+  &:hover, &:focus, &.focused {
+    background-color: white;
+    color: black;
+  }
+}
+
+.navbar-search .input-prepend .add-on, .navbar-search .input-append .add-on {
+	color: #fff;
+	background-color: #626262;
+}
+
+.nowrap {
+	white-space: nowrap;
+}
+
+td.movie {
+	width: 60%;
+}
+
+td.index {
+	width: 1%;
+}
+
+td.cover {
+	width: 13%;
+}
+
+td.fanart {
+	width: 33%;
+}
+
+
+
+.modal.fade.in {
+	top: 35%;
+  left: 25%;
+  width: 80%;
+	height: 75%;
+	.modal-header, .modal-body {
+		height: 95%;
+		max-height: 95%;
+	}
+}
+
+.moviecover {
+	background-color: black;
+}
+
+.fanartbackground {
+	position: absolute; 
+	z-index: -999999;
+	height: 100%;
+	width: 100%;
+	.fanart {
+		height: 100%;
+		width: 100%;
+	}
+}
+
+.movieoverview {
+	margin: 0;
+	color: white;
+	.head {
+		padding-top: 30px;
+		border-bottom: 2px solid white;	
+	}
+	.localtitle, .year, .originaltitle, .plotcontent {
+		padding: 4px;
+		display: inline-block;
+		background: black;
+	}
+	.moviecover {
+		display: inline-block;
+	}
+}
+
+
+
+.modal-header {
+	border-bottom: 0px;	
+}
+
+.accordion-inner {
+	overflow: hidden;
+}
+
+img.spinner {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	width: 32px;
+}
+
+ul, ol {
+  padding: 0;
+  margin: 0px;
+}
+
+ul.movie {
+  margin-left: 2em;
+  text-indent: -0.6em;
+	li {
+		display: block;
+	}
+}
+
+
+ul.files {
+	display: inline;
+	margin-left: 0em;
+	text-indent: 0em;
+	li {
+		display: inline-block;
+	}
+}
+
+
+img.remote {
+	border-style: dashed;
+	border-width: 1px;
+	border-color: white;
+}
+

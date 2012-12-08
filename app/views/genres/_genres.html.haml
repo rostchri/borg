@@ -1,0 +1,3 @@
+- unless genres.nil? || genres.empty?
+	- genres.each do |genre|
+		= render(:partial =>"genres/genre", :object => genre)

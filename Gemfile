@@ -1,0 +1,61 @@
+source 'https://rubygems.org'
+
+gem 'rails', '3.2.8'
+
+# Bundle edge Rails instead:
+# gem 'rails', :git => 'git://github.com/rails/rails.git'
+
+gem 'sqlite3'
+gem 'mysql2'
+gem "inherited_resources"
+gem 'kaminari'
+gem "haml"
+gem "has_scope"
+gem "responders"
+
+gem 'rails_bootstrap_navbar' # navbar-menu
+
+# bootstrap
+#gem 'bootstrap-sass', git: 'https://github.com/thomas-mcdonald/bootstrap-sass', branch: '2.1-wip'
+# kickstrap
+#gem 'kickstrap_rails', :git => 'https://github.com/tonic20/kickstrap_rails.git'
+
+#gem 'tablegrid', :git => 'https://github.com/rostchri/tablegrid.git'
+#gem 'railstrap', :git => 'https://github.com/rostchri/railstrap.git'
+gem 'tablegrid', :path => '~/bo/programming/github/tablegrid'
+gem 'railstrap', :path => '~/bo/programming/github/railstrap'
+
+# kickstrap - really no longer needed?
+gem 'less-rails' # kickstrap_rails needs this. deps are missing in kickstrap_rails. see environment.rb too
+gem 'therubyracer', :platform => :ruby
+
+
+
+# Gems used only for assets and not required
+# in production environments by default.
+group :assets do
+  gem 'sass-rails',   '~> 3.2.3'
+  gem 'coffee-rails', '~> 3.2.1'
+
+  # See https://github.com/sstephenson/execjs#readme for more supported runtimes
+  # gem 'therubyracer', :platforms => :ruby
+
+  gem 'uglifier', '>= 1.0.3'
+end
+
+gem 'jquery-rails'
+
+# To use ActiveModel has_secure_password
+# gem 'bcrypt-ruby', '~> 3.0.0'
+
+# To use Jbuilder templates for JSON
+# gem 'jbuilder'
+
+# Use unicorn as the app server
+# gem 'unicorn'
+
+# Deploy with Capistrano
+# gem 'capistrano'
+
+# To use debugger
+# gem 'debugger'

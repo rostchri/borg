@@ -1,0 +1,2 @@
+- content = escape_javascript(render :file => "genres/groups", :collection => collection)
+= preserve "$('.accordion-body#collapsible_item-#{params[:collapsible_item]} > .accordion-inner').html('#{content}');"

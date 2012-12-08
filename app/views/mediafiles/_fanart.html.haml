@@ -1,0 +1,28 @@
+- animate  |= false
+- cssclass ||= "fanart"
+
+%div{:class => cssclass, :id => "fanart_#{mediafile.id}"}
+	- unless  mediafile.fanart_thumbnail.nil?
+		= image_tag(url_for(:controller => :mediafiles, :action => :fanart_thumbnail, :hash => mediafile.fanart_thumbnail), :class=>"fanart local")
+	- else
+		= image_tag(mediafile.movie.fanart.first, :class=>"fanart remote") unless mediafile.movie.fanart.empty?
+
+	- if animate
+		- mediafile.movie.fanart.each do |image|
+			= image_tag(image, :class=>"fanart remote", :style => "display: none;")
+
+- if animate
+	:javascript
+		$(document).ready(function() {
+			$('#fanart_#{mediafile.id}').imagesLoaded( function( $images, $proper, $broken ) {
+				console.log($(this).attr('id') + ': ' + $proper.length + '/' + $images.length + ' images total have been properly loaded (' + $broken.length + ' broken images)');
+				$(this).cycle({
+			 		fx: 'blindX,blindY,blindZ,cover,curtainX,curtainY,fade,fadeZoom,growX,growY,scrollUp,scrollDown,scrollLeft,scrollRight,scrollHorz,scrollVert,shuffle,slideX,slideY,toss,turnUp,turnDown,turnLeft,turnRight,uncover,wipe,zoom',
+					speed: 1000,
+					random: 1,
+					timeout: 10000,
+					randomizeEffects: 1,
+			 	});
+			});
+		});
+

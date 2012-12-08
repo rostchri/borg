@@ -1,0 +1,3 @@
+- unless mediasetting.nil?
+	- Mediasetting.attribute_names.select{|col| col != "idFile"}.each  do |col|
+		= "#{col}: #{mediasetting.send(col.to_sym)}"

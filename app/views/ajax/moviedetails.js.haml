@@ -1,0 +1,2 @@
+- content = escape_javascript(render "movies/details", :movie => @movie) unless @movie.nil?
+= preserve "$('##{params['md']}>.modal-header>.modal-body').html('#{content}');"
