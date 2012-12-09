@@ -12,7 +12,7 @@ module Scraper
       @days    = {}
       @timeout = 30
       @mech    = Mechanize.new do |agent| 
-        agent.log = Logger.new('/tmp/mechanize.log')
+        #agent.log = Logger.new('/tmp/mechanize.log')
         agent.user_agent_alias = 'Windows IE 9'
         agent.open_timeout = 30
         agent.read_timeout = 30
@@ -24,7 +24,7 @@ module Scraper
       end
       
       @ajaxmech = Mechanize.new do |agent| 
-        agent.log = Logger.new('/tmp/ajaxmechanize.log')
+        #agent.log = Logger.new('/tmp/ajaxmechanize.log')
         agent.user_agent_alias = 'Windows IE 9'
         agent.open_timeout = 3 
         agent.read_timeout = 4
