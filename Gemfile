@@ -25,7 +25,7 @@ gem "haml"
 gem "has_scope"
 gem "responders"
 gem 'rails_bootstrap_navbar' # navbar-menu
-
+gem 'mechanize'
 gem 'formtastic', :git => 'git://github.com/justinfrench/formtastic.git', :branch => '2.1-stable', :require => 'formtastic'
 gem 'formtastic-bootstrap', :git => 'git://github.com/cgunther/formtastic-bootstrap.git', :branch => 'bootstrap2-rails3-2-formtastic-2-1', :require => 'formtastic-bootstrap'
 
