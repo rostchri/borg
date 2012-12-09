@@ -172,7 +172,7 @@ module Scraper
         end
       end
     end      
-    
+    nil
   end
   
     
