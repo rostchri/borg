@@ -175,10 +175,10 @@ module Scraper
   end
   
   
-  def self.torrentupdate
+  def self.torrentupdate(pastdays=0)
     torrentsource = TorrentSource.new
     torrentsource.mainindex
-    torrentsource.dayindex(4)
+    torrentsource.dayindex(pastdays)
   end
   
     
