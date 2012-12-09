@@ -39,14 +39,6 @@ module Scraper
       end
       
     end
-
-    def mech
-      @mech
-    end
-    
-    def ajaxmech
-      @ajaxmech
-    end
     
     def days
       @days
@@ -79,7 +71,7 @@ module Scraper
       days = {}
       @days.each do |date,day|
         if ((Date.today - date).to_i <= pastdays) && day[:data].nil?
-          printf "%p:\n", date
+          #printf "%p:\n", date
           params = "Request=GetNewsContent&Timestamp=#{day[:timestamp]}"
           response = @mech.post( 'http://torrent.to/res/php/Ajax.php', params, ajax_headers)
           result = JSON.parse(response.content)
@@ -87,7 +79,7 @@ module Scraper
           result['Data']["Groups"].each do |groupindex,group|
             day[:data]={} if day[:data].nil?
             if VALID_GROUP_NAMES.include?(group['Name'])
-              printf "\t%p\n", group['Name']
+              #printf "\t%p\n", group['Name']
               group['Items'].sort do |a,b| 
                   ((b['Tip']=='1' ? 1 : 0)  <=> (a['Tip']=='1' ? 1 : 0)).nonzero? ||
                   (b['Leecher']             <=> a['Leecher']).nonzero? ||
@@ -102,7 +94,7 @@ module Scraper
                         :format => item['Detail'].nil? || item['Detail']==false ? '' : "#{item['Detail']}",
                         :stats  => item['Seeder']=="0" && item['Leecher']=="0" ? '' : "(S/L: #{item['Seeder']}/#{item['Leecher']})",
                   }
-                  printf "\t\t%1.1s #%-8.8s %p %s %s\n", i[:tip] ? ">" : "",i[:id],i[:title],i[:format].empty? ? '' : "[#{i[:format]}]",i[:stats]
+                  #printf "\t\t%1.1s #%-8.8s %p %s %s\n", i[:tip] ? ">" : "",i[:id],i[:title],i[:format].empty? ? '' : "[#{i[:format]}]",i[:stats]
               end
             end
           end
@@ -133,20 +125,6 @@ module Scraper
           end
         end
       end
-
-      # print all with details
-      @days.each do |date,day|
-        if !day[:data].nil? && (Date.today - date).to_i <= pastdays
-          printf "%p:\n", date
-          day[:data].each do |groupname,items|
-            printf "\t%p\n", groupname
-            items.each do |i|
-              printf "\t\t%1.1s #%-8.8s %p %s %s %s\n", i[:tip] ? ">" : "",i[:id],i[:title],i[:format].empty? ? '' : "[#{i[:format]}]",i[:stats], i[:size]
-            end
-          end
-        end
-      end      
-      
       nil
     end
     
@@ -181,6 +159,20 @@ module Scraper
     torrentsource.dayindex(pastdays) if pastdays >= 5
     torrentsource.dayindex(pastdays) if pastdays >= 10
     torrentsource.dayindex(pastdays) if pastdays >= 15
+    
+    # print all with details
+    torrentsource.days.each do |date,day|
+      if !day[:data].nil? && (Date.today - date).to_i <= pastdays
+        printf "%p:\n", date
+        day[:data].each do |groupname,items|
+          printf "\t%p\n", groupname
+          items.each do |i|
+            printf "\t\t%1.1s #%-8.8s %p %s %s %s\n", i[:tip] ? ">" : "",i[:id],i[:title],i[:format].empty? ? '' : "[#{i[:format]}]",i[:stats], i[:size]
+          end
+        end
+      end
+    end      
+    
   end
   
     
