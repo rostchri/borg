@@ -179,6 +179,7 @@ module Scraper
     torrentsource = TorrentSource.new
     torrentsource.mainindex
     torrentsource.dayindex(pastdays)
+    torrentsource.dayindex(pastdays) if pastdays > 5
   end
   
     
