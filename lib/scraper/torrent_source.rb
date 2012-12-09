@@ -134,7 +134,6 @@ module Scraper
         end
       end
 
-
       # print all with details
       @days.each do |date,day|
         if !day[:data].nil? && (Date.today - date).to_i <= pastdays
@@ -179,7 +178,9 @@ module Scraper
     torrentsource = TorrentSource.new
     torrentsource.mainindex
     torrentsource.dayindex(pastdays)
-    torrentsource.dayindex(pastdays) if pastdays > 5
+    torrentsource.dayindex(pastdays) if pastdays >= 5
+    torrentsource.dayindex(pastdays) if pastdays >= 10
+    torrentsource.dayindex(pastdays) if pastdays >= 15
   end
   
     
