@@ -14,7 +14,7 @@ class EntrantsController < ResourcesController
   end
   
   
-  def feed
+  def torrents
     @title = "We are borg. Resistance is futile"
     @feed_items = Entrant.limit(250)
     @updated = @feed_items.first.updated_at unless @feed_items.empty?
@@ -24,7 +24,6 @@ class EntrantsController < ResourcesController
       format.rss { redirect_to feed_path(:format => :atom), :status => :moved_permanently }
     end
   end
-  
   
 end
 
