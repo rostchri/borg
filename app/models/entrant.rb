@@ -4,5 +4,5 @@ class Entrant < ActiveRecord::Base
   serialize :other, Hash
   attr_accessible :title, :srcid, :other, :date, :category, :srcurl, :thumbnail
   validates_presence_of :srcid
-  has_attached_file :thumbnail, :storage => :s3, :s3_credentials => S3_SETTINGS, :url  => ":s3_eu_url", :path => ":class/:id/:basename_:style.:extension"
+  has_attached_file :thumbnail, :storage => :s3, :s3_credentials => S3_SETTINGS, :url  => ":s3_eu_url", :path => "#{Rails.env}/:class/:id/:basename_:style.:extension"
 end
