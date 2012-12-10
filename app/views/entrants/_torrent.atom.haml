@@ -1,8 +1,10 @@
 - other = object.other
 
-%ul{:class => "entrant_other icons"}
+%ul{:class => "entrant_other icons", :style => "list-style-type: none;"}
+	- if object.thumbnail.exists?
+		%li= image_tag(object.thumbnail.url)
 
-	%li{:class => "icon-calendar"}
+	%li{:class => "icon-calendar", :style => "list-style-type: none;"}
 		= l object.date, :format => :short_with_day
 
 	- unless object.category.nil? || object.category.empty?
