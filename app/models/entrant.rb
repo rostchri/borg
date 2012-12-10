@@ -1,6 +1,6 @@
 class Entrant < ActiveRecord::Base
   paginates_per 10
-  default_scope order(:date,:category,:title)
+  default_scope order("date DESC", :category, :title)
   
   scope :by_category, ->(categories) {{:conditions =>["category in (?)",categories]}}
   scope :by_date,     ->(dates)      {{:conditions =>["date in (?)",dates]}}
