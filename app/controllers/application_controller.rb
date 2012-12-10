@@ -1,6 +1,6 @@
 class ApplicationController < ActionController::Base
   protect_from_forgery
-  before_filter :require_user, :exclude => [:torrents] # always require login to access any content at this site
+  before_filter :require_user, :except => [:torrents] # always require login to access any content at this site
   layout :resolve_layout
   helper_method :current_user_session, :current_user, :controller?, :action?, :scope?
     
