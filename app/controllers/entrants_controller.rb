@@ -15,7 +15,7 @@ class EntrantsController < ResourcesController
   
   
   def torrents
-    @title = "We are borg. Resistance is futile"
+    @title = "Borg - Root of all content"
     @feed_items = Entrant.limit(250)
     @updated = @feed_items.first.updated_at unless @feed_items.empty?
     respond_to do |format|
