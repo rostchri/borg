@@ -19,6 +19,8 @@ Borg::Application.routes.draw do
       get "overview"
     end
   end
+  
+  match '/news' => 'entrants#feed', :as => :feed, :defaults => { :format => 'atom' }
 
   resources :mediapath do
     get 'page/:page', :action => :index, :on => :collection
