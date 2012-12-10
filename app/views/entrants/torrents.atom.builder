@@ -8,7 +8,15 @@ atom_feed :language => 'de-de' do |feed|
     feed.entry(item,:url => entrant_url(item)) do |entry|
       entry.url entrant_url(item)
       entry.title item.title
-      entry.content render("entrants/torrent", :object => item), :type => 'html'
+      #render("entrants/torrent", :object => item)
+      entry.summary :type => 'xhtml' do |xhtml|
+        xhtml.ul do
+          xhtml.li do
+            xhtml.img :src => item.thumbnail.url
+          end
+          xhtml.li item.title
+        end
+      end
 
       # the strftime is needed to work with Google Reader.
       entry.updated(item.updated_at.strftime("%Y-%m-%dT%H:%M:%SZ")) 
