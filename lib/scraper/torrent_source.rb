@@ -3,41 +3,21 @@ require 'mechanize'
 # http://sixserv.org/2009/05/27/webscripting-mit-ruby-und-mechanize/
 
 module Scraper
-  
-  
   class TorrentSource
-    VALID_GROUP_NAMES = ["Filme", "TV - Serien", "TV - Shows", "TV - Dokus", "Bücher - eBooks", "Bücher - Hörspiele und Hörbücher"]
-        
+    VALID_GROUP_NAMES = ENV['TORRENT_SOURCE_GRPS'].split("|")
     def initialize
       @days    = {}
       @timeout = 30
       @mech    = Mechanize.new do |agent| 
-        #agent.log = Logger.new('/tmp/mechanize.log')
+        # agent.log = Logger.new('/tmp/mechanize.log')
         agent.user_agent_alias = 'Windows IE 9'
         agent.open_timeout = 30
         agent.read_timeout = 30
         # agent.pre_connect_hooks << lambda do |agent,params|
-        #   # printf "%p\n", agent
-        #   # printf "%p\n", params
-        #   #params[:request]['Referer'] = 'http://torrent.to/torrent.php'
+        #    params[:request]['X-Requested-With'] = 'XMLHttpRequest'
+        #    params[:request]['Accept-Language'] = 'de-de'
         # end
       end
-      
-      @ajaxmech = Mechanize.new do |agent| 
-        #agent.log = Logger.new('/tmp/ajaxmechanize.log')
-        agent.user_agent_alias = 'Windows IE 9'
-        agent.open_timeout = 3 
-        agent.read_timeout = 4
-        agent.keep_alive = false # default ist true
-        
-        agent.pre_connect_hooks << lambda do |params|
-          params[:request]['X-Requested-With'] = 'XMLHttpRequest'
-          # params[:request]['Accept-Language'] = 'de-de'
-          printf "%p\n", agent
-          printf "%p\n", params
-        end
-      end
-      
     end
     
     def days
@@ -45,14 +25,14 @@ module Scraper
     end
 
     def detail(id)
-      printf "Fetching details %d\n", id
-      page = @mech.get "http://torrent.to/torrent.php", 
-                           {'Mod' => 'Details', 'ID' => id}, 
-                           'http://torrent.to/torrent.php',
-                           {'Accept-Language' => 'de-de'}
+      #printf "Fetching details %d\n", id
+      page = @mech.get ENV['TORRENT_SOURCE_MAIN'], 
+                       {'Mod' => 'Details', 'ID' => id}, 
+                       ENV['TORRENT_SOURCE_MAIN'],
+                       {'Accept-Language' => 'de-de'}
       res = {}
       res[:title]       = page.at("//div[@id='Mainframe']/descendant::div[@class='Headline']/table").content
-      res[:thumbnail]   = "http://torrent.to/" + page.at("//div[@id='Mainframe']/descendant::div[@id='MainDet']/descendant::img[@class='Thumbnail']").attributes['src'].value
+      res[:thumbnail]   = page.at("//div[@id='Mainframe']/descendant::div[@id='MainDet']/descendant::img[@class='Thumbnail']").attributes['src'].value
       res[:description] = page.at("//div[@id='Mainframe']/descendant::div[@id='MainDet']/descendant::div[@class='TDe_Descr']").content
       res[:size]        = page.at("//div[@id='Mainframe']/descendant::div[@class='Size Torrents']").content
       res[:magnetlink]  = page.search("//div[@id='Mainframe']/descendant::div[@class='Get Torrents']/a").select{|l| l.content=="Magnet"}.first.attributes['href'].value
@@ -61,8 +41,8 @@ module Scraper
     end
 
     def dayindex(pastdays=0)
-      ajax_headers = { 'Origin' => 'http://torrent.to',
-                       'Referer' => 'http://torrent.to/torrent.php',
+      ajax_headers = { 'Origin'  => ENV['TORRENT_SOURCE_HOST'],
+                       'Referer' => ENV['TORRENT_SOURCE_MAIN'],
                        'Accept-Language' => 'de-de',
                        'Accept-Encoding' => 'gzip, deflate',
                        'X-Requested-With' => 'XMLHttpRequest', 
@@ -73,7 +53,7 @@ module Scraper
         if ((Date.today - date).to_i <= pastdays) && day[:data].nil?
           #printf "%p:\n", date
           params = "Request=GetNewsContent&Timestamp=#{day[:timestamp]}"
-          response = @mech.post( 'http://torrent.to/res/php/Ajax.php', params, ajax_headers)
+          response = @mech.post(ENV['TORRENT_SOURCE_AJAX'], params, ajax_headers)
           result = JSON.parse(response.content)
           result['Days'].each { |timestamp,date| days[Date.strptime(date,'%d.%m.%Y')] = timestamp.to_i}
           result['Data']["Groups"].each do |groupindex,group|
@@ -104,7 +84,7 @@ module Scraper
       days.each do |date,timestamp|
         if @days[date].nil?
           @days[date] = {:timestamp => timestamp} 
-          printf "Timestamp for %p (%p) added\n", date, timestamp
+          #printf "Timestamp for %p (%p) added\n", date, timestamp
         end
       end
       
@@ -112,14 +92,18 @@ module Scraper
       @days.each do |date,day|
         if !day[:data].nil? && (Date.today - date).to_i <= pastdays
           day[:data].each do |groupname,items|
-            printf "Fetching details for %p %p\n", date, groupname
+            #printf "Fetching details for %p %p\n", date, groupname
             items.each do |item|
               if Torrent.find_by_srcid(item[:id]).nil?
                 item.merge!(detail(item[:id]))
-                Torrent.create :title => item[:title], 
-                               :srcid => item[:id],
-                               :timestamp => date,
-                               :detail => item.clone.delete_if {|key, value| [:title,:id,].include?(key) }
+                Torrent.create :title     => item[:title], 
+                               :srcid     => item[:id],
+                               :srcurl    => "#{ENV['TORRENT_SOURCE_MAIN']}?Mod=Details&ID=#{item[:id]}",
+                               :thumbnail => URI.parse("#{ENV['TORRENT_SOURCE_HOST']}/#{item[:thumbnail]}"),
+                               :date      => date,
+                               :category  => groupname,
+                               :other     => item.clone.delete_if {|key, value| [:title,:id].include?(key) }
+                               
               end
             end
           end
@@ -131,7 +115,7 @@ module Scraper
     def mainindex
       begin
         Timeout::timeout(@timeout) do
-          page = @mech.get('http://torrent.to/torrent.php')
+          page = @mech.get(ENV['TORRENT_SOURCE_MAIN'])
           # loop over all AJ_Request-Links
           page.search("//*[@*[contains(., 'AJ_Request')]]").each do |ajaxlink| 
             unless ajaxlink.attributes['onclick'].nil?
@@ -139,7 +123,7 @@ module Scraper
                 date = Date.strptime(ajaxlink.content,'%d.%m.%Y')
                 if @days[date].nil?
                   @days[date] = {:timestamp => $1.to_i}
-                  printf "Timestamp for %p (%d) added\n", date, $1.to_i
+                  #printf "Timestamp for %p (%d) added\n", date, $1.to_i
                 end
               end
             end
@@ -159,8 +143,7 @@ module Scraper
     torrentsource.dayindex(pastdays) if pastdays >= 5
     torrentsource.dayindex(pastdays) if pastdays >= 10
     torrentsource.dayindex(pastdays) if pastdays >= 15
-    
-    # print all with details
+    # output
     torrentsource.days.each do |date,day|
       if !day[:data].nil? && (Date.today - date).to_i <= pastdays
         printf "%p:\n", date
