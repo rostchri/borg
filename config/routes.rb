@@ -12,6 +12,13 @@ Borg::Application.routes.draw do
       get "fanart_thumbnail"
     end
   end
+  
+  resources :entrants do
+    get 'page/:page', :action => :index, :on => :collection
+    collection do
+      get "overview"
+    end
+  end
 
   resources :mediapath do
     get 'page/:page', :action => :index, :on => :collection

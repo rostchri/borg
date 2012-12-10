@@ -10,6 +10,12 @@ de:
   lastpage: Letzte Seite
   actions: Aktion
   
+  date:
+    # Zeit-Formate
+    formats:
+      short: "%d.%m.%Y"
+      short_with_time: "%d.%m.%Y %H:%M"
+      short_with_day: "%A, %d.%m.%Y"
   
   User:
     show: "Über diesen Benutzer"
@@ -121,6 +127,13 @@ de:
       genre:
         movies: Filme
         name: Genre
+      entrant:
+        srcurl: Quelle
+        category: Kategorie
+        title: Name
+        thumbnail: Bild
+        date: Datum
+        other: Weiteres
       movie:
         movie: Film
         index: "#"

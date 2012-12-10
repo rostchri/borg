@@ -1,0 +1,2 @@
+- content = escape_javascript(entrants_grid(collection,paginate(collection,:remote => true)))
+= preserve "$('.accordion-body#collapsible_item-#{params[:collapsible_item]} > .accordion-inner').html('#{content}');"

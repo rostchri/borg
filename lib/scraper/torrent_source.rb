@@ -36,7 +36,7 @@ module Scraper
       res[:description] = page.at("//div[@id='Mainframe']/descendant::div[@id='MainDet']/descendant::div[@class='TDe_Descr']").content
       res[:size]        = page.at("//div[@id='Mainframe']/descendant::div[@class='Size Torrents']").content
       res[:magnetlink]  = page.search("//div[@id='Mainframe']/descendant::div[@class='Get Torrents']/a").select{|l| l.content=="Magnet"}.first.attributes['href'].value
-      res[:comments]    = page.search("//div[@id='Mainframe']/descendant::div[@id='Comments']/div[@class='Comment']").map{|c| c.at("div[@class~='User']").content + c.at("div[@class~='UserComment']").content }
+      res[:comments]    = page.search("//div[@id='Mainframe']/descendant::div[@id='Comments']/div[@class='Comment']").map{|c| c.at("div[@class~='User']").content + " " + c.at("div[@class~='UserComment']").content }
       res
     end
 

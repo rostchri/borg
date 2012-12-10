@@ -1,0 +1,8 @@
+= collapsible_group :connected => true, :show => false do |maingroup|
+	- @current_objects.each do |date,counter|
+		= maingroup.item :title => "#{I18n.l(date, :format => :short_with_day)} (#{counter[:all]})" do |item|
+			- item.set :body do
+				= collapsible_group :connected => true, :show => false do |subgroup|
+					- counter.clone.delete_if{|k,v| k==:all}.each do |key,counter|
+						= subgroup.item :title => "#{key.to_s} (#{counter})", :body => ajax_spinner_image do |subitem|
+							- subitem.set :ajaxurl => entrants_path(:by_date => [date], :by_category => [key.to_s], :collapsible_item => subitem.id)
