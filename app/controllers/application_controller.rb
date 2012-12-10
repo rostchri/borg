@@ -1,6 +1,7 @@
 class ApplicationController < ActionController::Base
   protect_from_forgery
-  before_filter :require_user#, :except => [:torrents] # always require login to access any content at this site
+  before_filter :require_user,           :except => [:torrents] # always require login to access any content at this site
+  before_filter :require_http_auth_user, :only   => [:torrents] # http_auth for atom-feed
   layout :resolve_layout
   helper_method :current_user_session, :current_user, :controller?, :action?, :scope?
     
@@ -27,7 +28,20 @@ class ApplicationController < ActionController::Base
       @current_user_session = UserSession.find
     end
 
-
+    def require_http_auth_user
+      if current_user_session.nil?
+        authenticate_or_request_with_http_basic do |username, password|
+          if user = User.find_by_login(username) 
+            user.valid_password?(password)
+          else
+            false
+          end
+        end
+      else
+        true
+      end
+    end
+    
     def require_user
       unless current_user
         store_location
