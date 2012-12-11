@@ -27,6 +27,13 @@ GIT
       railties (>= 3.0.0)
 
 GIT
+  remote: https://github.com/rostchri/rubyrep.git
+  revision: aa334b84297d1178dde78c946f2c934be14ed33e
+  branch: develop
+  specs:
+    rubyrep (1.1.2d)
+
+GIT
   remote: https://github.com/rostchri/tablegrid.git
   revision: 59569026eb24144d9cf843fa1d08b168fc962f53
   specs:
@@ -132,6 +139,7 @@ GEM
     mime-types (1.19)
     multi_json (1.3.6)
     multi_xml (0.5.1)
+    mysql (2.8.1)
     mysql2 (0.3.11)
     net-http-digest_auth (1.2.1)
     net-http-persistent (2.8)
@@ -217,12 +225,14 @@ DEPENDENCIES
   kaminari
   less-rails
   mechanize
+  mysql (= 2.8.1)
   mysql2
   paperclip (~> 3.0)
   rails (= 3.2.8)
   rails_bootstrap_navbar
   railstrap!
   responders
+  rubyrep (= 1.1.2d)!
   sass-rails (~> 3.2.3)
   sqlite3
   tablegrid!
