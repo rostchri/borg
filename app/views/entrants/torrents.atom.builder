@@ -22,33 +22,46 @@ atom_feed :language => 'de-de' do |feed|
       #entry.summary "BLABLA"
     			
       entry.content :type => 'xhtml' do |xhtml|
-        xhtml.table do
+        xhtml.table :border => "1", :width => "100%;", :style => "width: 100%;" do
           xhtml.tr do
-            xhtml.td do
-              xhtml.p item.category
-              xhtml.p item.other[:stats]
-              xhtml.p item.other[:format]
-              xhtml.p item.other[:size]
+            xhtml.td :rowspan => 2, :valign => "top", :align => "left" do
+              xhtml.img :src => item.thumbnail.url
+            end
+            xhtml.td :valign => "top" do
               xhtml.a  :href => item.other[:magnetlink] do
-                xhtml.p item.other[:magnetlink]
+                xhtml.p "Magnet-Link"
               end
             end
-            
-            xhtml.td  :valign => "top" do
-              xhtml.img :src => item.thumbnail.url
+            xhtml.td :valign => "top" do
+              xhtml.p item.other[:size] unless item.other[:size].empty?
+            end
+            xhtml.td :valign => "top" do
+              xhtml.p item.category 
+            end
+            xhtml.td :valign => "top" do
+              xhtml.p item.other[:format] unless item.other[:format].empty?
+            end
+            xhtml.td :valign => "top" do
+              xhtml.p item.other[:stats] unless item.other[:stats].empty?
+            end
+          end
+
+          xhtml.tr do
+            xhtml.td :colspan => 5, :valign => "top"  do
+              xhtml.p "..."
             end
           end
           
           xhtml.tr do
-            xhtml.td :colspan => 2 do
-              xhtml.blockquote item.other[:description]
+            xhtml.td :colspan => 6 do
+              xhtml.p item.other[:description], :style => "text-align:justify"
             end
           end
           
           item.other[:comments].each do |comment|
             xhtml.tr do
-              xhtml.td :colspan => 2 do
-                xhtml.p comment
+              xhtml.td :colspan => 6 do
+                xhtml.blockquote comment
               end
             end
           end
