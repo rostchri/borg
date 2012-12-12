@@ -29,6 +29,14 @@
 		%li{:class => "icon-hdd"}
 			= other[:size]
 			
+	- other[:details].each do |key,value|
+		%li{:class => "icon-book"}
+			= "#{key} #{value}"
+
+
+
+
+			
 	- unless other[:description].nil? ||  other[:description].empty?
 		%li{:class => "icon-book"}
 			= other[:description]
