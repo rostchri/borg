@@ -48,14 +48,14 @@ atom_feed :language => 'de-de' do |feed|
           end
           
           xhtml.tr do
-            xhtml.td :colspan => 4 do
+            xhtml.td :colspan => 8 do
               xhtml.p item.other[:description], :style => "text-align:justify"
             end
           end
           
           item.other[:comments].each do |comment|
             xhtml.tr do
-              xhtml.td :colspan => 4 do
+              xhtml.td :colspan => 8 do
                 xhtml.blockquote comment
               end
             end
