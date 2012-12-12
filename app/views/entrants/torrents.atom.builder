@@ -24,45 +24,38 @@ atom_feed :language => 'de-de' do |feed|
       entry.content :type => 'xhtml' do |xhtml|
         xhtml.table :border => "1", :width => "100%;", :style => "width: 100%;" do
           xhtml.tr do
-            xhtml.td :rowspan => 2, :valign => "top", :align => "left" do
+            xhtml.td :rowspan => 1, :valign => "top", :align => "left" do
               xhtml.img :src => item.thumbnail.url
             end
-            xhtml.td :valign => "top" do
-              xhtml.a  :href => item.other[:magnetlink] do
-                xhtml.p "Magnet-Link"
-              end
-            end
-            xhtml.td :valign => "top" do
-              xhtml.p item.other[:size] unless item.other[:size].empty?
-            end
-            xhtml.td :valign => "top" do
-              xhtml.p item.category 
-            end
-            xhtml.td :valign => "top" do
-              xhtml.p item.other[:format] unless item.other[:format].empty?
-            end
-            xhtml.td :valign => "top" do
-              xhtml.p item.other[:stats] unless item.other[:stats].empty?
-            end
-          end
-
-          xhtml.tr do
-            xhtml.td :colspan => 5, :valign => "top"  do
-              item.other[:details].each do |k,v|
-                xhtml.li "#{k} #{v}"
+            item.other[:details].each_slice(3).map{|i| i.map{|j| {j[0].to_s =>"#{j[1]}"}}}.each_with_index do |column,columnindex| 
+              xhtml.td :valign => "top"  do
+                if columnindex == 0
+                  xhtml.a  :href => item.other[:magnetlink] do
+                    xhtml.span "Magnet-Link"
+                  end
+                  xhtml.span item.other[:stats] unless item.other[:stats].empty?
+                  xhtml.div item.other[:size] unless item.other[:size].empty?
+                  xhtml.span item.category 
+                  xhtml.span item.other[:format]
+                end
+                column.each do |detail|
+                  detail.each do |key,value|
+                    xhtml.div "#{key} #{value}"
+                  end
+                end
               end
             end
           end
           
           xhtml.tr do
-            xhtml.td :colspan => 6 do
+            xhtml.td :colspan => 4 do
               xhtml.p item.other[:description], :style => "text-align:justify"
             end
           end
           
           item.other[:comments].each do |comment|
             xhtml.tr do
-              xhtml.td :colspan => 6 do
+              xhtml.td :colspan => 4 do
                 xhtml.blockquote comment
               end
             end
