@@ -5,6 +5,6 @@
 desc "This task is called by the Heroku scheduler add-on"
 
 task :update_entrants => :environment do
-  Scraper::torrentupdate
+  Scraper::torrentupdate(1)
   puts "done."
 end
