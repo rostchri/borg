@@ -48,7 +48,9 @@ atom_feed :language => 'de-de' do |feed|
 
           xhtml.tr do
             xhtml.td :colspan => 5, :valign => "top"  do
-              xhtml.p "..."
+              item.other[:details].each do |k,v|
+                xhtml.li "#{k} #{v}"
+              end
             end
           end
           

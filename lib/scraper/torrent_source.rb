@@ -35,6 +35,7 @@ module Scraper
       res[:thumbnail]   = page.at("//div[@id='Mainframe']/descendant::div[@id='MainDet']/descendant::img[@class='Thumbnail']").attributes['src'].value
       res[:description] = page.at("//div[@id='Mainframe']/descendant::div[@id='MainDet']/descendant::div[@class='TDe_Descr']").content
       res[:size]        = page.at("//div[@id='Mainframe']/descendant::div[@class='Size Torrents']").content
+      res[:details]     = page.search("//div[@id='Mainframe']/descendant::table[@class='GroupTable']//descendant::tr").inject({}){|r,i| l=i.at("td[@class='Label']"); l=(l.nil? ? "" : l.content); v=i.at("td[@class='Value']"); v=(v.nil? ? '' : v.content);  r[l.to_sym]=v unless v.empty? || ["Trailer:","Sektion:","Format:"].include?(l); r }
       res[:magnetlink]  = page.search("//div[@id='Mainframe']/descendant::div[@class='Get Torrents']/a").select{|l| l.content=="Magnet"}.first.attributes['href'].value
       res[:comments]    = page.search("//div[@id='Mainframe']/descendant::div[@id='Comments']/div[@class='Comment']").map{|c| c.at("div[@class~='User']").content + " " + c.at("div[@class~='UserComment']").content }
       res
