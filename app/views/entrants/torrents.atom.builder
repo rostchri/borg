@@ -44,7 +44,7 @@ atom_feed :language => 'de-de' do |feed|
                   end
                 end
               end
-            end
+            end unless item.other[:details].nil?
           end
           
           xhtml.tr do
