@@ -3,9 +3,9 @@ atom_feed :language => 'de-de' do |feed|
   feed.subtitle "Root of all Content"
   feed.updated @updated
   
-  feed.logo image_tag("borg.gif")
-  feed.image image_tag("borg.gif")
-  feed.icon image_tag("borg.gif")
+  feed.logo "assets/borg.gif"
+  # feed.image image_tag("borg.gif")
+  # feed.icon image_tag("borg.gif")
   
 
   @feed_items.each do |item|
@@ -15,9 +15,14 @@ atom_feed :language => 'de-de' do |feed|
     feed.entry(item,:url => item.srcurl) do |entry|
       entry.url entrant_url(item)
       entry.title item.title
-      entry.logo image_tag("borg.gif")
-      entry.image image_tag("borg.gif")
-      entry.icon image_tag("borg.gif")
+      
+      
+      entry.icon "assets/borg.gif"      
+      entry.logo "assets/borg.gif"      
+      entry.image "assets/borg.gif"
+      # entry.logo image_tag("borg.gif")
+      # entry.image image_tag("borg.gif")
+      # entry.icon image_tag("borg.gif")
 
       #entry.summary "BLABLA"
     			

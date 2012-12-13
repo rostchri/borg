@@ -1,6 +1,10 @@
 - other = object.other
 
 %ul{:class => "entrant_other icons"}
+	= image_tag object.thumbnail.url, :style => "float: right;", :class => "img-rounded" if object.thumbnail.exists?
+
+	%li{:class => "icon-file"}
+		= object.title
 
 	%li{:class => "icon-calendar"}
 		= l object.date, :format => :short_with_day
