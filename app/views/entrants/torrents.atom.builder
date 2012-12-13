@@ -14,7 +14,6 @@ atom_feed :language => 'de-de' do |feed|
       entry.url entrant_url(item)
       entry.title item.title
       
-      
       entry.icon "assets/borg.gif"      
       entry.logo "assets/borg.gif"      
       entry.image "assets/borg.gif"
