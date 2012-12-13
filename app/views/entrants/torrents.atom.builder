@@ -6,13 +6,11 @@ atom_feed :language => 'de-de' do |feed|
   feed.logo "assets/borg.gif"
   # feed.image image_tag("borg.gif")
   # feed.icon image_tag("borg.gif")
-  
 
   @feed_items.each do |item|
     next if item.updated_at.blank?
-
     
-    feed.entry(item,:url => item.srcurl) do |entry|
+    feed.entry(item,:url => entrant_path(item)) do |entry|
       entry.url entrant_url(item)
       entry.title item.title
       
@@ -35,13 +33,18 @@ atom_feed :language => 'de-de' do |feed|
             item.other[:details].each_slice(3).map{|i| i.map{|j| {j[0].to_s =>"#{j[1]}"}}}.each_with_index do |column,columnindex| 
               xhtml.td :valign => "top"  do
                 if columnindex == 0
+                  xhtml.span item.category 
+                  xhtml.span item.other[:format]
+                  xhtml.br
+                  xhtml.span "Quelle:"
+                  xhtml.a  :href => item.srcurl do
+                    xhtml.span item.id
+                  end
+                  xhtml.span item.other[:stats] unless item.other[:stats].empty?
                   xhtml.a  :href => item.other[:magnetlink] do
                     xhtml.span "Magnet-Link"
                   end
-                  xhtml.span item.other[:stats] unless item.other[:stats].empty?
                   xhtml.div item.other[:size] unless item.other[:size].empty?
-                  xhtml.span item.category 
-                  xhtml.span item.other[:format]
                 end
                 column.each do |detail|
                   detail.each do |key,value|
