@@ -20,6 +20,7 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
           xml.cdata! item.category
         end
         description = []
+        description << "Beschreibung:"
         description << item.category
         description << item.other[:format] unless item.other[:format].empty?
         description << item.other[:details][:'IMDb Rating:'] unless item.other[:details].nil? || item.other[:details][:'IMDb Rating:'].nil?
