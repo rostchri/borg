@@ -14,10 +14,10 @@
 				- unless feeditem.other[:size].empty?
 					%li= feeditem.other[:size]
 				- unless feeditem.other[:details].nil?
-					- feeditem.other[:details].each do |detail|
+					- feeditem.other[:details].each do |key,value|
 						%li
-							- detail.each do |key,value|
-								= "#{key} #{value}"
+							%strong= key
+							= value
 	
 	- unless feeditem.other[:description].nil? || feeditem.other[:description].empty?
 		%tr
