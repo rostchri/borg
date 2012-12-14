@@ -1,6 +1,6 @@
 atom_feed :language => 'de-de' do |feed|
   feed.title @title
-  feed.subtitle "Root of all Content"
+  feed.subtitle @description
   feed.updated @updated
   
   feed.logo "assets/borg.gif"

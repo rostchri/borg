@@ -14,14 +14,16 @@ class EntrantsController < ResourcesController
   end
   
   
-  def torrents
-    @title = "Borg - Root of all content"
+  def feed
+    @title = "Borg"
+    @description = "Root of content"
     @feed_items = Entrant.limit(250)
     @updated = @feed_items.first.updated_at unless @feed_items.empty?
     respond_to do |format|
       format.atom { render :layout => false }
+      format.rss  { render :layout => false }
       # we want the RSS feed to redirect permanently to the ATOM feed
-      format.rss { redirect_to feed_path(:format => :atom), :status => :moved_permanently }
+      # format.rss { redirect_to feed_path(:format => :atom), :status => :moved_permanently }
     end
   end
   
