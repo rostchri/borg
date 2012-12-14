@@ -39,6 +39,7 @@ module Scraper
       res[:magnetlink]  = page.search("//div[@id='Mainframe']/descendant::div[@class='Get Torrents']/a").select{|l| l.content=="Magnet"}.first.attributes['href'].value
       res[:comments]    = page.search("//div[@id='Mainframe']/descendant::div[@id='Comments']/div[@class='Comment']").map{|c| c.at("div[@class~='User']").content + " " + c.at("div[@class~='UserComment']").content }
       res
+      page
     end
 
     def dayindex(pastdays=0)
@@ -73,7 +74,7 @@ module Scraper
                         :id     => item['ID'].to_i, 
                         :tip    => item['Tip']=='1', 
                         :format => item['Detail'].nil? || item['Detail']==false ? '' : "#{item['Detail']}",
-                        :stats  => item['Seeder']=="0" && item['Leecher']=="0" ? '' : "(S/L: #{item['Seeder']}/#{item['Leecher']})",
+                        :stats  => item['Seeder']=="0" && item['Leecher']=="0" ? '' : "S/L: #{item['Seeder']}/#{item['Leecher']}",
                   }
                   #printf "\t\t%1.1s #%-8.8s %p %s %s\n", i[:tip] ? ">" : "",i[:id],i[:title],i[:format].empty? ? '' : "[#{i[:format]}]",i[:stats]
               end

@@ -18,7 +18,7 @@ module EntrantsHelper
   def entrants_grid(objects,paginator=nil)
     options = { :row_layout     => entrant_cols,
                 :paginator      => paginator,
-                :clickable_path =>  lambda {|obj| entrant_path(obj)},
+                #:clickable_path =>  lambda {|obj| entrant_path(obj)},
                 :format_date    =>  lambda {|datetime| l datetime, :format => :short}
               }.merge(entrant_cell_format)
     table_grid(objects, options)

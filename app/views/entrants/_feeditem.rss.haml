@@ -1,31 +1,23 @@
-%table{:border => 1, :width => "100%;", :style => "width: 100%;"}
-	%tr
-		%td{:valign => "center", :align => "center"}
-			= image_tag feeditem.thumbnail.url
-		%td{:valign => "top"}
-			%ul
-				%li
-					= feeditem.category 
-					= feeditem.other[:format] unless feeditem.other[:format].empty?
-					= link_to "Quelle", feeditem.srcurl
-					- unless feeditem.other[:details].nil? || feeditem.other[:stats].empty?
-						= feeditem.other[:stats]
-					= link_to feeditem.other[:magnetlink], feeditem.other[:magnetlink]
-				- unless feeditem.other[:size].empty?
-					%li= feeditem.other[:size]
-				- unless feeditem.other[:details].nil?
-					- feeditem.other[:details].each do |key,value|
-						%li
-							%strong= key.to_s
-							= value
-	
-	- unless feeditem.other[:description].nil? || feeditem.other[:description].empty?
-		%tr
-			%td{:colspan => 2}
-				= feeditem.other[:description]
-			
-	- unless feeditem.other[:comments].nil? || feeditem.other[:comments].empty?
-		- feeditem.other[:comments].each do |comment|
+= image_tag item.thumbnail.url, :style => "float: right"
+%ul
+	%li
+		= item.category 
+		= item.other[:format] unless item.other[:format].empty?
+		= link_to "Quelle", item.srcurl
+		- unless item.other[:details].nil? || item.other[:stats].empty?
+			= item.other[:stats]
+		= link_to item.other[:magnetlink], item.other[:magnetlink]
+	- unless item.other[:size].empty?
+		%li= item.other[:size]
+	- unless item.other[:details].nil?
+		- item.other[:details].each do |key,value|
+			%li
+				%strong= key.to_s
+				= value
+	%li
+		= item.other[:description]
+	- unless item.other[:comments].nil? || item.other[:comments].empty?
+		- item.other[:comments].each do |comment|
 			%tr
 				%td{:colspan => 2}
 					%blockquote
