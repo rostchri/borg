@@ -16,7 +16,7 @@
 				- unless feeditem.other[:details].nil?
 					- feeditem.other[:details].each do |key,value|
 						%li
-							%strong= key
+							%strong= key.to_s
 							= value
 	
 	- unless feeditem.other[:description].nil? || feeditem.other[:description].empty?
