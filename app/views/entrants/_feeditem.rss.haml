@@ -13,10 +13,11 @@
 					= link_to feeditem.other[:magnetlink], feeditem.other[:magnetlink]
 				- unless feeditem.other[:size].empty?
 					%li= feeditem.other[:size]
-				-# feeditem.other[:details].each do |detail|
-					%li
-						- detail.each do |key,value|
-							= "#{key} #{value}"
+				- unless feeditem.other[:details].nil?
+ 					- feeditem.other[:details].each do |detail|
+						%li
+							- detail.each do |key,value|
+								= "#{key} #{value}"
 	
 	- unless feeditem.other[:description].nil? || feeditem.other[:description].empty?
 		%tr
