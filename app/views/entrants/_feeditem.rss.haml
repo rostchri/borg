@@ -7,9 +7,9 @@
 		%li= item.other[:size]
 	- unless item.other[:details].nil? || item.other[:stats].empty?
 		%li= item.other[:stats]	
-	%li
-		= link_to "Quelle", item.srcurl
-		= link_to "Magnet", "item.other[:magnetlink]&dn=#{CGI.escapeHTML(item.title)}"
+	%li= link_to "Quelle", entrant_url(item)
+	%li= link_to "Original-Quelle", item.srcurl
+	%li= link_to "Magnet", "#{item.other[:magnetlink]}&dn=#{CGI.escapeHTML(item.title)}"
 	- unless item.other[:details].nil?
 		- item.other[:details].each do |key,value|
 			%li
