@@ -1,14 +1,14 @@
 = image_tag item.thumbnail.url, :style => "float: right"
 %ul
-	%li
-		= item.category 
-		= item.other[:format] unless item.other[:format].empty?
-		= link_to "Quelle", item.srcurl
-		- unless item.other[:details].nil? || item.other[:stats].empty?
-			= item.other[:stats]
-		= link_to item.other[:magnetlink], item.other[:magnetlink]
+	%li= item.category 
+	- unless item.other[:format].empty?
+		%li= item.other[:format]
 	- unless item.other[:size].empty?
 		%li= item.other[:size]
+	- unless item.other[:details].nil? || item.other[:stats].empty?
+		%li= item.other[:stats]	
+	%li= link_to "Quelle", item.srcurl
+		= link_to item.other[:magnetlink], item.other[:magnetlink]
 	- unless item.other[:details].nil?
 		- item.other[:details].each do |key,value|
 			%li

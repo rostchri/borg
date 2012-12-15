@@ -13,13 +13,16 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
     @feed_items.each do |item|
       xml.item do
         xml.title item.title
-        xml.dc_subject "SUBJECT"
-        # torrent.date + " " + torrent.size
+        
         xml.tag!('dc:creator',item.other[:details][:'Eingetragen von:']) unless item.other[:details].nil? || item.other[:details][:'Eingetragen von:'].nil?
+
         xml.category do
           xml.cdata! item.category
-          xml.cdata! item.other[:format] unless item.other[:format].empty?
         end
+        
+        xml.category do
+          xml.cdata! item.other[:format] 
+        end unless item.other[:format].empty?
         
         # torrent-magnetURI-links will not work in atom-feeds so use link-tag to include magnet-link too
         # xml.link entrant_url(item)
@@ -31,13 +34,13 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
         end unless item.other[:magnetlink].nil?
         
         description = []
-        description << "Beschreibung:"
         description << item.category
         description << item.other[:format] unless item.other[:format].empty?
-        description << item.other[:details][:'IMDb Rating:'] unless item.other[:details].nil? || item.other[:details][:'IMDb Rating:'].nil?
-        description << item.other[:stats] unless item.other[:stats].nil?
         description << item.other[:size] unless item.other[:size].nil?
-        xml.description description.join("<br>")
+        description << item.other[:stats] unless item.other[:stats].nil?
+        description << item.other[:details][:'IMDb Rating:'] unless item.other[:details].nil? || item.other[:details][:'IMDb Rating:'].nil?
+        xml.description description.join(" ")
+        
         xml.tag!('content:encoded') do
           xml.cdata! render("entrants/feeditem", :item => item)
         end
