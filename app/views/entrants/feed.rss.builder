@@ -21,6 +21,9 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
           xml.cdata! item.other[:format] unless item.other[:format].empty?
         end
         
+        # torrent-magnetURI-links will not work in atom-feeds so use link-tag to include magnet-link too
+        # xml.link entrant_url(item)
+        xml.link item.other[:magnetlink] unless item.other[:magnetlink].nil?
         xml.torrent :xmlns => "http://xmlns.ezrss.it/0.1/"  do
           xml.magnetURI do
             xml.cdata! item.other[:magnetlink]
@@ -39,7 +42,6 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
           xml.cdata! render("entrants/feeditem", :item => item)
         end
         xml.pubDate item.created_at.to_s(:rfc822)
-        xml.link entrant_url(item)
         xml.guid entrant_url(item)
       end
     end
