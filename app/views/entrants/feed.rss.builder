@@ -20,6 +20,13 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
           xml.cdata! item.category
           xml.cdata! item.other[:format] unless item.other[:format].empty?
         end
+        
+        xml.torrent :xmlns => "http://xmlns.ezrss.it/0.1/"  do
+          xml.magnetURI do
+            xml.cdata! item.other[:magnetlink]
+          end
+        end unless item.other[:magnetlink].nil?
+        
         description = []
         description << "Beschreibung:"
         description << item.category
