@@ -18,6 +18,7 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
         xml.tag!('dc:creator',item.other[:details][:'Eingetragen von:']) unless item.other[:details].nil? || item.other[:details][:'Eingetragen von:'].nil?
         xml.category do
           xml.cdata! item.category
+          xml.cdata! item.other[:format] unless item.other[:format].empty?
         end
         description = []
         description << "Beschreibung:"
