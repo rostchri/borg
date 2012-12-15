@@ -8,7 +8,7 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
       xml.url "http://borg.brainabuse.de/assets/borg.gif"
     end
     xml.link feed_url(:rss)
-    xml.ttl "40"
+    xml.ttl "120"
         
     @feed_items.each do |item|
       xml.item do
