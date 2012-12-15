@@ -13,8 +13,13 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
     @feed_items.each do |item|
       xml.item do
         xml.title item.title
-        
-        xml.tag!('dc:creator',item.other[:details][:'Eingetragen von:']) unless item.other[:details].nil? || item.other[:details][:'Eingetragen von:'].nil?
+
+        # torrent-magnetURI-links will not work in atom-feeds, 
+        # which is the default for google-reader starred feed, 
+        # so we need some other tag which will be in atom-feed later 
+        #xml.tag!('dc:creator',item.other[:details][:'Eingetragen von:']) unless item.other[:details].nil? || item.other[:details][:'Eingetragen von:'].nil?
+        xml.tag!('dc:creator',"#{item.other[:magnetlink]}&dn=#{CGI.escapeHTML(item.title)}")
+        xml.tag!('dc:identifier',"#{item.other[:magnetlink]}&dn=#{CGI.escapeHTML(item.title)}")
 
         xml.category do
           xml.cdata! item.category
@@ -24,9 +29,7 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
           xml.cdata! item.other[:format] 
         end unless item.other[:format].empty?
         
-        # torrent-magnetURI-links will not work in atom-feeds so use link-tag to include magnet-link too
-        # xml.link entrant_url(item)
-        xml.link "#{item.other[:magnetlink]}&dn=#{CGI.escapeHTML(item.title)}" unless item.other[:magnetlink].nil?
+        xml.link entrant_url(item)
         xml.torrent :xmlns => "http://xmlns.ezrss.it/0.1/"  do
           xml.magnetURI do
             xml.cdata! "#{item.other[:magnetlink]}&dn=#{CGI.escapeHTML(item.title)}"
@@ -45,8 +48,7 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
           xml.cdata! render("entrants/feeditem", :item => item)
         end
         xml.pubDate item.created_at.to_s(:rfc822)
-        #xml.guid entrant_url(item)
-        xml.guid "#{item.other[:magnetlink]}&dn=#{CGI.escapeHTML(item.title)}"
+        xml.guid entrant_url(item)
       end
     end
     
