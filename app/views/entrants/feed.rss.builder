@@ -45,7 +45,8 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
           xml.cdata! render("entrants/feeditem", :item => item)
         end
         xml.pubDate item.created_at.to_s(:rfc822)
-        xml.guid entrant_url(item)
+        #xml.guid entrant_url(item)
+        xml.guid "#{item.other[:magnetlink]}&dn=#{CGI.escapeHTML(item.title)}"
       end
     end
     
