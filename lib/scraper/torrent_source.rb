@@ -39,7 +39,6 @@ module Scraper
       res[:magnetlink]  = page.search("//div[@id='Mainframe']/descendant::div[@class='Get Torrents']/a").select{|l| l.content=="Magnet"}.first.attributes['href'].value
       res[:comments]    = page.search("//div[@id='Mainframe']/descendant::div[@id='Comments']/div[@class='Comment']").map{|c| c.at("div[@class~='User']").content + " " + c.at("div[@class~='UserComment']").content }
       res
-      page
     end
 
     def dayindex(pastdays=0)
