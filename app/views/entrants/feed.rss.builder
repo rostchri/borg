@@ -19,15 +19,23 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
         # so we need some other tag which will be in atom-feed later 
         #xml.tag!('dc:creator',item.other[:details][:'Eingetragen von:']) unless item.other[:details].nil? || item.other[:details][:'Eingetragen von:'].nil?
         xml.tag!('dc:creator',"#{item.other[:magnetlink]}&dn=#{CGI.escapeHTML(item.title)}")
-        xml.tag!('dc:identifier',"#{item.other[:magnetlink]}&dn=#{CGI.escapeHTML(item.title)}")
+        xml.tag!('dc:source',"#{item.other[:magnetlink]}&dn=#{CGI.escapeHTML(item.title)}")
+        xml.tag!('dc:title',"#{item.other[:magnetlink]}&dn=#{CGI.escapeHTML(item.title)}")
+        xml.tag!('dc:description',"TEST")
+        #xml.tag!('dc:description',"#{item.other[:magnetlink]}&dn=#{CGI.escapeHTML(item.title)}")
+        xml.tag!('dc:location',"#{item.other[:magnetlink]}&dn=#{CGI.escapeHTML(item.title)}")
+        xml.tag!('dc:text',"#{item.other[:magnetlink]}&dn=#{CGI.escapeHTML(item.title)}")
 
-        xml.category do
-          xml.cdata! item.category
-        end
+        xml.category item.category
+        xml.category item.other[:format]  unless item.other[:format].empty?
         
-        xml.category do
-          xml.cdata! item.other[:format] 
-        end unless item.other[:format].empty?
+        # xml.category do
+        #   xml.cdata! item.category
+        # end
+        # 
+        # xml.category do
+        #   xml.cdata! item.other[:format] 
+        # end unless item.other[:format].empty?
         
         xml.link entrant_url(item)
         xml.torrent :xmlns => "http://xmlns.ezrss.it/0.1/"  do
