@@ -17,7 +17,7 @@ GIT
 
 GIT
   remote: https://github.com/rostchri/railstrap.git
-  revision: 1320d6746300ccdc6f6094e1c60e25190d5bc663
+  revision: 23bd730a9aa1bef91b6781d55d11560b75addd00
   branch: develop
   specs:
     railstrap (0.0.5)
