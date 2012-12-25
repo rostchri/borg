@@ -26,7 +26,6 @@ gem 'kaminari'
 gem "haml"
 gem "has_scope"
 gem "responders"
-gem 'rails_bootstrap_navbar' # navbar-menu
 gem 'mechanize'
 
 # paperclip with amazon s3

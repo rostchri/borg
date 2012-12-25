@@ -1,5 +1,15 @@
 #navigation
 	= nav_bar :brand => "Borg - Root of all content", :responsive => false, :fluid => true do
+	
+		= menu_group do
+			= drop_down "Filme ...", movies_path do
+				= menu_item "sortiert nach Bewertung", movies_path(:order_by_rating => true)
+				= menu_item "sortiert nach Titel", 		 movies_path(:order_by_title => true)
+				= menu_item "neueste zuerst",          movies_path(:order_by_id => true)
+				= drop_down_divider
+				= menu_item "bestehend aus mehreren Dateien", movies_path(:stacked => true)
+			= menu_item "Tracker", entrants_path
+						
 		= menu_group :pull => :right do
 			= navsearchfield params[:by_plot].nil?  ? "Inhaltsuche" : params[:by_plot],  {:id => "plotsearch", :action => movies_path}, "by_plot"
 			= navsearchfield params[:by_title].nil? ?  "Titelsuche" : params[:by_title], {:id => "titlesearch" , :action => movies_path},"by_title"

@@ -17,7 +17,7 @@ GIT
 
 GIT
   remote: https://github.com/rostchri/railstrap.git
-  revision: 23bd730a9aa1bef91b6781d55d11560b75addd00
+  revision: 7842df1ecf4f4e0b9ebdb1aa25a4ba9b06136bb9
   branch: develop
   specs:
     railstrap (0.0.5)
@@ -167,8 +167,6 @@ GEM
       activesupport (= 3.2.8)
       bundler (~> 1.0)
       railties (= 3.2.8)
-    rails_bootstrap_navbar (0.1.5.beta)
-      rails (>= 3.0.0)
     railties (3.2.8)
       actionpack (= 3.2.8)
       activesupport (= 3.2.8)
@@ -229,7 +227,6 @@ DEPENDENCIES
   mysql2
   paperclip (~> 3.0)
   rails (= 3.2.8)
-  rails_bootstrap_navbar
   railstrap!
   responders
   rubyrep (= 1.1.2d)!

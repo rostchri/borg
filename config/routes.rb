@@ -45,6 +45,6 @@ Borg::Application.routes.draw do
   match 'logout' => "user_sessions#destroy", :as => :logout
   
   
-  root :to => 'movies#overview'
+  root :to => 'movies#index'
   
 end

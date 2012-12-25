@@ -12,7 +12,7 @@
 		= auto_discovery_link_tag :rss, :controller => "entrants", :action => "feed", :format => :rss
 		= auto_discovery_link_tag :atom, :controller => "entrants", :action => "feed", :format => :atom
 	%body
-		= render "layouts/headnavigation"
+		= render "layouts/headnavigation" unless current_user.nil?
 		#maincontent
 			.container-fluid
 				= yield
