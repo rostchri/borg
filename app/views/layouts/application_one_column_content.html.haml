@@ -12,11 +12,7 @@
 		= auto_discovery_link_tag :rss, :controller => "entrants", :action => "feed", :format => :rss
 		= auto_discovery_link_tag :atom, :controller => "entrants", :action => "feed", :format => :atom
 	%body
-		#navigation
-			= nav_bar :brand => "Borg - Root of all content", :responsive => false, :fluid => true do
-				= menu_group :pull => :right do
-					= navsearchfield params[:by_plot].nil?  ? "Inhaltsuche" : params[:by_plot],  {:id => "plotsearch", :action => movies_path}, "by_plot"
-					= navsearchfield params[:by_title].nil? ?  "Titelsuche" : params[:by_title], {:id => "titlesearch" , :action => movies_path},"by_title"
+		= render "layouts/headnavigation"
 		#maincontent
 			.container-fluid
 				= yield
