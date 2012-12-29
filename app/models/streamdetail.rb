@@ -14,7 +14,7 @@ class Streamdetail < ActiveRecord::Base
     when "h264"
       "h264.png"
     when "div3"
-      "div3.png"
+      "divx.png"
     when "mpg4"
       "mpg4.png"
     else
