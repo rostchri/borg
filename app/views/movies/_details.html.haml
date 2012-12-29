@@ -1,4 +1,4 @@
-= render "mediafiles/fanart", :mediafile => movie.file, :animate => true, :cssclass => "fanartbackground"
+= render "mediafiles/fanart", :mediafile => movie.file, :animate => false, :cssclass => "fanartbackground"
 .row-fluid
 	.movieoverview
 		.head
@@ -8,7 +8,10 @@
 				= movie.year
 			.originaltitle
 				= movie.originaltitle
-		= render "mediafiles/cover", :mediafile => movie.file, :animate => true, :classes => ["span2"]
+			
+			= render "streamdetails/logos", :streamdetail => movie.details
+				
+		= render "mediafiles/cover", :mediafile => movie.file, :animate => false, :classes => ["span2"]
 		.plotcontent.span8
 			- unless movie.tagline.nil? ||  movie.tagline.empty?
 				%p.lead.tagline

@@ -31,21 +31,35 @@
 	white-space: nowrap;
 }
 
-td.movie {
-	width: 60%;
+
+table#tablegrid_movies {
+	margin: 2%;
+	width: 96%;
+	td.index  { width: 1%; }
+	td.cover  { width: 10%; }
+	td.fanart { width: 24%; }
+	td.movie  { width: 80%; }
+
+
+	td.movie {
+		.videocodec,
+		.aspectratio {
+			display: inline-block;
+			background-color: black;
+			width: 5%;
+			text-indent: 0;
+			img {width: 100%;}
+		}
+	}
+	
+	td.cover,	td.fanart {
+		img {
+			width: 100%;
+		}
+	}
+	
 }
 
-td.index {
-	width: 1%;
-}
-
-td.cover {
-	width: 13%;
-}
-
-td.fanart {
-	width: 33%;
-}
 
 
 
@@ -81,6 +95,16 @@ td.fanart {
 	.head {
 		padding-top: 30px;
 		border-bottom: 2px solid white;	
+		padding-bottom: 30px;
+		margin-bottom: 30px;
+		.videocodec,
+		.aspectratio {
+			margin-right: 1%;
+			background-color: black;
+			float: right;
+			width: 8%;
+			img {width: 100%;}
+		}
 	}
 	.localtitle, .year, .originaltitle, .plotcontent {
 		padding: 4px;
@@ -141,11 +165,11 @@ ul.files {
 }
 
 
-img.remote {
-	border-style: dashed;
-	border-width: 1px;
-	border-color: white;
-}
+//img.remote {
+//	border-style: dashed;
+//	border-width: 1px;
+//	border-color: white;
+//}
 
 
 
