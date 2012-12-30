@@ -8,7 +8,7 @@ class Streamdetail < ActiveRecord::Base
       logo = "flagging/video/#{strVideoCodec}.png"
       return logo if File.exists?("#{Rails.root}/app/assets/images/#{logo}")
     else
-      printf "### Warning: No video-codec for %s\n", file.filenames
+      #printf "### Warning: No video-codec for %s\n", file.filenames
     end
   end
 
@@ -17,7 +17,7 @@ class Streamdetail < ActiveRecord::Base
       logo = "flagging/audio/#{strAudioCodec}.png"
       return logo if File.exists?("#{Rails.root}/app/assets/images/#{logo}")
     else
-      printf "### Warning: No audio-codec for %s\n", file.filenames
+      #printf "### Warning: No audio-codec for %s\n", file.filenames
     end
   end
 
@@ -37,12 +37,12 @@ class Streamdetail < ActiveRecord::Base
       elsif iVideoHeight < 1080
         logo += "1080.png"
       else
-        printf "### Warning: No video-resolution-logo available for %s\n", file.filenames
+        #printf "### Warning: No video-resolution-logo available for %s\n", file.filenames
         logo = nil
       end 
       return logo
     else
-      printf "### Warning: No video-resolution for %s\n", file.filenames
+      #printf "### Warning: No video-resolution for %s\n", file.filenames
     end
   end
 
@@ -51,7 +51,7 @@ class Streamdetail < ActiveRecord::Base
       logo = "flagging/audio/#{iAudioChannels}.png"
       return logo if File.exists?("#{Rails.root}/app/assets/images/#{logo}")
     else
-      printf "### Warning: No audio-channels for %s\n", file.filenames
+      #printf "### Warning: No audio-channels for %s\n", file.filenames
     end
   end
 
@@ -119,12 +119,12 @@ class Streamdetail < ActiveRecord::Base
       elsif fVideoAspect < 4.1
         logo += "4.00.png"
       else
-        printf "### Warning: No aspectratio-logo available for %s\n", file.filenames
+        #printf "### Warning: No aspectratio-logo available for %s\n", file.filenames
         logo = nil
       end 
       return logo 
     else
-      printf "### Warning: No Aspect-Ratio for %s\n", file.filenames
+      #printf "### Warning: No Aspect-Ratio for %s\n", file.filenames
     end
   end
   
