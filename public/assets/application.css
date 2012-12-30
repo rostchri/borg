@@ -5545,10 +5545,13 @@ script#rootDir {
   -moz-border-radius: 14px 0 0 14px;
   border-radius: 14px 0 0 14px;
 }
+.audiocodec,
 .videocodec,
-.aspectratio {
-  opacity: 0.5;
-  filter: alpha(opacity=50);
+.aspectratio,
+.audiochannels,
+videoresolution {
+  opacity: 0.9;
+  filter: alpha(opacity=90);
 }
 .moviedetails .title,
 .moviedetails .plot,
@@ -5561,9 +5564,15 @@ script#rootDir {
 .movieoverview .year,
 .movieoverview .originaltitle,
 .movieoverview .moviecover,
-.movieoverview .plotcontent,
+.movieoverview .plotcontent {
+  opacity: 0.7;
+  filter: alpha(opacity=70);
+}
+.movieoverview .audiocodec,
 .movieoverview .videocodec,
-.movieoverview .aspectratio {
+.movieoverview .aspectratio,
+.movieoverview .audiochannels,
+.movieoverview .videoresolution {
   opacity: 0.7;
   filter: alpha(opacity=70);
 }
@@ -5621,102 +5630,122 @@ table#tablegrid_movies td.fanart {
 table#tablegrid_movies td.movie {
   width: 80%;
 }
-/* line 46, ../../app/assets/stylesheets/borg.css.scss */
+/* line 49, ../../app/assets/stylesheets/borg.css.scss */
 table#tablegrid_movies td.movie .videocodec,
+table#tablegrid_movies td.movie .audiocodec,
+table#tablegrid_movies td.movie .videoresolution,
+table#tablegrid_movies td.movie .audiochannels,
 table#tablegrid_movies td.movie .aspectratio {
   display: inline-block;
   background-color: black;
-  width: 5%;
+  height: 2em;
   text-indent: 0;
 }
-/* line 51, ../../app/assets/stylesheets/borg.css.scss */
+/* line 54, ../../app/assets/stylesheets/borg.css.scss */
 table#tablegrid_movies td.movie .videocodec img,
+table#tablegrid_movies td.movie .audiocodec img,
+table#tablegrid_movies td.movie .videoresolution img,
+table#tablegrid_movies td.movie .audiochannels img,
 table#tablegrid_movies td.movie .aspectratio img {
-  width: 100%;
+  height: 100%;
 }
-/* line 56, ../../app/assets/stylesheets/borg.css.scss */
+/* line 59, ../../app/assets/stylesheets/borg.css.scss */
 table#tablegrid_movies td.cover img, table#tablegrid_movies td.fanart img {
   width: 100%;
 }
 
-/* line 66, ../../app/assets/stylesheets/borg.css.scss */
+/* line 69, ../../app/assets/stylesheets/borg.css.scss */
 .modal.fade.in {
   top: 35%;
   left: 25%;
   width: 80%;
   height: 75%;
 }
-/* line 71, ../../app/assets/stylesheets/borg.css.scss */
+/* line 74, ../../app/assets/stylesheets/borg.css.scss */
 .modal.fade.in .modal-header, .modal.fade.in .modal-body {
   height: 95%;
   max-height: 95%;
 }
 
-/* line 77, ../../app/assets/stylesheets/borg.css.scss */
+/* line 80, ../../app/assets/stylesheets/borg.css.scss */
 .moviecover {
   background-color: black;
 }
 
-/* line 81, ../../app/assets/stylesheets/borg.css.scss */
+/* line 84, ../../app/assets/stylesheets/borg.css.scss */
 .fanartbackground {
   position: absolute;
   z-index: -999999;
   height: 100%;
   width: 100%;
 }
-/* line 86, ../../app/assets/stylesheets/borg.css.scss */
+/* line 89, ../../app/assets/stylesheets/borg.css.scss */
 .fanartbackground .fanart {
   height: 100%;
   width: 100%;
 }
 
-/* line 92, ../../app/assets/stylesheets/borg.css.scss */
+/* line 95, ../../app/assets/stylesheets/borg.css.scss */
 .movieoverview {
   margin: 0;
   color: white;
 }
-/* line 95, ../../app/assets/stylesheets/borg.css.scss */
+/* line 98, ../../app/assets/stylesheets/borg.css.scss */
 .movieoverview .head {
   padding-top: 30px;
   border-bottom: 2px solid white;
   padding-bottom: 30px;
   margin-bottom: 30px;
 }
-/* line 101, ../../app/assets/stylesheets/borg.css.scss */
-.movieoverview .head .videocodec,
-.movieoverview .head .aspectratio {
-  margin-right: 1%;
-  background-color: black;
+/* line 103, ../../app/assets/stylesheets/borg.css.scss */
+.movieoverview .head .techinfos {
+  width: 10%;
+  margin-right: 30px;
   float: right;
-  width: 8%;
+  align: right;
+  text-align: right;
 }
-/* line 106, ../../app/assets/stylesheets/borg.css.scss */
-.movieoverview .head .videocodec img,
-.movieoverview .head .aspectratio img {
-  width: 100%;
+/* line 113, ../../app/assets/stylesheets/borg.css.scss */
+.movieoverview .head .techinfos .videocodec,
+.movieoverview .head .techinfos .audiocodec,
+.movieoverview .head .techinfos .videoresolution,
+.movieoverview .head .techinfos .audiochannels,
+.movieoverview .head .techinfos .aspectratio {
+  height: 2em;
+  margin: 2px;
+  background-color: black;
+  float: left;
 }
-/* line 109, ../../app/assets/stylesheets/borg.css.scss */
+/* line 118, ../../app/assets/stylesheets/borg.css.scss */
+.movieoverview .head .techinfos .videocodec img,
+.movieoverview .head .techinfos .audiocodec img,
+.movieoverview .head .techinfos .videoresolution img,
+.movieoverview .head .techinfos .audiochannels img,
+.movieoverview .head .techinfos .aspectratio img {
+  height: 100%;
+}
+/* line 122, ../../app/assets/stylesheets/borg.css.scss */
 .movieoverview .localtitle, .movieoverview .year, .movieoverview .originaltitle, .movieoverview .plotcontent {
   padding: 4px;
   display: inline-block;
   background: black;
 }
-/* line 114, ../../app/assets/stylesheets/borg.css.scss */
+/* line 127, ../../app/assets/stylesheets/borg.css.scss */
 .movieoverview .moviecover {
   display: inline-block;
 }
 
-/* line 121, ../../app/assets/stylesheets/borg.css.scss */
+/* line 134, ../../app/assets/stylesheets/borg.css.scss */
 .modal-header {
   border-bottom: 0px;
 }
 
-/* line 125, ../../app/assets/stylesheets/borg.css.scss */
+/* line 138, ../../app/assets/stylesheets/borg.css.scss */
 .accordion-inner {
   overflow: hidden;
 }
 
-/* line 129, ../../app/assets/stylesheets/borg.css.scss */
+/* line 142, ../../app/assets/stylesheets/borg.css.scss */
 img.spinner {
   display: block;
   margin-left: auto;
@@ -5724,51 +5753,51 @@ img.spinner {
   width: 32px;
 }
 
-/* line 136, ../../app/assets/stylesheets/borg.css.scss */
+/* line 149, ../../app/assets/stylesheets/borg.css.scss */
 ul, ol {
   padding: 0;
   margin: 0px;
 }
 
-/* line 141, ../../app/assets/stylesheets/borg.css.scss */
+/* line 154, ../../app/assets/stylesheets/borg.css.scss */
 ul.movie {
   margin-left: 2em;
   text-indent: -0.6em;
 }
-/* line 144, ../../app/assets/stylesheets/borg.css.scss */
+/* line 157, ../../app/assets/stylesheets/borg.css.scss */
 ul.movie li {
   display: block;
 }
 
-/* line 149, ../../app/assets/stylesheets/borg.css.scss */
+/* line 162, ../../app/assets/stylesheets/borg.css.scss */
 ul.entrant_other {
   margin-left: 2em;
   text-indent: -0.6em;
 }
-/* line 152, ../../app/assets/stylesheets/borg.css.scss */
+/* line 165, ../../app/assets/stylesheets/borg.css.scss */
 ul.entrant_other li {
   display: block;
 }
 
-/* line 158, ../../app/assets/stylesheets/borg.css.scss */
+/* line 171, ../../app/assets/stylesheets/borg.css.scss */
 ul.files {
   display: inline;
   margin-left: 0em;
   text-indent: 0em;
 }
-/* line 162, ../../app/assets/stylesheets/borg.css.scss */
+/* line 175, ../../app/assets/stylesheets/borg.css.scss */
 ul.files li {
   display: inline-block;
 }
 
-/* line 178, ../../app/assets/stylesheets/borg.css.scss */
+/* line 191, ../../app/assets/stylesheets/borg.css.scss */
 #loginbutton {
   margin-top: 15px;
   margin-left: 55px;
   width: 110px;
 }
 
-/* line 185, ../../app/assets/stylesheets/borg.css.scss */
+/* line 198, ../../app/assets/stylesheets/borg.css.scss */
 .form_user_session {
   margin-top: 15%;
   margin-left: auto;

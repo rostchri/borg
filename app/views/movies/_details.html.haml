@@ -8,8 +8,8 @@
 				= movie.year
 			.originaltitle
 				= movie.originaltitle
-			
-			= render "streamdetails/logos", :streamdetail => movie.details
+			.techinfos
+				= render "streamdetails/logos", :streamdetails => movie.details
 				
 		= render "mediafiles/cover", :mediafile => movie.file, :animate => false, :classes => ["span2"]
 		.plotcontent.span8

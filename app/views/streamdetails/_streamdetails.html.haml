@@ -1,0 +1,8 @@
+- unless streamdetails.nil? || streamdetails.empty?
+	- streamdetails.each do |streamdetail|
+		%ul{:style => "float: left; margin: 25px;"}
+			- Streamdetail.attribute_names.select{|col| col != "idFile"}.each  do |col|
+				- value = streamdetail.send(col.to_sym)
+				- unless value.nil? || value == ""
+					%li{:class => col}
+						= "#{col}: #{value}"

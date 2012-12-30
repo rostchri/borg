@@ -1,0 +1,10 @@
+= modaldialog :title => movie.localtitle do |md|
+	- md.set :preview do 
+		- buttonlabel = "Techinfos"
+		= render "streamdetails/logos", :streamdetails => movie.details
+		= link_to "more", "#", :"data-toggle" => "modal", :"data-target" => "##{md.htmlid}"
+	- md.set :body do
+		%div.settings
+			= movie.settings
+		%div.streamdetails
+			= render :partial => "streamdetails/streamdetails", :object => movie.details

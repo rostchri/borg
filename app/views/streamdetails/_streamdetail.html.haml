@@ -1,4 +1,0 @@
-- unless streamdetail.nil?
-	- Streamdetail.attribute_names.select{|col| col != "idFile"}.each  do |col|
-		%div{:class => col}
-			= "#{col}: #{streamdetail.send(col.to_sym)}"

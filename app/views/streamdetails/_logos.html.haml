@@ -1,8 +1,25 @@
-- unless streamdetail.nil?
-	- unless streamdetail.video_codec_logo.nil?
-		.videocodec
-			= image_tag "flagging/video/#{streamdetail.video_codec_logo}"
-		
-	- unless streamdetail.aspect_ratio_logo.nil? || !File.exists?("#{Rails.root}/app/assets/images/flagging/aspectratio/#{streamdetail.aspect_ratio_logo}")
-		.aspectratio
-			= image_tag "flagging/aspectratio/#{streamdetail.aspect_ratio_logo}"
+- unless streamdetails.nil? || streamdetails.empty?
+	- streamdetails.each do |streamdetail|
+	
+		- unless streamdetail.video_codec_logo.nil?
+			.videocodec
+				= image_tag streamdetail.video_codec_logo
+				
+		- unless streamdetail.video_resolution_logo.nil?
+			.videoresolution
+				= image_tag streamdetail.video_resolution_logo
+
+		- unless streamdetail.audio_codec_logo.nil?
+			.audiocodec
+				= image_tag streamdetail.audio_codec_logo
+
+		- unless streamdetail.audio_channels_logo.nil?
+			.audiochannels
+				= image_tag streamdetail.audio_channels_logo
+
+		- unless streamdetail.aspect_ratio_logo.nil?
+			.aspectratio
+				= image_tag "flagging/aspectratio/#{streamdetail.aspect_ratio_logo}"
+
+
+

@@ -9,8 +9,7 @@
 		=# render("modaldetails", :movie => movie)
 		= link_to movie.plot[0..80], movie_path(movie)
 	%li{:class => "icon-facetime-video"}
-		= render("techinfo", :movie => movie)
-		= render "streamdetails/logos", :streamdetail => movie.details
+		= render("techinfos", :movie => movie)
 	%li{:class => "icon-folder-open"}
 		= render("mediapath/mediapath", :mediapath => movie.path, :title_path_mismatch => movie.path.topdirectory != movie.localtitle) 
 	%li{:class => "icon-hdd"}

@@ -3,7 +3,7 @@ class Mediafile < ActiveRecord::Base
   has_one     :movie,     :foreign_key => "idFile", :class_name => Movie.name
   belongs_to  :path,      :foreign_key => "idPath", :class_name => Mediapath.name
   has_one     :settings,  :foreign_key => "idFile", :class_name => Mediasetting.name
-  has_one     :details,   :foreign_key => "idFile", :class_name => Streamdetail.name
+  has_many     :details,   :foreign_key => "idFile", :class_name => Streamdetail.name
   
   VIDEOTHUMBPREFIX = "#{Rails.root}/Thumbnails/Video"
   FANTHUMBPREFIX   = "#{Rails.root}/Thumbnails/Video/Fanart"

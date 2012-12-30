@@ -3,7 +3,7 @@ class Movie < ActiveRecord::Base
   belongs_to :file, :foreign_key => "idFile", :class_name => Mediafile.name
   has_one :path, :through => :file
   has_one :settings, :through => :file
-  has_one :details, :through => :file
+  has_many :details, :through => :file
   has_and_belongs_to_many :genres, :join_table => "genrelinkmovie", :foreign_key => "idMovie", :association_foreign_key => "idGenre"
   
   scope :order_by_rating, :order => "c05 DESC"

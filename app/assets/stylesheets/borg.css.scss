@@ -43,12 +43,15 @@ table#tablegrid_movies {
 
 	td.movie {
 		.videocodec,
+		.audiocodec,
+		.videoresolution,
+		.audiochannels,
 		.aspectratio {
 			display: inline-block;
 			background-color: black;
-			width: 5%;
+			height: 2em;
 			text-indent: 0;
-			img {width: 100%;}
+			img {height: 100%;}
 		}
 	}
 	
@@ -97,13 +100,23 @@ table#tablegrid_movies {
 		border-bottom: 2px solid white;	
 		padding-bottom: 30px;
 		margin-bottom: 30px;
-		.videocodec,
-		.aspectratio {
-			margin-right: 1%;
-			background-color: black;
+		.techinfos {
+			width: 10%;
+			margin-right: 30px;
 			float: right;
-			width: 8%;
-			img {width: 100%;}
+			align: right;
+			text-align: right;
+			.videocodec,
+			.audiocodec,
+			.videoresolution,
+			.audiochannels,
+			.aspectratio {
+				height: 2em;
+				margin: 2px;
+				background-color: black;
+				float: left;
+				img {height: 100%;}
+			}
 		}
 	}
 	.localtitle, .year, .originaltitle, .plotcontent {
