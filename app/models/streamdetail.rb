@@ -56,8 +56,70 @@ class Streamdetail < ActiveRecord::Base
 
   def aspect_ratio_logo
     unless fVideoAspect.nil?
-      logo = "flagging/aspectratio/#{fVideoAspect}"[0..3]  + ".png"
-      return logo if File.exists?("#{Rails.root}/app/assets/images/#{logo}")
+      logo = "flagging/aspectratio/" + if fVideoAspect >= 1.33 && fVideoAspect < 1.37
+        "1.33"
+      elsif fVideoAspect < 1.43
+        "1.37"
+      elsif fVideoAspect < 1.44
+        "1.43"
+      elsif fVideoAspect < 1.50
+        "1.44"
+      elsif fVideoAspect < 1.56
+        "1.50"
+      elsif fVideoAspect < 1.57
+        "1.56"
+      elsif fVideoAspect < 1.66
+        "1.57"
+      elsif fVideoAspect < 1.67
+        "1.66"
+      elsif fVideoAspect < 1.75
+        "1.67"
+      elsif fVideoAspect < 1.77
+        "1.75"
+      elsif fVideoAspect < 1.78
+        "1.77"
+      elsif fVideoAspect < 1.81
+        "1.78"
+      elsif fVideoAspect < 1.85
+        "1.81"
+      elsif fVideoAspect < 2.00
+        "1.85"
+      elsif fVideoAspect < 2.20
+        "2.00"
+      elsif fVideoAspect < 2.21
+        "2.20"
+      elsif fVideoAspect < 2.33
+        "2.21"
+      elsif fVideoAspect < 2.35
+        "2.33"
+      elsif fVideoAspect < 2.37
+        "2.35"
+      elsif fVideoAspect < 2.39
+        "2.37"
+      elsif fVideoAspect < 2.40
+        "2.39"
+      elsif fVideoAspect < 2.55
+        "2.40"
+      elsif fVideoAspect < 2.56
+        "2.55"
+      elsif fVideoAspect < 2.59
+        "2.56"
+      elsif fVideoAspect < 2.66
+        "2.59"
+      elsif fVideoAspect < 2.67
+        "2.66"
+      elsif fVideoAspect < 2.76
+        "2.67"
+      elsif fVideoAspect < 3.00
+        "2.76"
+      elsif fVideoAspect < 4.00
+        "3.00"
+      elsif fVideoAspect < 4.1
+        "4.00"
+      else
+        printf "### Warning: No aspectratio-logo available for %s\n", file.filenames
+      end + ".png"
+      return logo 
     else
       printf "### Warning: No Aspect-Ratio for %s\n", file.filenames
     end

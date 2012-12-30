@@ -46,6 +46,8 @@ table#tablegrid_movies {
 		.audiocodec,
 		.videoresolution,
 		.audiochannels,
+		.audiolanguage,
+		.subtitlelanguage,
 		.aspectratio {
 			display: inline-block;
 			background-color: black;
@@ -110,6 +112,8 @@ table#tablegrid_movies {
 			.audiocodec,
 			.videoresolution,
 			.audiochannels,
+			.audiolanguage,
+			.subtitlelanguage,
 			.aspectratio {
 				height: 2em;
 				margin: 2px;
@@ -200,4 +204,16 @@ ul.files {
 	margin-left: auto;
   margin-right: auto;
 	width: 350px;
+}
+
+
+
+.audiolanguage,
+.subtitlelanguage {
+	vertical-align: middle;
+	span {
+		line-height: 2.3em;
+		margin-left: 6px;
+		margin-right: 4px;
+	}
 }

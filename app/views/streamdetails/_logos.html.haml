@@ -9,6 +9,15 @@
 			.videoresolution
 				= image_tag streamdetail.video_resolution_logo
 
+		- unless streamdetail.aspect_ratio_logo.nil?
+			.aspectratio
+				= image_tag streamdetail.aspect_ratio_logo
+				
+		- unless streamdetail.strAudioLanguage.nil? || streamdetail.strAudioLanguage.empty?
+			.audiolanguage
+				%span{:class => "label label-success", :rel => "tooltip", :title => "Sprache"}
+					= streamdetail.strAudioLanguage
+		
 		- unless streamdetail.audio_codec_logo.nil?
 			.audiocodec
 				= image_tag streamdetail.audio_codec_logo
@@ -17,9 +26,9 @@
 			.audiochannels
 				= image_tag streamdetail.audio_channels_logo
 
-		- unless streamdetail.aspect_ratio_logo.nil?
-			.aspectratio
-				= image_tag "flagging/aspectratio/#{streamdetail.aspect_ratio_logo}"
-
-
+		- unless streamdetail.strSubtitleLanguage.nil? || streamdetail.strSubtitleLanguage.empty?
+			.subtitlelanguage
+				%span{:class => "label label-warning", :rel => "tooltip", :title => "Untertitel"}
+					= streamdetail.strSubtitleLanguage
+				
 
