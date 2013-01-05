@@ -85,7 +85,7 @@ module Scraper
             if dbsfile.nil? || changed
               newobject = SFile.where(:srcid => sfile[:srcid]).first_or_create(sfile)
               @@stats[feed.feed_url][:last][(changed ? :updated : :new)] += 1
-              puts newobject.others[:changes]
+              puts newobject.other[:changes]
             end
           rescue Timeout::Error
             if sfile.include?(:thumbnail)
