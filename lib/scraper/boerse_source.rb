@@ -79,6 +79,11 @@ module Scraper
             if dbsfile.nil? || changed
               newobject = SFile.find_or_create_by_srcid(sfile[:srcid]) {|newsfile| sfile.each {|k,v| newsfile.send("#{k}=",v)}}
               @@stats[feed.feed_url][:last][(changed ? :updated : :new)] += 1
+              if ("1328006" == sfile[:srcid])
+                puts dbsfile.nil?
+                puts changed
+                puts Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content]).to_s(:color)
+              end
               if changed
                 newobject.category  = feed.title +  " " + entry.categories.join(" ")
                 newobject.thumbnail = URI.parse(sfile[:other][:thumbnail]) unless sfile[:other][:thumbnail].nil? || sfile[:other][:thumbnail].empty?
