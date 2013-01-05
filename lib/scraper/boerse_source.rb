@@ -88,9 +88,10 @@ module Scraper
               if changed
                 newobject.category  = feed.title +  " " + entry.categories.join(" ")
                 newobject.thumbnail = URI.parse(sfile[:other][:thumbnail]) unless sfile[:other][:thumbnail].nil? || sfile[:other][:thumbnail].empty?
-                newobject.other[:thumbnail] = sfile[:other][:thumbnail]
-                newobject.other[:content]   = sfile[:other][:content]
-                newobject.other[:changes]   = Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:html) #if usediffy
+                newobject.other = {:thumbnail => sfile[:other][:thumbnail], 
+                                   :content   => sfile[:other][:content],
+                                   :changes   => Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:html),
+                                   }
                 newobject.save
                 puts newobject.other[:changes] if ("1328006" == sfile[:srcid])
               end
