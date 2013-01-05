@@ -102,13 +102,15 @@ module Scraper
             retries += 1
             retry unless retries > 5
           end
-          printf "\t%s %p %s / %s %s: %s [%s]\n",  dbsfile.nil? ? "(NEW)" : (changed ? "(UPD)" : "(OLD)"),
-                                                   newobject.category,
-                                                   newobject.date.strftime("%d.%m.%y %a %H:%M"),
-                                                   entry.last_modified.strftime("%d.%m.%y %a %H:%M"),
-                                                   newobject.other[:author],
-                                                   newobject.title,
-                                                   newobject.srcid
+          unless newobject.nil?
+            printf "\t%s %p %s / %s %s: %s [%s]\n",  dbsfile.nil? ? "(NEW)" : (changed ? "(UPD)" : "(OLD)"),
+                                                     newobject.category,
+                                                     newobject.date.strftime("%d.%m.%y %a %H:%M"),
+                                                     entry.last_modified.strftime("%d.%m.%y %a %H:%M"),
+                                                     newobject.other[:author],
+                                                     newobject.title,
+                                                     newobject.srcid
+          end
         end
       end
       @@stats[feed.feed_url][:total][:updated] += @@stats[feed.feed_url][:last][:updated]
