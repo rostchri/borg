@@ -73,6 +73,8 @@ module Scraper
           if dbsfile = SFile.find_by_srcid(sfile[:srcid])
             changed = dbsfile.date != sfile[:date] || dbsfile.other[:content] != sfile[:other][:content]
           end
+          usediffy=true
+          retries = 0
           begin
             if dbsfile.nil? || changed
               newobject = SFile.find_or_create_by_srcid(sfile[:srcid]) {|newsfile| sfile.each {|k,v| newsfile.send("#{k}=",v)}}
@@ -82,7 +84,7 @@ module Scraper
                 newobject.thumbnail = URI.parse(sfile[:other][:thumbnail]) unless sfile[:other][:thumbnail].nil? || sfile[:other][:thumbnail].empty?
                 newobject.other[:thumbnail] = sfile[:other][:thumbnail]
                 newobject.other[:content]   = sfile[:other][:content]
-                newobject.other[:changes]   = "#{dbsfile.date} -> #{sfile[:date]}" + Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content]).to_s(:html)
+                newobject.other[:changes]   = "#{dbsfile.date} -> #{sfile[:date]}" + Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content]).to_s(:html) if usediffy
                 newobject.save
               end
             end
@@ -90,8 +92,14 @@ module Scraper
             if sfile.include?(:thumbnail)
               puts "### Timeout while fetching #{sfile[:thumbnail]}"
               sfile.delete(:thumbnail)
-              retry
+              retries += 1
+              retry unless retries > 1
             end
+          rescue
+            usediffy=false unless dbsfile.nil?
+            retries += 1
+            retry unless retries > 1
+          end
           end
           printf "\t%s %p %s / %s %s: %s [%s]\n",  dbsfile.nil? ? "(NEW)" : (changed ? "(UPD)" : "(OLD)"),
                                                    sfile[:category],
