@@ -71,7 +71,7 @@ module Scraper
           end
           changed = false
           if dbsfile = SFile.find_by_srcid(sfile[:srcid])
-            changed = dbsfile.other[:content].size != sfile[:other][:content].size
+            changed = dbsfile.other[:content] != sfile[:other][:content]
           end
           usediffy=true
           retries = 0
