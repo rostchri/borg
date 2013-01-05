@@ -73,18 +73,28 @@ module Scraper
           usediffy = true
           retries  = 0
           begin
-            if dbsfile = SFile.find_by_srcid(sfile[:srcid])
-              if (changed = (dbsfile.other[:content] != sfile[:other][:content]))
-                if usediffy
-                  sfile[:other][:changes] = Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:html) 
-                  puts Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:color)
-                end
-              end
-            end
-            if dbsfile.nil? || changed
-              newobject = SFile.where(:srcid => sfile[:srcid]).first_or_create!(sfile)
-              @@stats[feed.feed_url][:last][(changed ? :updated : :new)] += 1
-            end
+            dbsfile = SFile.where(:srcid => sfile[:srcid]).first_or_initialize(sfile)
+              # if (changed = (dbsfile.other[:content] != sfile[:other][:content]))
+              #                 if usediffy
+              #                   sfile[:other][:changes] = Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:html) 
+              #                   puts Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:color)
+              #                 end
+              #               end
+            #end
+            # if dbsfile.nil? || changed
+            #   newobject = SFile.where(:srcid => sfile[:srcid]).first_or_create!(sfile)
+            #   @@stats[feed.feed_url][:last][(changed ? :updated : :new)] += 1
+            # end
+            printf "\t%s %p %s / %s %s: %s [%s] (%p) (%p)\n",  dbsfile.new_record? ? "(NEW)" : (dbsfile.changed? ? "(UPD)" : "(OLD)"),
+                                                     dbsfile.category,
+                                                     dbsfile.date.strftime("%d.%m.%y %a %H:%M"),
+                                                     entry.last_modified.strftime("%d.%m.%y %a %H:%M"),
+                                                     dbsfile.other[:author],
+                                                     dbsfile.title,
+                                                     dbsfile.srcid,
+                                                     dbsfile.other[:changes].nil? == false,
+                                                     dbsfile.changes
+            dbsfile.save
           rescue Timeout::Error
             if sfile.include?(:thumbnail)
               puts "### Timeout while fetching #{sfile[:thumbnail]}"
@@ -99,17 +109,6 @@ module Scraper
             usediffy = false
             retries += 1
             retry unless retries > 1
-          end
-          unless newobject.nil?
-            printf "\t%s %p %s / %s %s: %s [%s] (%p) (%p)\n",  dbsfile.nil? ? "(NEW)" : (changed ? "(UPD)" : "(OLD)"),
-                                                     newobject.category,
-                                                     newobject.date.strftime("%d.%m.%y %a %H:%M"),
-                                                     entry.last_modified.strftime("%d.%m.%y %a %H:%M"),
-                                                     newobject.other[:author],
-                                                     newobject.title,
-                                                     newobject.srcid,
-                                                     newobject.other[:changes].nil? == false,
-                                                     newobject.changed?
           end
         end
       end
