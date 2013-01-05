@@ -75,22 +75,17 @@ module Scraper
           begin
             if dbsfile = SFile.find_by_srcid(sfile[:srcid])
               if changed = dbsfile.other[:content] != sfile[:other][:content]
-                sfile[:other][:changes] = Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:html) if usediffy
+                if usediffy
+                  sfile[:other][:changes] = Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:html) 
+                else
+                  sfile[:other][:changes] = "ERROR"
+                end
               end
             end
             if dbsfile.nil? || changed
               newobject = SFile.where(:srcid => sfile[:srcid]).first_or_create(sfile)
               @@stats[feed.feed_url][:last][(changed ? :updated : :new)] += 1
-              # if changed
-              #                 newobject.category  = feed.title# entry.categories.join(" ")
-              #                 newobject.thumbnail = URI.parse(sfile[:other][:thumbnail]) unless sfile[:other][:thumbnail].nil? || sfile[:other][:thumbnail].empty?
-              #                 newobject.other = {
-              #                                     :thumbnail => sfile[:other][:thumbnail], 
-              #                                     :content   => sfile[:other][:content],
-              #                                     :changes   => Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:html),
-              #                                    }
-              #                 newobject.save
-              #               end
+              puts newobject.others[:changes]
             end
           rescue Timeout::Error
             if sfile.include?(:thumbnail)
@@ -102,18 +97,18 @@ module Scraper
           rescue => e
             puts e.message
             puts e.backtrace
-            puts Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content]).to_s(:color)
-            usediffy=false unless dbsfile.nil?
+            puts Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:color)
+            usediffy = false
             retries += 1
-            retry unless retries > 1
+            retry unless retries > 5
           end
           printf "\t%s %p %s / %s %s: %s [%s]\n",  dbsfile.nil? ? "(NEW)" : (changed ? "(UPD)" : "(OLD)"),
-                                                   sfile[:category],
-                                                   sfile[:date].strftime("%d.%m.%y %a %H:%M"),
+                                                   newobject.category,
+                                                   newobject.date.strftime("%d.%m.%y %a %H:%M"),
                                                    entry.last_modified.strftime("%d.%m.%y %a %H:%M"),
-                                                   sfile[:other][:author],
-                                                   sfile[:title],
-                                                   sfile[:srcid]
+                                                   newobject.other[:author],
+                                                   newobject.title,
+                                                   newobject.srcid
         end
       end
       @@stats[feed.feed_url][:total][:updated] += @@stats[feed.feed_url][:last][:updated]
