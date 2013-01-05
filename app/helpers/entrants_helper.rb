@@ -37,7 +37,7 @@ module EntrantsHelper
     content = Nokogiri::HTML(sfile.other[:content])
     content.xpath("//img").each { |image|  image.remove if image.attributes['src'].value == sfile.other[:thumbnail] } unless sfile.other[:thumbnail].nil?
     content.xpath("//a").each { |link| link.set_attribute('href',"http://www.boerse.bz/out/?url=#{$1}") if link.attributes['href'].value =~ /(http:\/\/.*.gulli.bz\/.*)/ }
-    content.to_html.html_safe
+    content.to_html
   end
 
 end

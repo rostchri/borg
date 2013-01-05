@@ -5,7 +5,7 @@
 	%li= item.category 		
 	%li= link_to "Quelle", entrant_url(item)
 	%li= link_to "Original-Quelle", item.srcurl
-
-	- unless item.other[:content].nil?
-		= sfile_content(item)
+	
+- unless item.other[:content].nil?
+	= raw sfile_content(item)
 		
