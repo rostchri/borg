@@ -73,18 +73,18 @@ module Scraper
           begin
             object = SFile.where(:srcid => sfile[:srcid]).first_or_initialize(sfile)
             if !object.new_record? 
-              sfile[:thumbnail] = URI.parse(sfile[:other][:thumbnail]) if object.other[:content][:thumbnail] != sfile[:other][:thumbnail]
+              sfile[:thumbnail] = URI.parse(sfile[:other][:thumbnail]) if object[:other][:thumbnail] != sfile[:other][:thumbnail]
               sfile[:other][:changes] = Diffy::Diff.new(object.other[:content], sfile[:other][:content], :context => 1).to_s(:html) if usediffy && object.other[:content] != sfile[:other][:content]
               object.attributes = sfile
             end
-            printf "\t%s %p %s / %s %s: %s [%s] %p\n",  object.new_record? ? "(NEW)" : (object.changed? ? "(UPD)" : "(OLD)"),
-                                                     object.category,
-                                                     object.date.strftime("%d.%m.%y %a %H:%M"),
-                                                     entry.last_modified.strftime("%d.%m.%y %a %H:%M"),
-                                                     object.other[:author],
-                                                     object.title,
-                                                     object.srcid,
-                                                     object.changes.keys
+            printf "\t%s %s %s / %s %s: %s [%s] %p\n",  object.new_record? ? "(NEW)" : (object.changed? ? "(UPD)" : "(OLD)"),
+                                                        object.category,
+                                                        object.date.strftime("%d.%m.%y %a %H:%M"),
+                                                        entry.last_modified.strftime("%d.%m.%y %a %H:%M"),
+                                                        object.other[:author],
+                                                        object.title,
+                                                        object.srcid,
+                                                        object.changes.keys
             object.save if object.new_record? || object.changed?
           rescue Timeout::Error
             if sfile.include?(:thumbnail)
