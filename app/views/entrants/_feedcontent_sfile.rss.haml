@@ -6,6 +6,6 @@
 	%li= link_to "Quelle", entrant_url(item)
 	%li= link_to "Original-Quelle", item.srcurl
 
-	-# unless item.other[:content].nil?
+	- unless item.other[:content].nil?
 		= sfile_content(item)
 		
