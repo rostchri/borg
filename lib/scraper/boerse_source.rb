@@ -66,7 +66,7 @@ module Scraper
                     :category  => feed.title, # entry.categories.join(" ")
                     :other     => {:author => entry.author, :content => entry.content} }
           if entry.summary =~ /Bild: (http:\/\/[^ ]*)/
-            sfile[:other][:thumbnail] = $1
+            sfile[:other].merge! :thumbnail => $1
           end
           usediffy = true
           retries  = 0
