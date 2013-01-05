@@ -84,7 +84,7 @@ module Scraper
                 newobject.thumbnail = URI.parse(sfile[:other][:thumbnail]) unless sfile[:other][:thumbnail].nil? || sfile[:other][:thumbnail].empty?
                 newobject.other[:thumbnail] = sfile[:other][:thumbnail]
                 newobject.other[:content]   = sfile[:other][:content]
-                newobject.other[:changes]   = Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:html) if usediffy
+                newobject.other[:changes]   = "#{dbsfile.other[:content] != sfile[:other][:content]} " + Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:html) #if usediffy
                 newobject.save
               end
             end
