@@ -75,7 +75,8 @@ module Scraper
           begin
             object = SFile.where(:srcid => sfile[:srcid]).first_or_initialize(sfile)
             unless object.new_record?
-              puts Diffy::Diff.new(object.other[:content], sfile[:other][:content], :context => 1).to_s(:color)
+              sfile[:other][:changes] = Diffy::Diff.new(object.other[:content], sfile[:other][:content], :context => 1).to_s(:html) if usediffy
+              #puts Diffy::Diff.new(object.other[:content], sfile[:other][:content], :context => 1).to_s(:color)
               object.attributes = sfile
             end
             
@@ -94,15 +95,14 @@ module Scraper
             #   newobject = SFile.where(:srcid => sfile[:srcid]).first_or_create!(sfile)
             #   @@stats[feed.feed_url][:last][(changed ? :updated : :new)] += 1
             # end
-            printf "\t%s %p %s / %s %s: %s [%s] (%p)\n",  object.new_record? ? "(NEW)" : (object.changed? ? "(UPD)" : "(OLD)"),
+            printf "\t%s %p %s / %s %s: %s [%s]\n",  object.new_record? ? "(NEW)" : (object.changed? ? "(UPD)" : "(OLD)"),
                                                      object.category,
                                                      object.date.strftime("%d.%m.%y %a %H:%M"),
                                                      entry.last_modified.strftime("%d.%m.%y %a %H:%M"),
                                                      object.other[:author],
                                                      object.title,
-                                                     object.srcid,
-                                                     object.changed?
-            #object.save if object.new_record? || object.changed?
+                                                     object.srcid
+            object.save if object.new_record? || object.changed?
           rescue Timeout::Error
             if sfile.include?(:thumbnail)
               puts "### Timeout while fetching #{sfile[:thumbnail]}"
