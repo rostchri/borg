@@ -73,8 +73,11 @@ module Scraper
           begin
             object = SFile.where(:srcid => sfile[:srcid]).first_or_initialize(sfile)
             if !object.new_record? 
-              #sfile[:thumbnail] = URI.parse(sfile[:other][:thumbnail]) if object[:other][:thumbnail] != sfile[:other][:thumbnail]
-              sfile[:other][:changes] = Diffy::Diff.new(object.other[:content], sfile[:other][:content], :context => 1).to_s(:html) if usediffy && object.other[:content].size != sfile[:other][:content].size
+              if object[:other][:thumbnail] != sfile[:other][:thumbnail]
+                printf "%p != %p\n", object[:other][:thumbnail], sfile[:other][:thumbnail]
+                sfile[:thumbnail] = URI.parse(sfile[:other][:thumbnail]) 
+              end
+              #sfile[:other][:changes] = Diffy::Diff.new(object.other[:content], sfile[:other][:content], :context => 1).to_s(:html) if usediffy && object.other[:content].size != sfile[:other][:content].size
               object.attributes = sfile
             end
             @@stats[feed.feed_url][:last][(object.new_record? ? :new : :updated)] += 1 if object.new_record? || object.changed?
