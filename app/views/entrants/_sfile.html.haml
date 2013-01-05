@@ -6,6 +6,10 @@
 	- elsif !other[:thumbnail].nil? && !other[:thumbnail].empty?
 		= link_to image_tag(other[:thumbnail], :style => "float: right; width: 15%;", :class => "img-rounded"), other[:thumbnail]
 
+	- unless other[:thumbnail].nil? || other[:thumbnail].empty?
+		%li{:class => "icon-picture"}
+			= object.thumbnail
+
 	%li{:class => "icon-file"}
 		= object.title
 
