@@ -74,7 +74,9 @@ module Scraper
           retries = 0
           begin
             if dbsfile = SFile.find_by_srcid(sfile[:srcid])
-              changed = dbsfile.other[:content] != sfile[:other][:content]
+              if changed = dbsfile.other[:content] != sfile[:other][:content]
+                sfile[:other].merge!(:changes => Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:html))
+              end
             end
             if dbsfile.nil? || changed
               newobject = SFile.find_or_create_by_srcid(sfile[:srcid]) {|newsfile| sfile.each {|k,v| newsfile.send("#{k}=",v)}}
