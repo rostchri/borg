@@ -95,7 +95,9 @@ module Scraper
               retries += 1
               retry unless retries > 1
             end
-          rescue
+          rescue => e
+            puts e.message
+            puts e.backtrace
             usediffy=false unless dbsfile.nil?
             retries += 1
             retry unless retries > 1
