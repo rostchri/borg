@@ -73,11 +73,15 @@ module Scraper
           usediffy = true
           retries  = 0
           begin
-            newobject = (oldobjects = SFile.where(:srcid => sfile[:srcid])).first_or_initialize(sfile)
-              
-            if (!oldobjects.empty? && newobject.other[:content] != oldobjects.first.other[:content])
-              puts Diffy::Diff.new(newobject.other[:content], oldobjects.first.other[:content], :context => 1).to_s(:color)
+            object = SFile.where(:srcid => sfile[:srcid]).first_or_initialize(sfile)
+            unless object.new_record?
+              puts Diffy::Diff.new(object.other[:content], sfile[:other][:content], :context => 1).to_s(:color)
+              object.attributes = sfile
             end
+            
+            # if (object.other[:content] != sfile[:other][:content])
+            #   puts Diffy::Diff.new(newobject.other[:content], oldobjects.first.other[:content], :context => 1).to_s(:color)
+            # end
             
               # if (changed = (dbsfile.other[:content] != sfile[:other][:content]))
               #                 if usediffy
@@ -90,15 +94,15 @@ module Scraper
             #   newobject = SFile.where(:srcid => sfile[:srcid]).first_or_create!(sfile)
             #   @@stats[feed.feed_url][:last][(changed ? :updated : :new)] += 1
             # end
-            printf "\t%s %p %s / %s %s: %s [%s] (%p)\n",  newobject.new_record? ? "(NEW)" : (newobject.changed? ? "(UPD)" : "(OLD)"),
-                                                     newobject.category,
-                                                     newobject.date.strftime("%d.%m.%y %a %H:%M"),
+            printf "\t%s %p %s / %s %s: %s [%s] (%p)\n",  object.new_record? ? "(NEW)" : (object.changed? ? "(UPD)" : "(OLD)"),
+                                                     object.category,
+                                                     object.date.strftime("%d.%m.%y %a %H:%M"),
                                                      entry.last_modified.strftime("%d.%m.%y %a %H:%M"),
-                                                     newobject.other[:author],
-                                                     newobject.title,
-                                                     newobject.srcid,
-                                                     newobject.changed?
-            newobject.save if newobject.new_record? || newobject.changed?
+                                                     object.other[:author],
+                                                     object.title,
+                                                     object.srcid,
+                                                     object.changed?
+            #object.save if object.new_record? || object.changed?
           rescue Timeout::Error
             if sfile.include?(:thumbnail)
               puts "### Timeout while fetching #{sfile[:thumbnail]}"
