@@ -74,7 +74,7 @@ module Scraper
           retries  = 0
           begin
             dbsfile = (oldobject = SFile.where(:srcid => sfile[:srcid])).first_or_initialize(sfile) do |newobject|
-              if (oldobject && newobject.other[:content] != oldobject.other[:content])
+              if (oldobject) #&& newobject.other[:content] != oldobject.other[:content]
                 puts Diffy::Diff.new(newobject.other[:content], oldobject.other[:content], :context => 1).to_s(:color)
               end
             end
@@ -99,7 +99,7 @@ module Scraper
                                                      dbsfile.srcid,
                                                      dbsfile.other[:changes].nil? == false,
                                                      dbsfile.changes
-            dbsfile.save
+            dbsfile.save if dbsfile.new_record? || dbsfile.changed?
           rescue Timeout::Error
             if sfile.include?(:thumbnail)
               puts "### Timeout while fetching #{sfile[:thumbnail]}"
