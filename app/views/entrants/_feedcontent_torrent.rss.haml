@@ -1,20 +1,30 @@
-= image_tag item.thumbnail.url, :style => "float: right"
+- if item.thumbnail.exists?
+	= image_tag item.thumbnail.url, :style => "float: right"
+
 %ul
 	%li= item.category 
-	- unless item.other[:format].empty?
+	
+	- unless item.other[:format].nil? || item.other[:format].empty?
 		%li= item.other[:format]
-	- unless item.other[:size].empty?
+		
+	- unless item.other[:size].nil? || item.other[:size].empty?
 		%li= item.other[:size]
-	- unless item.other[:details].nil? || item.other[:stats].empty?
+		
+	- unless item.other[:stats].nil? || item.other[:stats].empty?
 		%li= item.other[:stats]	
+		
 	%li= link_to "Quelle", entrant_url(item)
 	%li= link_to "Original-Quelle", item.srcurl
-	%li= link_to "Magnet", "#{item.other[:magnetlink]}&dn=#{CGI.escapeHTML(item.title)}"
+	
+	- unless item.other[:magnetlink].nil? || item.other[:magnetlink].empty?
+		%li= link_to "Magnet", "#{item.other[:magnetlink]}&dn=#{CGI.escapeHTML(item.title)}"
+	
 	- unless item.other[:details].nil?
 		- item.other[:details].each do |key,value|
 			%li
 				%strong= key.to_s
 				= value
+
 	%li
 		= item.other[:description]
 	- unless item.other[:comments].nil? || item.other[:comments].empty?

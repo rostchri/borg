@@ -16,3 +16,6 @@ class CreateEntrants < ActiveRecord::Migration
     drop_table :entrants
   end
 end
+
+
+# ActiveRecord::Migration.change_column :entrants, :date, :datetime

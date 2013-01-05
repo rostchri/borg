@@ -1,0 +1,33 @@
+- other = object.other
+
+%ul{:class => "entrant_other icons"}
+	- if object.thumbnail.exists?
+		= link_to image_tag(object.thumbnail.url, :style => "float: right; width: 15%;", :class => "img-rounded"), object.thumbnail.url
+	- elsif !other[:thumbnail].nil? && !other[:thumbnail].empty?
+		= link_to image_tag(other[:thumbnail], :style => "float: right; width: 15%;", :class => "img-rounded"), other[:thumbnail]
+
+	%li{:class => "icon-file"}
+		= object.title
+
+	%li{:class => "icon-calendar"}
+		= l object.date, :format => :with_weekday_and_time
+
+	%li{:class => "icon-pencil"}
+		= l object.updated_at, :format => :with_weekday_and_time
+
+	- unless object.category.nil? || object.category.empty?
+		%li{:class => "icon-tag"}
+			= object.category
+			
+	- unless object.srcurl.nil? || object.srcurl.empty?
+		%li{:class => "icon-share-alt"}
+			= link_to "Lokal", entrant_url(object)
+			= link_to "Extern", object.srcurl
+	
+	- unless other[:changes].nil? ||  other[:changes].empty?
+		%li{:class => "icon-eye-open"}
+			= other[:changes].html_safe
+			
+	- unless other[:content].nil? ||  other[:content].empty?
+		%li{:class => "icon-book"}
+			= sfile_content(object)

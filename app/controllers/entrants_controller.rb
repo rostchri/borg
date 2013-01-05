@@ -12,12 +12,11 @@ class EntrantsController < ResourcesController
       r
     end
   end
-  
-  
+
   def feed
     @title = "Borg"
     @description = "Root of content"
-    @feed_items = Entrant.limit(250)
+    @feed_items = (params[:type]).constantize.limit(250)
     @updated = @feed_items.first.updated_at unless @feed_items.empty?
     respond_to do |format|
       format.atom { render :layout => false }
@@ -26,6 +25,6 @@ class EntrantsController < ResourcesController
       # format.rss { redirect_to feed_path(:format => :atom), :status => :moved_permanently }
     end
   end
-  
+    
 end
 

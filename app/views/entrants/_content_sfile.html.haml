@@ -1,0 +1,4 @@
+- content = Nokogiri::HTML(object.other[:content])
+- content.xpath("//img").each { |image|  image.remove if image.attributes['src'].value == object.other[:thumbnail] } unless object.other[:thumbnail].nil?
+- content.xpath("//a").each { |link|  link.set_attribute('href',"http://www.boerse.bz/out/?url=#{$1}") if link.attributes['href'].value =~ /(http:\/\/.*.gulli.bz\/.*)/ }
+= content.to_html.html_safe

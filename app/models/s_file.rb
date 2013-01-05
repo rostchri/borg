@@ -1,0 +1,3 @@
+class SFile < Entrant
+  
+end

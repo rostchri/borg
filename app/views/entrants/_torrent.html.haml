@@ -7,7 +7,7 @@
 		= object.title
 
 	%li{:class => "icon-calendar"}
-		= l object.date, :format => :short_with_day
+		= l object.date, :format => :without_time
 
 	- unless object.category.nil? || object.category.empty?
 		%li{:class => "icon-tag"}

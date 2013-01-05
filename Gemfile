@@ -27,6 +27,8 @@ gem "haml"
 gem "has_scope"
 gem "responders"
 gem 'mechanize'
+gem 'feedzirra'
+gem 'diffy'
 
 # paperclip with amazon s3
 gem "paperclip", "~> 3.0"

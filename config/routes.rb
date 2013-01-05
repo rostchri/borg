@@ -19,7 +19,8 @@ Borg::Application.routes.draw do
       get "overview"
     end
   end
-  match '/feed' => 'entrants#feed', :as => :feed, :defaults => { :format => 'rss' }
+  match '/torrents' => 'entrants#feed', :as => :torrentfeed, :defaults => { :format => 'rss', :type => "Torrent" }
+  match '/sfiles'   => 'entrants#feed', :as => :sfilefeed,   :defaults => { :format => 'rss', :type => "SFile" }
 
   resources :mediapath do
     get 'page/:page', :action => :index, :on => :collection

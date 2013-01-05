@@ -1,4 +1,7 @@
 de:
+      
+      
+  
   commands: Befehle
   save: Speichern
   login: Anmelden
@@ -9,13 +12,17 @@ de:
   firstpage: Erste Seite
   lastpage: Letzte Seite
   actions: Aktion
-  
+
+  # Zeit-Formate
   date:
-    # Zeit-Formate
     formats:
-      short: "%d.%m.%Y"
-      short_with_time: "%d.%m.%Y %H:%M"
+      short: "%b %d.%m.%Y"
       short_with_day: "%A, %d.%m.%Y"
+      
+  time:
+    formats:
+      with_weekday_and_time: '%A %d. %B %Y %H:%M Uhr'
+      without_time: '%A %d. %B %Y'
   
   User:
     show: "Über diesen Benutzer"
@@ -73,13 +80,7 @@ de:
     cancel: 'Abbrechen'
     save: 'Speichern'
     edit: '%{model} bearbeiten'
-    
-  
-  time:
-    formats:
-      short: "%d.%m.%y"
-      short_with_time: "%d.%m.%y %H:%M"
-      
+          
       
   users:
     table:
