@@ -77,8 +77,7 @@ module Scraper
               if changed = dbsfile.other[:content] != sfile[:other][:content]
                 if usediffy
                   sfile[:other][:changes] = Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:html) 
-                else
-                  sfile[:other][:changes] = "ERROR"
+                  puts Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:color)
                 end
               end
             end
@@ -95,8 +94,8 @@ module Scraper
             end
           rescue => e
             puts e.message
-            puts e.backtrace
-            puts Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:color)
+            #puts e.backtrace
+            #puts Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:color)
             usediffy = false
             retries += 1
             retry unless retries > 1
