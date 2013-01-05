@@ -75,25 +75,21 @@ module Scraper
           begin
             if dbsfile = SFile.find_by_srcid(sfile[:srcid])
               if changed = dbsfile.other[:content] != sfile[:other][:content]
-                sfile[:other].merge!(:changes => Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:html))
+                sfile[:other][:changes] = Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:html)
               end
             end
             if dbsfile.nil? || changed
               newobject = SFile.find_or_create_by_srcid(sfile[:srcid]) {|newsfile| sfile.each {|k,v| newsfile.send("#{k}=",v)}}
               @@stats[feed.feed_url][:last][(changed ? :updated : :new)] += 1
-              if ("1328006" == sfile[:srcid])
-                puts newobject.other[:changes].nil?
-                puts Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:color)
-              end
               if changed
                 newobject.category  = feed.title +  " " + entry.categories.join(" ")
                 newobject.thumbnail = URI.parse(sfile[:other][:thumbnail]) unless sfile[:other][:thumbnail].nil? || sfile[:other][:thumbnail].empty?
-                newobject.other = {:thumbnail => sfile[:other][:thumbnail], 
-                                   :content   => sfile[:other][:content],
-                                   :changes   => Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:html),
+                newobject.other = {
+                                    :thumbnail => sfile[:other][:thumbnail], 
+                                    :content   => sfile[:other][:content],
+                                    :changes   => Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:html),
                                    }
                 newobject.save
-                puts newobject.other[:changes] if ("1328006" == sfile[:srcid])
               end
             end
           rescue Timeout::Error
@@ -106,7 +102,7 @@ module Scraper
           rescue => e
             puts e.message
             puts e.backtrace
-            puts Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content]).to_s(:color)
+            #puts Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content]).to_s(:color)
             usediffy=false unless dbsfile.nil?
             retries += 1
             retry unless retries > 1
