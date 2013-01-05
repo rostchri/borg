@@ -71,7 +71,7 @@ module Scraper
           end
           changed = false
           if dbsfile = SFile.find_by_srcid(sfile[:srcid])
-            changed = dbsfile.date != sfile[:date] || dbsfile.other[:content] != sfile[:other][:content]
+            changed = dbsfile.other[:content].size != sfile[:other][:content].size
           end
           usediffy=true
           retries = 0
@@ -84,7 +84,7 @@ module Scraper
                 newobject.thumbnail = URI.parse(sfile[:other][:thumbnail]) unless sfile[:other][:thumbnail].nil? || sfile[:other][:thumbnail].empty?
                 newobject.other[:thumbnail] = sfile[:other][:thumbnail]
                 newobject.other[:content]   = sfile[:other][:content]
-                newobject.other[:changes]   = "#{dbsfile.date != sfile[:date]}" + Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content]).to_s(:html) if usediffy
+                newobject.other[:changes]   = Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content]).to_s(:html) if usediffy
                 newobject.save
               end
             end
@@ -98,6 +98,7 @@ module Scraper
           rescue => e
             puts e.message
             puts e.backtrace
+            puts Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content]).to_s(:color)
             usediffy=false unless dbsfile.nil?
             retries += 1
             retry unless retries > 1
