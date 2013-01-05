@@ -63,7 +63,7 @@ module Scraper
                     :srcid     => $1,
                     :srcurl    => entry.entry_id,
                     :date      => entry.published,
-                    :category  => feed.title +  " " + entry.categories.join(" "),
+                    :category  => feed.title, # entry.categories.join(" ")
                     :other     => {:author => entry.author, :content => entry.content} }
           if entry.summary =~ /Bild: (http:\/\/[^ ]*)/
             sfile[:other].merge!(:thumbnail => $1)
