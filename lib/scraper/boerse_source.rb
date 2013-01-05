@@ -73,12 +73,10 @@ module Scraper
           retries  = 0
           begin
             object = SFile.where(:srcid => sfile[:srcid]).first_or_initialize(sfile)
-            unless object.new_record?
-              if (usediffy && object.other[:content] != sfile[:other][:content])
-                sfile[:other][:changes] = Diffy::Diff.new(object.other[:content], sfile[:other][:content], :context => 1).to_s(:html)
-              end
-              object.attributes = sfile
+            if !object.new_record? && usediffy && object.other[:content] != sfile[:other][:content]
+              sfile[:other][:changes] = Diffy::Diff.new(object.other[:content], sfile[:other][:content], :context => 1).to_s(:html)
             end
+            object.attributes = sfile
             printf "\t%s %p %s / %s %s: %s [%s] %p\n",  object.new_record? ? "(NEW)" : (object.changed? ? "(UPD)" : "(OLD)"),
                                                      object.category,
                                                      object.date.strftime("%d.%m.%y %a %H:%M"),
@@ -86,7 +84,7 @@ module Scraper
                                                      object.other[:author],
                                                      object.title,
                                                      object.srcid,
-                                                     object.changed_attributes
+                                                     object.changes.keys
             object.save if object.new_record? || object.changed?
           rescue Timeout::Error
             if sfile.include?(:thumbnail)
