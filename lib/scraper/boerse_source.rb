@@ -80,6 +80,7 @@ module Scraper
               newobject = SFile.find_or_create_by_srcid(sfile[:srcid]) {|newsfile| sfile.each {|k,v| newsfile.send("#{k}=",v)}}
               @@stats[feed.feed_url][:last][(changed ? :updated : :new)] += 1
               if ("1328006" == sfile[:srcid])
+                puts newobject.other[:changes]
                 puts Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:color)
               end
               if changed
@@ -88,8 +89,8 @@ module Scraper
                 newobject.other[:thumbnail] = sfile[:other][:thumbnail]
                 newobject.other[:content]   = sfile[:other][:content]
                 newobject.other[:changes]   = Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:html) #if usediffy
-                puts "test"
-                puts newobject.save
+                puts newobject.other[:changes] if ("1328006" == sfile[:srcid])
+                newobject.save
               end
             end
           rescue Timeout::Error
