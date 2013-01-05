@@ -77,6 +77,7 @@ module Scraper
               sfile[:other][:changes] = Diffy::Diff.new(object.other[:content], sfile[:other][:content], :context => 1).to_s(:html) if usediffy && object.other[:content] != sfile[:other][:content]
               object.attributes = sfile
             end
+            @@stats[feed.feed_url][:last][(object.new_record? ? :new : :updated)] += 1
             printf "\t%s %s %s / %s %s: %s [%s] %p\n",  object.new_record? ? "(NEW)" : (object.changed? ? "(UPD)" : "(OLD)"),
                                                         object.category,
                                                         object.date.strftime("%d.%m.%y %a %H:%M"),
