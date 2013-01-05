@@ -73,9 +73,9 @@ module Scraper
           usediffy = true
           retries  = 0
           begin
-            dbsfile = SFile.where(:srcid => sfile[:srcid]).first_or_initialize(sfile) do |newobject|
-              if (changed = (newobject.other[:content] != sfile[:other][:content]))
-                puts Diffy::Diff.new(newobject.other[:content], sfile[:other][:content], :context => 1).to_s(:color)
+            dbsfile = (oldobject = SFile.where(:srcid => sfile[:srcid])).first_or_initialize(sfile) do |newobject|
+              if (oldobject && newobject.other[:content] != oldobject.other[:content])
+                puts Diffy::Diff.new(newobject.other[:content], oldobject.other[:content], :context => 1).to_s(:color)
               end
             end
             
