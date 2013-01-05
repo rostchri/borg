@@ -78,7 +78,7 @@ module Scraper
               object.attributes = sfile
             end
             @@stats[feed.feed_url][:last][(object.new_record? ? :new : :updated)] += 1
-            printf "\t%s %s %s / %s %s: %s [%s] %p\n",  object.new_record? ? "(NEW)" : (object.changed? ? "(UPD)" : "(OLD)"),
+            printf "\t%s %s %s / %s %s: %s [%s %p]\n",  object.new_record? ? "(NEW)" : (object.changed? ? "(UPD)" : "(OLD)"),
                                                         object.category,
                                                         object.date.strftime("%d.%m.%y %a %H:%M"),
                                                         entry.last_modified.strftime("%d.%m.%y %a %H:%M"),
