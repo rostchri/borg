@@ -90,16 +90,15 @@ module Scraper
             #   newobject = SFile.where(:srcid => sfile[:srcid]).first_or_create!(sfile)
             #   @@stats[feed.feed_url][:last][(changed ? :updated : :new)] += 1
             # end
-            printf "\t%s %p %s / %s %s: %s [%s] (%p) (%p)\n",  newobject.new_record? ? "(NEW)" : (newobject.changed? ? "(UPD)" : "(OLD)"),
+            printf "\t%s %p %s / %s %s: %s [%s] (%p)\n",  newobject.new_record? ? "(NEW)" : (newobject.changed? ? "(UPD)" : "(OLD)"),
                                                      newobject.category,
                                                      newobject.date.strftime("%d.%m.%y %a %H:%M"),
                                                      entry.last_modified.strftime("%d.%m.%y %a %H:%M"),
                                                      newobject.other[:author],
                                                      newobject.title,
                                                      newobject.srcid,
-                                                     newobject.other[:changes].nil? == false,
-                                                     newobject.changes
-            dbsfile.save if newobject.new_record? || newobject.changed?
+                                                     newobject.changed?
+            newobject.save if newobject.new_record? || newobject.changed?
           rescue Timeout::Error
             if sfile.include?(:thumbnail)
               puts "### Timeout while fetching #{sfile[:thumbnail]}"
