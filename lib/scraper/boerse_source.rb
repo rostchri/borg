@@ -63,7 +63,7 @@ module Scraper
                     :srcid     => $1,
                     :srcurl    => entry.entry_id,
                     :date      => entry.published,
-                    :category  => entry.categories.join(" "),
+                    :category  => feed.title +  " " + entry.categories.join(" "),
                     :other     => {:author => entry.author, :content => entry.content} }
           if entry.summary =~ /Bild: (http:\/\/[^ ]*)/
             sfile[:other].merge!(:thumbnail => $1)
@@ -78,6 +78,7 @@ module Scraper
               newobject = SFile.find_or_create_by_srcid(sfile[:srcid]) {|newsfile| sfile.each {|k,v| newsfile.send("#{k}=",v)}}
               @@stats[feed.feed_url][:last][(dbsfile.nil? ? :new : :updated)] += 1
               unless dbsfile.nil?
+                newobject.category  = feed.title +  " " + entry.categories.join(" ")
                 newobject.thumbnail = URI.parse(sfile[:other][:thumbnail]) unless sfile[:other][:thumbnail].nil? || sfile[:other][:thumbnail].empty?
                 newobject.other[:thumbnail] = sfile[:other][:thumbnail]
                 newobject.other[:content]   = sfile[:other][:content]
