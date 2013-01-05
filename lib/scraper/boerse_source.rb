@@ -69,9 +69,9 @@ module Scraper
             sfile[:thumbnail] = URI.parse($1)
             sfile[:other][:thumbnail] = $1
           end
-          changed = false
-          usediffy=true
-          retries = 0
+          changed  = false
+          usediffy = true
+          retries  = 0
           begin
             if dbsfile = SFile.find_by_srcid(sfile[:srcid])
               if changed = dbsfile.other[:content] != sfile[:other][:content]
@@ -83,7 +83,7 @@ module Scraper
               end
             end
             if dbsfile.nil? || changed
-              newobject = SFile.where(:srcid => sfile[:srcid]).first_or_create(sfile)
+              newobject = SFile.where(:srcid => sfile[:srcid]).first_or_create!(sfile)
               @@stats[feed.feed_url][:last][(changed ? :updated : :new)] += 1
             end
           rescue Timeout::Error
@@ -102,14 +102,15 @@ module Scraper
             retry unless retries > 1
           end
           unless newobject.nil?
-            printf "\t%s %p %s / %s %s: %s [%s] (%p)\n",  dbsfile.nil? ? "(NEW)" : (changed ? "(UPD)" : "(OLD)"),
+            printf "\t%s %p %s / %s %s: %s [%s] (%p) (%p)\n",  dbsfile.nil? ? "(NEW)" : (changed ? "(UPD)" : "(OLD)"),
                                                      newobject.category,
                                                      newobject.date.strftime("%d.%m.%y %a %H:%M"),
                                                      entry.last_modified.strftime("%d.%m.%y %a %H:%M"),
                                                      newobject.other[:author],
                                                      newobject.title,
                                                      newobject.srcid,
-                                                     newobject.other[:changes].nil? == false
+                                                     newobject.other[:changes].nil? == false,
+                                                     newobject.changed?
           end
         end
       end
