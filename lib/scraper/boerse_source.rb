@@ -66,8 +66,8 @@ module Scraper
                     :category  => feed.title, # entry.categories.join(" ")
                     :other     => {:author => entry.author, :content => entry.content} }
           if entry.summary =~ /Bild: (http:\/\/[^ ]*)/
-            sfile[:other].merge!(:thumbnail => $1)
             sfile[:thumbnail] = URI.parse($1)
+            sfile[:other][:thumbnail] = $1
           end
           changed = false
           usediffy=true
@@ -75,22 +75,22 @@ module Scraper
           begin
             if dbsfile = SFile.find_by_srcid(sfile[:srcid])
               if changed = dbsfile.other[:content] != sfile[:other][:content]
-                sfile[:other][:changes] = Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:html)
+                sfile[:other][:changes] = Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:html) if usediffy
               end
             end
             if dbsfile.nil? || changed
-              newobject = SFile.find_or_create_by_srcid(sfile[:srcid]) {|newsfile| sfile.each {|k,v| newsfile.send("#{k}=",v)}}
+              newobject = SFile.where(:srcid => sfile[:srcid]).first_or_create(sfile)
               @@stats[feed.feed_url][:last][(changed ? :updated : :new)] += 1
-              if changed
-                newobject.category  = feed.title# entry.categories.join(" ")
-                newobject.thumbnail = URI.parse(sfile[:other][:thumbnail]) unless sfile[:other][:thumbnail].nil? || sfile[:other][:thumbnail].empty?
-                newobject.other = {
-                                    :thumbnail => sfile[:other][:thumbnail], 
-                                    :content   => sfile[:other][:content],
-                                    :changes   => Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:html),
-                                   }
-                newobject.save
-              end
+              # if changed
+              #                 newobject.category  = feed.title# entry.categories.join(" ")
+              #                 newobject.thumbnail = URI.parse(sfile[:other][:thumbnail]) unless sfile[:other][:thumbnail].nil? || sfile[:other][:thumbnail].empty?
+              #                 newobject.other = {
+              #                                     :thumbnail => sfile[:other][:thumbnail], 
+              #                                     :content   => sfile[:other][:content],
+              #                                     :changes   => Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content], :context => 1).to_s(:html),
+              #                                    }
+              #                 newobject.save
+              #               end
             end
           rescue Timeout::Error
             if sfile.include?(:thumbnail)
@@ -102,7 +102,7 @@ module Scraper
           rescue => e
             puts e.message
             puts e.backtrace
-            #puts Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content]).to_s(:color)
+            puts Diffy::Diff.new(dbsfile.other[:content], sfile[:other][:content]).to_s(:color)
             usediffy=false unless dbsfile.nil?
             retries += 1
             retry unless retries > 1
