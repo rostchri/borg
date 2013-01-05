@@ -100,7 +100,6 @@ module Scraper
             retries += 1
             retry unless retries > 1
           end
-          end
           printf "\t%s %p %s / %s %s: %s [%s]\n",  dbsfile.nil? ? "(NEW)" : (changed ? "(UPD)" : "(OLD)"),
                                                    sfile[:category],
                                                    sfile[:date].strftime("%d.%m.%y %a %H:%M"),
