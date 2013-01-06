@@ -66,17 +66,19 @@ module Scraper
                     :category  => feed.title, # entry.categories.join(" ")
                     :other     => {:author => entry.author, :content => entry.content} }
           if entry.summary =~ /Bild: (http:\/\/[^ ]*)/
-            sfile[:other].merge! :thumbnail => $1
+            sfile[:other][:thumbnail] = $1
           end
           usediffy = true
           retries  = 0
           begin
             object = SFile.where(:srcid => sfile[:srcid]).first_or_initialize(sfile)
-            if !object.new_record? 
-              # if object.other[:thumbnail] != sfile[:other][:thumbnail]
-              #                 printf "%p != %p\n", object.other[:thumbnail], sfile[:other][:thumbnail]
-              #                 sfile[:thumbnail] = URI.parse(sfile[:other][:thumbnail]) 
-              # end
+            if object.new_record? 
+              sfile[:thumbnail] = URI.parse(sfile[:other][:thumbnail]) unless sfile[:other][:thumbnail].nil?
+            else
+              if object.other[:thumbnail] != sfile[:other][:thumbnail]
+                printf "%p != %p\n", object.other[:thumbnail], sfile[:other][:thumbnail]
+                sfile[:thumbnail] = URI.parse(sfile[:other][:thumbnail]) unless sfile[:other][:thumbnail].nil?
+              end
               sfile[:other][:changes] = Diffy::Diff.new(object.other[:content], sfile[:other][:content], :context => 1).to_s(:html) if usediffy && object.other[:content] != sfile[:other][:content]
               object.attributes = sfile
             end
