@@ -1,5 +1,5 @@
 class Entrant < ActiveRecord::Base
-  paginates_per 10
+  paginates_per 30
   #default_scope order("date DESC", "created_at DESC", :category, :title)
   default_scope order("updated_at DESC", :category, :title)
   
