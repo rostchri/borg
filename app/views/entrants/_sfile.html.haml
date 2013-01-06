@@ -8,7 +8,7 @@
 
 	- unless other[:thumbnail].nil? || other[:thumbnail].empty?
 		%li{:class => "icon-picture"}
-			= object.thumbnail
+			= other[:thumbnail]
 
 	%li{:class => "icon-file"}
 		= object.title
