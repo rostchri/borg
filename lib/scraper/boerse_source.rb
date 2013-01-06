@@ -79,7 +79,7 @@ module Scraper
                 printf "%p %p != %p\n", object.other.keys, object.other[:thumbnail], sfile[:other][:thumbnail]
                 object.thumbnail = URI.parse(sfile[:other][:thumbnail]) unless object.other[:thumbnail].nil? || sfile[:other][:thumbnail].nil?
               end
-              sfile[:other][:changes] = Diffy::Diff.new(object.other[:content], sfile[:other][:content], :context => 1).to_s(:html) if usediffy && object.other[:content] != sfile[:other][:content]
+              sfile[:other][:changes] = Diffy::Diff.new(object.other[:content], sfile[:other][:content], :context => 1).to_s(:html) if usediffy && object.other[:content].size != sfile[:other][:content].size
               object.attributes = sfile
             end
             @@stats[feed.feed_url][:last][(object.new_record? ? :new : :updated)] += 1 if object.new_record? || object.changed?
