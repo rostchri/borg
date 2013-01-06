@@ -23,7 +23,7 @@ class Streamdetail < ActiveRecord::Base
 
 
   def video_resolution_logo
-    unless iVideoHeight.nil?
+    unless iVideoHeight.nil? || iVideoWidth.nil?
       logo = "flagging/video/"
       if iVideoHeight < 720 && iVideoWidth < 1280 
         # SD
@@ -38,7 +38,7 @@ class Streamdetail < ActiveRecord::Base
         else
           logo += "576.png"
         end
-      elsif (iVideoHeight >= 720 && iVideoWidth < 1920) || (1280 <= iVideoWidth < 1920)
+      elsif (iVideoHeight >= 720 && iVideoWidth < 1920) || (1280 <= iVideoWidth && iVideoWidth < 1920)
         # HD: 720
         logo += "720.png"
       else #iVideoWidth >= 1920
