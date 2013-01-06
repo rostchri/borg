@@ -75,7 +75,7 @@ module Scraper
             if object.new_record? 
               object.thumbnail = URI.parse(sfile[:other][:thumbnail]) unless sfile[:other][:thumbnail].nil?
             else
-              if object.other[:thumbnail] != sfile[:other][:thumbnail]
+              if !sfile[:other][:thumbnail].nil? && object.other[:thumbnail] != sfile[:other][:thumbnail]
                 printf "%p != %p\n", object.other[:thumbnail], sfile[:other][:thumbnail]
                 object.thumbnail = URI.parse(sfile[:other][:thumbnail]) unless sfile[:other][:thumbnail].nil?
               end
