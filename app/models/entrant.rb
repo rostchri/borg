@@ -11,7 +11,7 @@ class Entrant < ActiveRecord::Base
   scope :sum_and_group_by_date_and_category, :select => "COUNT(*) AS count, date, category", :group => "date,category", :order => "count, date, category"
 
   serialize :other, Hash
-  attr_accessible :title, :srcid, :other, :date, :category, :srcurl, :image, :imageurl
+  attr_accessible :title, :srcid, :other, :date, :category, :srcurl, :image, :imageurl, :diff
   validates_presence_of :srcid
   has_attached_file :image, :storage => :s3, :s3_credentials => S3_SETTINGS, :url  => ":s3_eu_url", :path => "#{Rails.env}/:class/:id/:basename_:style.:extension"
   
