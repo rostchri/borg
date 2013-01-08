@@ -32,9 +32,9 @@
 			= link_to "Lokal", entrant_url(object)
 			= link_to "Extern", object.srcurl
 	
-	- unless other[:changes].nil? ||  other[:changes].empty?
+	- unless object.diff.nil? ||   object.diff.empty?
 		%li{:class => "icon-eye-open"}
-			= other[:changes].html_safe
+			=  object.diff.html_safe
 			
 	- unless other[:content].nil? ||  other[:content].empty?
 		%li{:class => "icon-book"}
