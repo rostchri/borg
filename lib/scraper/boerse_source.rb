@@ -94,6 +94,7 @@ module Scraper
                                                       object.changes.keys
             if object.new_record? || object.changed?
               object.save 
+              puts entry.content.size
               puts object.other[:content].size
             end
           rescue Timeout::Error
