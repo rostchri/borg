@@ -78,7 +78,7 @@ module Scraper
               if usediffy && object.other[:content].size != sfile[:other][:content].size
                 diffs = Diffy::Diff.new(object.other[:content], sfile[:other][:content], :context => 1).to_s(:html) 
                 printf "%p != %p\n", object.other[:content].size, sfile[:other][:content].size
-                puts Diffy::Diff.new(object.other[:content], sfile[:other][:content], :context => 1).to_s(:color) 
+                puts Diffy::Diff.new(object.other[:content], sfile[:other][:content], :context => 1).to_s(:text) 
                 sfile[:other][:changes] = diffs unless diffs.nil? || diffs.empty?
               end
               object.attributes = sfile
