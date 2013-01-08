@@ -91,7 +91,10 @@ module Scraper
                                                       object.srcid,
                                                       object.other.keys,
                                                       object.changes.keys
-            object.save if object.new_record? || object.changed?
+            if object.new_record? || object.changed?
+              object.save 
+              puts object.other[:content].size
+            end
           rescue Timeout::Error
             if sfile.include?(:image)
               puts "### Timeout while fetching #{sfile[:image]}"
