@@ -10,7 +10,7 @@ module EntrantsHelper
         :info      => ->(o,v,i) { render "entrants/#{o.type.downcase}", :object => o },
         :title     => ->(o,v,i) { o.other[:tip] ? railstrap_image("icon-thumbs-up", v) : v },
         :srcurl    => ->(o,v,i) { railstrap_link_to "", v, "icon-share-alt" },
-        :thumbnail => ->(o,v,i) { image_tag v.url, :class => "img-rounded" if v.exists? },
+        :image     => ->(o,v,i) { image_tag v.url, :class => "img-rounded" if v.exists? },
       }
     }
   end

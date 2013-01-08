@@ -27,7 +27,7 @@ atom_feed :language => 'de-de' do |feed|
         xhtml.table :border => "1", :width => "100%;", :style => "width: 100%;" do
           xhtml.tr do
             xhtml.td :rowspan => 1, :valign => "top", :align => "left" do
-              xhtml.img :src => item.thumbnail.url
+              xhtml.img :src => item.image.url
             end
             item.other[:details].each_slice(3).map{|i| i.map{|j| {j[0].to_s =>"#{j[1]}"}}}.each_with_index do |column,columnindex| 
               xhtml.td :valign => "top"  do

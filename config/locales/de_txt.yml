@@ -132,7 +132,8 @@ de:
         srcurl: Quelle
         category: Kategorie
         title: Name
-        thumbnail: Bild
+        image: Bild
+        imageurl: Bild-URL
         date: Datum
         other: Weiteres
       movie:

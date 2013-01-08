@@ -100,7 +100,8 @@ module Scraper
                 Torrent.create :title     => item[:title], 
                                :srcid     => item[:id],
                                :srcurl    => "#{ENV['TORRENT_SOURCE_MAIN']}?Mod=Details&ID=#{item[:id]}",
-                               :thumbnail => URI.parse("#{ENV['TORRENT_SOURCE_HOST']}/#{item[:thumbnail]}"),
+                               :image     => URI.parse("#{ENV['TORRENT_SOURCE_HOST']}/#{item[:thumbnail]}"),
+                               :imageurl  => "#{ENV['TORRENT_SOURCE_HOST']}/#{item[:thumbnail]}",
                                :date      => date,
                                :category  => groupname,
                                :other     => item.clone.delete_if {|key, value| [:title,:id].include?(key) }

@@ -1,5 +1,5 @@
-- if item.thumbnail.exists?
-	= image_tag item.thumbnail.url, :style => "float: right"
+- if item.image.exists?
+	= image_tag item.image.url, :style => "float: right"
 
 %ul
 	%li= item.category 		

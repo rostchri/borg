@@ -60,73 +60,90 @@ class Streamdetail < ActiveRecord::Base
     end
   end
 
+
   def aspect_ratio_logo
     unless fVideoAspect.nil?
       logo = "flagging/aspectratio/"
-      if fVideoAspect >= 1.33 && fVideoAspect < 1.37
-        logo += "1.33.png"
-      elsif fVideoAspect < 1.43
-        logo += "1.37.png"
-      elsif fVideoAspect < 1.44
-        logo += "1.43.png"
-      elsif fVideoAspect < 1.50
-        logo += "1.44.png"
-      elsif fVideoAspect < 1.56
-        logo += "1.50.png"
-      elsif fVideoAspect < 1.57
-        logo += "1.56.png"
-      elsif fVideoAspect < 1.66
-        logo += "1.57.png"
-      elsif fVideoAspect < 1.67
+      
+      
+      if fVideoAspect < 1.4859
+        logo += "1.33.png" # 4:3
+      elsif fVideoAspect < 1.7190
         logo += "1.66.png"
-      elsif fVideoAspect < 1.75
-        logo += "1.67.png"
-      elsif fVideoAspect < 1.77
-        logo += "1.75.png"
-      elsif fVideoAspect < 1.78
-        logo += "1.77.png"
-      elsif fVideoAspect < 1.81
-        logo += "1.78.png"
-      elsif fVideoAspect < 1.85
-        logo += "1.81.png"
-      elsif fVideoAspect < 2.00
+      elsif fVideoAspect <  1.8147
+        logo += "1.78.png" # 16:9
+      elsif fVideoAspect <  2.0174
         logo += "1.85.png"
-      elsif fVideoAspect < 2.20
-        logo += "2.00.png"
-      elsif fVideoAspect < 2.21
+      elsif fVideoAspect <  2.2738
         logo += "2.20.png"
-      elsif fVideoAspect < 2.33
-        logo += "2.21.png"
-      elsif fVideoAspect < 2.35
-        logo += "2.33.png"
-      elsif fVideoAspect < 2.37
-        logo += "2.35.png"
-      elsif fVideoAspect < 2.39
-        logo += "2.37.png"
-      elsif fVideoAspect < 2.40
-        logo += "2.39.png"
-      elsif fVideoAspect < 2.55
-        logo += "2.40.png"
-      elsif fVideoAspect < 2.56
-        logo += "2.55.png"
-      elsif fVideoAspect < 2.59
-        logo += "2.56.png"
-      elsif fVideoAspect < 2.66
-        logo += "2.59.png"
-      elsif fVideoAspect < 2.67
-        logo += "2.66.png"
-      elsif fVideoAspect < 2.76
-        logo += "2.67.png"
-      elsif fVideoAspect < 3.00
-        logo += "2.76.png"
-      elsif fVideoAspect < 4.00
-        logo += "3.00.png"
-      elsif fVideoAspect < 4.1
-        logo += "4.00.png"
       else
-        #printf "### Warning: No aspectratio-logo available for %s\n", file.filenames
-        logo = nil
-      end 
+        logo += "2.35.png"
+      end
+       
+      # if fVideoAspect >= 1.33 && fVideoAspect < 1.37
+      #   logo += "1.33.png"
+      # elsif fVideoAspect < 1.43
+      #   logo += "1.37.png"
+      # elsif fVideoAspect < 1.44
+      #   logo += "1.43.png"
+      # elsif fVideoAspect < 1.50
+      #   logo += "1.44.png"
+      # elsif fVideoAspect < 1.56
+      #   logo += "1.50.png"
+      # elsif fVideoAspect < 1.57
+      #   logo += "1.56.png"
+      # elsif fVideoAspect < 1.66
+      #   logo += "1.57.png"
+      # elsif fVideoAspect < 1.67
+      #   logo += "1.66.png"
+      # elsif fVideoAspect < 1.75
+      #   logo += "1.67.png"
+      # elsif fVideoAspect < 1.77
+      #   logo += "1.75.png"
+      # elsif fVideoAspect < 1.78
+      #   logo += "1.77.png"
+      # elsif fVideoAspect < 1.81
+      #   logo += "1.78.png"
+      # elsif fVideoAspect < 1.85
+      #   logo += "1.81.png"
+      # elsif fVideoAspect < 2.00
+      #   logo += "1.85.png"
+      # elsif fVideoAspect < 2.20
+      #   logo += "2.00.png"
+      # elsif fVideoAspect < 2.21
+      #   logo += "2.20.png"
+      # elsif fVideoAspect < 2.33
+      #   logo += "2.21.png"
+      # elsif fVideoAspect < 2.35
+      #   logo += "2.33.png"
+      # elsif fVideoAspect < 2.37
+      #   logo += "2.35.png"
+      # elsif fVideoAspect < 2.39
+      #   logo += "2.37.png"
+      # elsif fVideoAspect < 2.40
+      #   logo += "2.39.png"
+      # elsif fVideoAspect < 2.55
+      #   logo += "2.40.png"
+      # elsif fVideoAspect < 2.56
+      #   logo += "2.55.png"
+      # elsif fVideoAspect < 2.59
+      #   logo += "2.56.png"
+      # elsif fVideoAspect < 2.66
+      #   logo += "2.59.png"
+      # elsif fVideoAspect < 2.67
+      #   logo += "2.66.png"
+      # elsif fVideoAspect < 2.76
+      #   logo += "2.67.png"
+      # elsif fVideoAspect < 3.00
+      #   logo += "2.76.png"
+      # elsif fVideoAspect < 4.00
+      #   logo += "3.00.png"
+      # elsif fVideoAspect < 4.1
+      #   logo += "4.00.png"
+      # else
+      #   #printf "### Warning: No aspectratio-logo available for %s\n", file.filenames
+      #   logo = nil
+      # end 
       return logo 
     else
       #printf "### Warning: No Aspect-Ratio for %s\n", file.filenames

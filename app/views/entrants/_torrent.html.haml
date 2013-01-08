@@ -1,7 +1,7 @@
 - other = object.other
 
 %ul{:class => "entrant_other icons"}
-	= image_tag object.thumbnail.url, :style => "float: right;", :class => "img-rounded" if object.thumbnail.exists?
+	= image_tag object.image.url, :style => "float: right;", :class => "img-rounded" if object.image.exists?
 
 	%li{:class => "icon-file"}
 		= object.title

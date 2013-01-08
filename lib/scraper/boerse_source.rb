@@ -66,37 +66,34 @@ module Scraper
                     :category  => feed.title, # entry.categories.join(" ")
                     :other     => {:author => entry.author, :content => entry.content} }
           if entry.summary =~ /Bild: (http:\/\/[^ ]*)/
-            sfile[:other][:thumbnail] = $1
+            sfile[:imageurl] = $1
           end
           usediffy = true
           retries  = 0
           begin
             object = SFile.where(:srcid => sfile[:srcid]).first_or_initialize(sfile)
             if object.new_record? 
-              object.thumbnail = URI.parse(object.other[:thumbnail]) unless object.other[:thumbnail].nil?
+              #object.image = URI.parse(object.imageurl) unless object.imageurl.nil?
             else
-              if object.other[:thumbnail] != sfile[:other][:thumbnail]
-                printf "%p %p != %p\n", object.other.keys, object.other[:thumbnail], sfile[:other][:thumbnail]
-                object.thumbnail = URI.parse(sfile[:other][:thumbnail]) unless object.other[:thumbnail].nil? || sfile[:other][:thumbnail].nil?
-              end
               sfile[:other][:changes] = Diffy::Diff.new(object.other[:content], sfile[:other][:content], :context => 1).to_s(:html) if usediffy && object.other[:content].size != sfile[:other][:content].size
               object.attributes = sfile
+              #object.image = URI.parse(object.imageurl) if object.imageurl_changed? && !object.imageurl.nil?
             end
             @@stats[feed.feed_url][:last][(object.new_record? ? :new : :updated)] += 1 if object.new_record? || object.changed?
-            printf "\t%s %s %s / %s %s: %s %s %p -> %p\n",  object.new_record? ? "(NEW)" : (object.changed? ? "(UPD)" : "(OLD)"),
+            printf "\t%s %s %s / %s %s: %s %s %p %p\n",  object.new_record? ? "(NEW)" : (object.changed? ? "(UPD)" : "(OLD)"),
                                                       object.category,
                                                       object.date.strftime("%d.%m.%y %a %H:%M"),
                                                       entry.last_modified.strftime("%d.%m.%y %a %H:%M"),
                                                       object.other[:author],
                                                       object.title,
                                                       object.srcid,
-                                                      object.changes.keys,
-                                                      object.other.keys
+                                                      object.other.keys,
+                                                      object.changes.keys
             object.save if object.new_record? || object.changed?
           rescue Timeout::Error
-            if sfile.include?(:thumbnail)
-              puts "### Timeout while fetching #{sfile[:thumbnail]}"
-              sfile.delete(:thumbnail)
+            if sfile.include?(:image)
+              puts "### Timeout while fetching #{sfile[:image]}"
+              sfile.delete(:image)
               retries += 1
               retry unless retries > 1
             end
