@@ -19,8 +19,6 @@ class Entrant < ActiveRecord::Base
 
   def counter_update
      self.update_counter=self.update_counter + 1
-     yield
-     puts "after counter_update #{self.update_counter}"
   end
   
   def self.recycle(age = 30.days.ago)

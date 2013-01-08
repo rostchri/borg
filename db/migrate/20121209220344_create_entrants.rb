@@ -19,7 +19,6 @@ class CreateEntrants < ActiveRecord::Migration
   end
 end
 
-
 # ActiveRecord::Migration.change_column :entrants, :date, :datetime
 # ActiveRecord::Migration.rename_column :entrants, :thumbnail_file_name, :image_file_name
 # ActiveRecord::Migration.rename_column :entrants, :thumbnail_content_type, :image_content_type
