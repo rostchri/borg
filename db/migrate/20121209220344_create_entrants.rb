@@ -11,6 +11,7 @@ class CreateEntrants < ActiveRecord::Migration
       t.string            :category
       t.date              :date
       t.text              :other
+      t.text              :diff
       t.timestamps
     end
   end
@@ -25,3 +26,4 @@ end
 # ActiveRecord::Migration.rename_column :entrants, :thumbnail_updated_at, :image_updated_at
 # ActiveRecord::Migration.add_column :entrants, :imageurl, :string
 # ActiveRecord::Migration.add_column :entrants, :update_counter, :integer, :default => 0
+# ActiveRecord::Migration.add_column :entrants, :diff, :text
