@@ -127,8 +127,8 @@ module Scraper
       @@stats[feed.feed_url][:total][:updated] += @@stats[feed.feed_url][:last][:updated]
       @@stats[feed.feed_url][:total][:new]     += @@stats[feed.feed_url][:last][:new]
      rescue => e
-       puts "### EXCEPTION: #{e.message} for feed-entry: #{entry.entry_id} - this entry will be skipped"
-       # puts e.backtrace
+       puts "### EXCEPTION: #{e.message} for feed-entry: #{entry.entry_id} - Skipping this entry"
+       puts e.backtrace
      end
      nil
     end
