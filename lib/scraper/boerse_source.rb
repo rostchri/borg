@@ -88,17 +88,17 @@ module Scraper
               #object.image = URI.parse(object.imageurl) if object.imageurl_changed? && !object.imageurl.nil?
             end
             @@stats[feed.feed_url][:last][(object.new_record? ? :new : :updated)] += 1 if object.new_record? || object.changed?
-            printf "\t%s %s %s / %s %s: %s %s %p %p\n",  object.new_record? ? "(NEW)" : (object.changed? ? "(UPD)" : "(OLD)"),
+            printf "\t%s %s %s / %s %s: %s %s %p\n",  object.new_record? ? "(NEW)" : (object.changed? ? "(UPD)" : "(OLD)"),
                                                       object.category,
                                                       object.date.strftime("%d.%m.%y %a %H:%M"),
                                                       entry.last_modified.strftime("%d.%m.%y %a %H:%M"),
                                                       object.author,
                                                       object.title,
                                                       object.srcid,
-                                                      object.other.keys,
                                                       object.changes.keys
             if object.new_record? || object.changed?
               object.save 
+              puts object.title
             end
           rescue Timeout::Error
             if sfile.include?(:image)
