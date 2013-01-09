@@ -7,4 +7,4 @@
 	%li= link_to "Original-Quelle", item.srcurl
 	
 - unless item.other[:content].nil?
-	= raw sfile_content(item)
+	= raw sfile_content(item,false)
