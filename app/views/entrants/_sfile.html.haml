@@ -32,10 +32,10 @@
 			= link_to "Lokal", entrant_url(object)
 			= link_to "Extern", object.srcurl
 	
-	- unless object.diff.nil? ||   object.diff.empty?
+	- unless object.diff.nil? || object.diff.empty?
 		%li{:class => "icon-eye-open"}
 			=  object.diff.html_safe
 			
 	- unless other[:content].nil? ||  other[:content].empty?
 		%li{:class => "icon-book"}
-			= sfile_content(object)
+			= raw sfile_content(object)
