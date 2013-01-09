@@ -1,7 +1,17 @@
 # -*- encoding : utf-8 -*-
 require 'feedzirra'
+require 'iconv'
+
+class String
+  def to_ascii_iconv
+    converter = Iconv.new('ASCII//IGNORE//TRANSLIT', 'UTF-8')
+    converter.iconv(self).unpack('U*').select{ |cp| cp < 127 }.pack('U*')
+  end
+end
+
 
 module Scraper
+  
   
   
   class BoerseSource
@@ -58,6 +68,10 @@ module Scraper
       @@stats[feed.feed_url][:last] = {:updated => 0, :new => 0}
       printf("### %s %s [%s]\n", feed.title, feed.last_modified.strftime("%d.%m.%y %a %H:%M"), feed.feed_url) unless (only_new ? feed.new_entries : feed.entries).empty?
       (only_new ? feed.new_entries : feed.entries).each do |entry|
+        # at first fix some encoding-problems
+        entry.content = entry.content.to_ascii_iconv
+        entry.title   = entry.title.to_ascii_iconv
+        entry.author  = entry.author.to_ascii_iconv
         if entry.entry_id =~ /\?t=(\d*)$/
           sfile = { :title     => entry.title, 
                     :srcid     => $1,
@@ -66,7 +80,6 @@ module Scraper
                     :category  => feed.title, # entry.categories.join(" "),
                     :content   => entry.content,
                     :author    => entry.author }
-          #printf "%p\n", entry.content.size
           if entry.summary =~ /Bild: (http:\/\/[^ ]*)/
             sfile[:imageurl] = $1
           end
