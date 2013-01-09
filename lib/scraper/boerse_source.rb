@@ -1,14 +1,49 @@
 # -*- encoding : utf-8 -*-
 require 'feedzirra'
-require 'iconv'
+
+# require 'iconv'
+# For encoding-problems. see http://craigjolicoeur.com/blog/ruby-iconv-to-the-rescue
+# not working with german umlauts ...
+# class String
+#   def to_ascii_iconv
+#     converter = Iconv.new('ASCII//IGNORE//TRANSLIT', 'UTF-8')
+#     converter.iconv(self).unpack('U*').select{ |cp| cp < 127 }.pack('U*')
+#   end
+# end
+
 
 class String
-  # For encoding-problems. see http://craigjolicoeur.com/blog/ruby-iconv-to-the-rescue
-  def to_ascii_iconv
-    converter = Iconv.new('ASCII//IGNORE//TRANSLIT', 'UTF-8')
-    converter.iconv(self).unpack('U*').select{ |cp| cp < 127 }.pack('U*')
+  
+  def to_ascii
+    # split in muti-byte aware fashion and translate characters over 127 and dropping characters not in the translation hash
+    self.chars.collect do |c|
+      (c.ord <= 127) ? c : translation_hash[c.ord] 
+    end.join
   end
+    
+  protected
+      def translation_hash
+        @@translation_hash ||= setup_translation_hash      
+      end
+      def setup_translation_hash
+        accented_chars   = "ÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝàáâãäåçèéêëìíîïñòóôõöøùúûüý"
+        unaccented_chars = "AAAAAACEEEEIIIIDNOOOOOxOUUUUYaaaaaaceeeeiiiinoooooouuuuy"
+        translation_hash = {}
+        accented_chars.chars.each_with_index { |char, idx| translation_hash[char[0]] = unaccented_chars[idx] }
+        translation_hash["Æ".ord] = 'AE'
+        translation_hash["æ".ord] = 'ae'
+        translation_hash["ä".ord] = 'ä'
+        translation_hash["ö".ord] = 'ö'
+        translation_hash["ü".ord] = 'ü'
+        translation_hash["Ü".ord] = 'Ü'
+        translation_hash["Ö".ord] = 'Ö'
+        translation_hash["Ä".ord] = 'Ä'
+        translation_hash["ß".ord] = 'ß'
+        translation_hash
+      end
 end
+
+
 
 
 module Scraper
