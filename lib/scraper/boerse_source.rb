@@ -66,6 +66,7 @@ module Scraper
                     :category  => feed.title, # entry.categories.join(" "),
                     :content   => entry.content,
                     :author    => entry.author }
+          printf "%p\n", entry.content.size
           if entry.summary =~ /Bild: (http:\/\/[^ ]*)/
             sfile[:imageurl] = $1
           end
@@ -79,7 +80,7 @@ module Scraper
               if usediffy && !object.title.nil? && object.title != sfile[:title]
                 object.diff << "TITLE: " + Diffy::Diff.new(object.title, sfile[:title], :context => 1).to_s(:html) 
               end
-              if usediffy && !object.content.nil? && object.content.size != sfile.content.size
+              if usediffy && !object.content.nil? && object.content.size != sfile[:content].size
                 object.diff << "CONTENT: " + Diffy::Diff.new(Nokogiri::HTML(object.content).to_str, Nokogiri::HTML(sfile[:content]).to_str, :context => 1).to_s(:text) #(:html) 
               end
               object.attributes = sfile
