@@ -35,8 +35,8 @@
 		- unless object.diff.nil? || object.diff.empty?
 			- object.diff.each do |diff|
 				%li{:class => "icon-eye-open"}
-					= raw diff.size
+					= raw diff
 			
-	- unless other[:content].nil? ||  other[:content].empty?
+	- unless other[:content].nil? || other[:content].empty?
 		%li{:class => "icon-book"}
 			= raw sfile_content(object)
