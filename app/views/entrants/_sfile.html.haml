@@ -35,7 +35,7 @@
 		-# unless object.diff.nil? || object.diff.empty?
 			- object.diff.each do |diff|
 				%li{:class => "icon-eye-open"}
-					= diff.html_safe
+					= raw diff.to_str
 			
 	- unless other[:content].nil? ||  other[:content].empty?
 		%li{:class => "icon-book"}
