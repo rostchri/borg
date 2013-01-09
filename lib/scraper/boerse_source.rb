@@ -102,9 +102,9 @@ module Scraper
       printf("### %s %s [%s]\n", feed.title, feed.last_modified.strftime("%d.%m.%y %a %H:%M"), feed.feed_url) unless (only_new ? feed.new_entries : feed.entries).empty?
       (only_new ? feed.new_entries : feed.entries).each do |entry|
         # at first fix some encoding-problems
-        entry.content = entry.content.to_ascii_iconv
-        entry.title   = entry.title.to_ascii_iconv
-        entry.author  = entry.author.to_ascii_iconv
+        entry.content = entry.content.to_ascii
+        entry.title   = entry.title.to_ascii
+        entry.author  = entry.author.to_ascii
         if entry.entry_id =~ /\?t=(\d*)$/
           sfile = { :title     => entry.title, 
                     :srcid     => $1,
