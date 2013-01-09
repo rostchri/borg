@@ -127,6 +127,8 @@ module Scraper
                 object.diff << Diffy::Diff.new(object.title, sfile[:title], :context => 1).to_s(:html) 
               end
               if usediffy && !object.content.nil? && object.content != sfile[:content]
+                puts sfile[:content].size
+                puts object.content.size
                 object.diff << Diffy::Diff.new(object.content, sfile[:content], :context => 1).to_s(:html) 
               end
               object.attributes = sfile
@@ -142,6 +144,8 @@ module Scraper
                                                       object.srcid,
                                                       object.changes.keys
             object.save if object.new_record? || object.changed?
+            object.reload
+            puts object.content.size
           rescue Timeout::Error
             if sfile.include?(:image)
               puts "### Timeout while fetching #{sfile[:image]}"
