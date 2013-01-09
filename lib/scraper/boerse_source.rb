@@ -75,8 +75,10 @@ module Scraper
             if object.new_record? 
               #object.image = URI.parse(object.imageurl) unless object.imageurl.nil?
             else
+              if usediffy && object.title != sfile[:title]
+                object.diff << Diffy::Diff.new(object.title, sfile[:title], :context => 1).to_s(:html) 
+              end
               if usediffy && object.other[:content].size != sfile[:other][:content].size
-                printf "%p != %p\n", object.other[:content].size, sfile[:other][:content].size
                 object.diff << Diffy::Diff.new(object.other[:content], sfile[:other][:content], :context => 1).to_s(:html) 
               end
               object.attributes = sfile
@@ -94,8 +96,6 @@ module Scraper
                                                       object.changes.keys
             if object.new_record? || object.changed?
               object.save 
-              puts entry.content.size
-              puts object.other[:content].size
             end
           rescue Timeout::Error
             if sfile.include?(:image)
