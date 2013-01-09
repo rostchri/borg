@@ -7,13 +7,13 @@ class CreateEntrants < ActiveRecord::Migration
       t.string            :srcid
       t.string            :srcurl
       t.string            :author
-      t.text              :content
+      t.text              :content, :limit => 64.kilobytes + 1
       t.has_attached_file :image
       t.string            :imageurl
       t.number            :update_counter, :default => 0
       t.date              :date
-      t.text              :other
-      t.text              :diff
+      t.text              :other, :limit => 64.kilobytes + 1
+      t.text              :diff, :limit => 64.kilobytes + 1
       t.timestamps
     end
   end
@@ -31,3 +31,6 @@ end
 # ActiveRecord::Migration.add_column :entrants, :diff, :text
 # ActiveRecord::Migration.add_column :entrants, :content, :text
 # ActiveRecord::Migration.add_column :entrants, :author, :string
+# ActiveRecord::Migration.change_column :entrants, :content, :text, :limit => 64.kilobytes + 1
+# ActiveRecord::Migration.change_column :entrants, :diff, :text, :limit => 64.kilobytes + 1
+# ActiveRecord::Migration.change_column :entrants, :other, :text, :limit => 64.kilobytes + 1
