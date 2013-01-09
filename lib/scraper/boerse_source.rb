@@ -66,7 +66,7 @@ module Scraper
                     :category  => feed.title, # entry.categories.join(" "),
                     :content   => entry.content,
                     :author    => entry.author }
-          printf "%p\n", entry.content.size
+          #printf "%p\n", entry.content.size
           if entry.summary =~ /Bild: (http:\/\/[^ ]*)/
             sfile[:imageurl] = $1
           end
@@ -75,6 +75,7 @@ module Scraper
           begin
             object = SFile.where(:srcid => sfile[:srcid]).first_or_initialize(sfile)
             if object.new_record? 
+              #printf "%p\n", object
               #object.image = URI.parse(object.imageurl) unless object.imageurl.nil?
             else
               if usediffy && !object.title.nil? && object.title != sfile[:title]

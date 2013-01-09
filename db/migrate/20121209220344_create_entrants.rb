@@ -1,19 +1,19 @@
 class CreateEntrants < ActiveRecord::Migration
   def self.up
     create_table :entrants do |t|
-      t.string            :title
       t.string            :type
+      t.string            :title
+      t.string            :category
       t.string            :srcid
       t.string            :srcurl
-      t.number            :update_counter, :default => 0
+      t.string            :author
+      t.text              :content
       t.has_attached_file :image
       t.string            :imageurl
-      t.string            :category
+      t.number            :update_counter, :default => 0
       t.date              :date
       t.text              :other
       t.text              :diff
-      t.text              :content
-      t.string            :author
       t.timestamps
     end
   end
