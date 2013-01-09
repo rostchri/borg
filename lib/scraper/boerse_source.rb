@@ -3,6 +3,7 @@ require 'feedzirra'
 require 'iconv'
 
 class String
+  # For encoding-problems. see http://craigjolicoeur.com/blog/ruby-iconv-to-the-rescue
   def to_ascii_iconv
     converter = Iconv.new('ASCII//IGNORE//TRANSLIT', 'UTF-8')
     converter.iconv(self).unpack('U*').select{ |cp| cp < 127 }.pack('U*')
@@ -11,9 +12,6 @@ end
 
 
 module Scraper
-  
-  
-  
   class BoerseSource
     attr_accessor :feeds
     @@stats = {}
@@ -88,14 +86,13 @@ module Scraper
           begin
             object = SFile.where(:srcid => sfile[:srcid]).first_or_initialize(sfile)
             if object.new_record? 
-              #printf "%p\n", object
               #object.image = URI.parse(object.imageurl) unless object.imageurl.nil?
             else
               if usediffy && !object.title.nil? && object.title != sfile[:title]
-                object.diff << "TITLE: " + Diffy::Diff.new(object.title, sfile[:title], :context => 1).to_s(:html) 
+                object.diff << Diffy::Diff.new(object.title, sfile[:title], :context => 1).to_s(:html) 
               end
-              if usediffy && !object.content.nil? && object.content.size != sfile[:content].size
-                object.diff << "CONTENT: " + Diffy::Diff.new(Nokogiri::HTML(object.content).to_str, Nokogiri::HTML(sfile[:content]).to_str, :context => 1).to_s(:text) #(:html) 
+              if usediffy && !object.content.nil? && object.content != sfile[:content]
+                object.diff << Diffy::Diff.new(object.content, sfile[:content], :context => 1).to_s(:html) 
               end
               object.attributes = sfile
               #object.image = URI.parse(object.imageurl) if object.imageurl_changed? && !object.imageurl.nil?
@@ -109,10 +106,7 @@ module Scraper
                                                       object.title,
                                                       object.srcid,
                                                       object.changes.keys
-            if object.new_record? || object.changed?
-              object.save 
-              puts object.title
-            end
+            object.save if object.new_record? || object.changed?
           rescue Timeout::Error
             if sfile.include?(:image)
               puts "### Timeout while fetching #{sfile[:image]}"
@@ -133,8 +127,8 @@ module Scraper
       @@stats[feed.feed_url][:total][:updated] += @@stats[feed.feed_url][:last][:updated]
       @@stats[feed.feed_url][:total][:new]     += @@stats[feed.feed_url][:last][:new]
      rescue => e
-       puts e.message
-       puts e.backtrace
+       puts "### EXCEPTION: #{e.message} for feed-entry: #{entry.entry_id} - this entry will be skipped"
+       # puts e.backtrace
      end
      nil
     end
