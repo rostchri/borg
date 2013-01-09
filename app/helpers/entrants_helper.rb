@@ -34,7 +34,6 @@ module EntrantsHelper
   
   
   def sfile_content(sfile,removeimage=true)
-    content = sfile.content
     content = Nokogiri::HTML(sfile.content)
     content.xpath("//img").each { |image|  image.remove if image.attributes['src'].value == sfile.imageurl } unless !removeimage || sfile.imageurl.nil?
     content.xpath("//a").each { |link| link.set_attribute('href',"http://www.boerse.bz/out/?url=#{$1}") if link.attributes['href'].value =~ /(http:\/\/.*.gulli.bz\/.*)/ }
