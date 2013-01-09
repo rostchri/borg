@@ -12,6 +12,8 @@ class CreateEntrants < ActiveRecord::Migration
       t.date              :date
       t.text              :other
       t.text              :diff
+      t.text              :content
+      t.string            :author
       t.timestamps
     end
   end
@@ -27,3 +29,5 @@ end
 # ActiveRecord::Migration.add_column :entrants, :imageurl, :string
 # ActiveRecord::Migration.add_column :entrants, :update_counter, :integer, :default => 0
 # ActiveRecord::Migration.add_column :entrants, :diff, :text
+# ActiveRecord::Migration.add_column :entrants, :content, :text
+# ActiveRecord::Migration.add_column :entrants, :author, :string

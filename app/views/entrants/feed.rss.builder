@@ -38,7 +38,7 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
             description << item.other[:details][:'IMDb Rating:'] unless item.other[:details].nil? || item.other[:details][:'IMDb Rating:'].nil?
             
           when SFile
-            xml.tag!('dc:creator',item.other[:author])
+            xml.tag!('dc:creator',item.author.author)
             description << item.category
           else
             xml.tag!('dc:creator',item.type)

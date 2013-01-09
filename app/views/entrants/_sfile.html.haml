@@ -37,6 +37,6 @@
 				%li{:class => "icon-eye-open"}
 					= raw diff
 			
-	- unless other[:content].nil? || other[:content].empty?
+	- unless object.content.nil? || object.content.empty?
 		%li{:class => "icon-book"}
 			= raw sfile_content(object)

@@ -63,8 +63,9 @@ module Scraper
                     :srcid     => $1,
                     :srcurl    => entry.entry_id,
                     :date      => entry.published,
-                    :category  => feed.title, # entry.categories.join(" ")
-                    :other     => {:author => entry.author, :content => entry.content} }
+                    :category  => feed.title, # entry.categories.join(" "),
+                    :content   => entry.content,
+                    :author    => entry.author }
           if entry.summary =~ /Bild: (http:\/\/[^ ]*)/
             sfile[:imageurl] = $1
           end
@@ -76,10 +77,10 @@ module Scraper
               #object.image = URI.parse(object.imageurl) unless object.imageurl.nil?
             else
               if usediffy && object.title != sfile[:title]
-                object.diff << Diffy::Diff.new(object.title, sfile[:title], :context => 1).to_s(:html) 
+                object.diff << "TITLE: " + Diffy::Diff.new(object.title, sfile[:title], :context => 1).to_s(:html) 
               end
-              if usediffy && object.other[:content].size != sfile[:other][:content].size
-                object.diff << Diffy::Diff.new(Nokogiri::HTML(object.other[:content]).to_str, Nokogiri::HTML(sfile[:other][:content]).to_str, :context => 1).to_s(:text) #(:html) 
+              if usediffy && object.content.size != sfile.content.size
+                object.diff << "CONTENT: " + Diffy::Diff.new(Nokogiri::HTML(object.content).to_str, Nokogiri::HTML(sfile[:content]).to_str, :context => 1).to_s(:text) #(:html) 
               end
               object.attributes = sfile
               #object.image = URI.parse(object.imageurl) if object.imageurl_changed? && !object.imageurl.nil?
@@ -89,7 +90,7 @@ module Scraper
                                                       object.category,
                                                       object.date.strftime("%d.%m.%y %a %H:%M"),
                                                       entry.last_modified.strftime("%d.%m.%y %a %H:%M"),
-                                                      object.other[:author],
+                                                      object.author,
                                                       object.title,
                                                       object.srcid,
                                                       object.other.keys,
@@ -107,7 +108,7 @@ module Scraper
           rescue => e
             puts e.message
             puts e.backtrace
-            puts Diffy::Diff.new(object.other[:content], sfile[:other][:content], :context => 1).to_s(:color)
+            puts Diffy::Diff.new(object.content, sfile[:content], :context => 1).to_s(:color)
             usediffy = false
             retries += 1
             retry unless retries > 1
