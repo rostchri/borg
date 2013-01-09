@@ -79,7 +79,7 @@ module Scraper
                 object.diff << Diffy::Diff.new(object.title, sfile[:title], :context => 1).to_s(:html) 
               end
               if usediffy && object.other[:content].size != sfile[:other][:content].size
-                object.diff << Diffy::Diff.new(Nokogiri::HTML(object.other[:content]).to_str, Nokogiri::HTML(sfile[:other][:content]).to_str, :context => 1).to_s(:html) 
+                object.diff << Diffy::Diff.new(Nokogiri::HTML(object.other[:content]).to_str, Nokogiri::HTML(sfile[:other][:content]).to_str, :context => 1).to_s(:text) #(:html) 
               end
               object.attributes = sfile
               #object.image = URI.parse(object.imageurl) if object.imageurl_changed? && !object.imageurl.nil?
