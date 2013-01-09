@@ -31,14 +31,13 @@
 			= link_to "Lokal", entrant_url(object)
 			= link_to "Extern", object.srcurl
 	
-	- unless object.diff.nil? || object.diff.empty?
-		- if object.diff.is_a? Array
-			- object.diff.each do |diff|
-				%li{:class => "icon-eye-open"}
-					= diff.html_safe
-		- else
+	- if object.diff.is_a? Array
+		- object.diff.each do |diff|
 			%li{:class => "icon-eye-open"}
-				= object.diff.html_safe
+				= diff.html_safe
+	- else
+		%li{:class => "icon-eye-open"}
+			= object.diff.html_safe
 			
 	- unless other[:content].nil? ||  other[:content].empty?
 		%li{:class => "icon-book"}
