@@ -25,7 +25,7 @@
 	%li{:class => "icon-calendar"}
 		= l object.date, :format => :with_weekday_and_time
 
-	- unless object.date == object.updated_at
+	- if object.update_counter > 0
 		%li{:class => "icon-pencil"}
 			= l object.updated_at, :format => :with_weekday_and_time
 

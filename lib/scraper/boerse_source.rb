@@ -124,10 +124,11 @@ module Scraper
               #object.image = URI.parse(object.imageurl) unless object.imageurl.nil?
             else
               if usediffy && !object.title.nil? && object.title != sfile[:title]
-                object.diff << Diffy::Diff.new(object.title, sfile[:title], :context => 1).to_s(:html) 
+                object.diff << Diffy::Diff.new(object.title, sfile[:title], :context => 1).to_s(:text) 
               end
               if usediffy && !object.content.nil? && object.content != sfile[:content]
-                object.diff << Diffy::Diff.new(object.content, sfile[:content], :context => 1).to_s(:html) 
+                #object.diff << Diffy::Diff.new(object.content, sfile[:content], :context => 1).to_s(:html) 
+                object.diff << Diffy::Diff.new(Nokogiri::HTML(object.content).to_str, Nokogiri::HTML(sfile[:content]).to_str, :context => 1).to_s(:html) 
               end
               object.attributes = sfile
               #object.image = URI.parse(object.imageurl) if object.imageurl_changed? && !object.imageurl.nil?
