@@ -110,7 +110,7 @@ module Scraper
                     :srcid     => $1,
                     :srcurl    => entry.entry_id,
                     :date      => entry.published,
-                    :category  => feed.title, # entry.categories.join(" "),
+                    :category  => entry.categories.join(" "), #feed.title
                     :content   => entry.content,
                     :author    => entry.author }
           if entry.summary =~ /Bild: (http:\/\/[^ ]*)/

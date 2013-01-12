@@ -1,10 +1,19 @@
 - if item.image.exists?
-	= image_tag item.image.url, :style => "float: right"
+	= link_to image_tag(item.image.url, :style => "float: right; width: 15%;", :class => "img-rounded"), item.image.url
+- elsif !item.imageurl.nil? && !item.imageurl.empty?
+	= link_to image_tag(item.imageurl, :style => "float: right; width: 15%;", :class => "img-rounded"), item.imageurl
 
 %ul
 	%li= item.category 		
-	%li= link_to "Quelle", entrant_url(item)
-	%li= link_to "Original-Quelle", item.srcurl
-	
-- unless item.content.nil?
-	= raw sfile_content(item,false)
+	%li
+		= link_to "Quelle", entrant_url(item)
+		= link_to "Externe Quelle", item.srcurl
+		
+	- if item.update_counter > 0
+		%li= "Bearbeitungen: #{item.update_counter}"
+		- unless item.diff.nil? || item.diff.empty?
+			- item.diff.each do |diff|
+				%li= raw diff
+
+	- unless item.content.nil?
+		%li= raw sfile_content(item)

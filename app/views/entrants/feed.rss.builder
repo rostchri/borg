@@ -47,9 +47,8 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
         xml.tag!('content:encoded') do
           xml.cdata! render("entrants/feedcontent_#{item.type.downcase}", :item => item)
         end
-        #xml.pubDate item.created_at.to_s(:rfc822)
-        xml.pubDate item.updated_at.to_s(:rfc822)
-        xml.guid entrant_url(item)
+        xml.pubDate       item.updated_at.to_s(:rfc822)
+        xml.guid          entrant_url(item)
       end
     end
     
