@@ -47,7 +47,48 @@ end
 
 
 module Scraper
-  class BoerseSource
+  
+  class BoerseSourceWeb
+    def initialize
+      @days    = {}
+      @timeout = 30
+      @mech    = Mechanize.new do |agent| 
+        #agent.log = Logger.new('/tmp/mechanize.log')
+        agent.user_agent_alias = 'Windows IE 9'
+        agent.open_timeout = 30
+        agent.read_timeout = 30
+        # agent.pre_connect_hooks << lambda do |agent,params|
+        #    params[:request]['X-Requested-With'] = 'XMLHttpRequest'
+        #    params[:request]['Accept-Language'] = 'de-de'
+        # end
+      end
+      
+      loginurl = "http://www.boerse.bz/login.php?do=login";
+      params   = {  'vb_login_username'         => ENV['BOERSE_USERNAME'], 
+                    'vb_login_password'         => ENV['BOERSE_PASSWORD'], 
+                    'cookieuser'                => '1',
+                    's'                         => '', 
+                    'securitytoken'             => 'guest',
+                    'do'                        => 'login', 
+                    'vb_login_md5password'      => '', 
+                    'vb_login_md5password_utf'  => '' }
+                    
+      response = @mech.post(loginurl, params)
+      @mech
+    end
+    
+    def get(url,&block)
+      #printf "Fetching %s\n", url
+      page = @mech.get url
+      #spoilerlinks = page.search("//div[@class='alt1 messagearea-wrap']/descendant::div[@class='body-spoiler']/descendant::a[@target='_blank']")
+      #sharelinks   = page.search("//div[@class='alt1 messagearea-wrap']/descendant::a[@target='_blank']").each{|l| puts l.attributes['href'].value if l.attributes['href'].value =~ /share-links.biz/}
+      #page.search("//div[@class='alt1 messagearea-wrap']/descendant::a[@target='_blank']").select{|l| l.attributes['href'].value =~ /share-links.biz/},
+      yield page.search("//div[@class='alt1 messagearea-wrap']/descendant::div[@class='body-spoiler']") if block_given?
+            
+    end
+  end
+  
+  class BoerseSourceRss
     attr_accessor :feeds
     @@stats = {}
     
@@ -56,8 +97,9 @@ module Scraper
       # Feedzirra::Feed.add_common_feed_element('ttl')
       # Feedzirra::Feed.add_common_feed_element('generator')
       # Feedzirra::Feed.add_common_feed_entry_element('ttl')
+      @@web  = Scraper::BoerseSourceWeb.new
       @feeds = Feedzirra::Feed.fetch_and_parse ENV['BOERSE_FEEDS'].split(",").map{|id| "#{ENV['BOERSE_FEED_URL']}#{id}"}, 
-                                               :on_success => ->(url, feed) { BoerseSource.items(feed)}
+                                               :on_success => ->(url, feed) { BoerseSourceRss.items(feed)}
       stats
       nil
     end
@@ -67,7 +109,7 @@ module Scraper
         @@stats[feed.feed_url][:last] = {:updated => 0, :new => 0}
         updated_feed = Feedzirra::Feed.update(feed)
         unless updated_feed.is_a? Array
-          BoerseSource.items updated_feed, false 
+          BoerseSourceRss.items updated_feed, false 
           puts "#{updated_feed.updated?} #{updated_feed.last_modified}"
         end
       end
@@ -116,6 +158,11 @@ module Scraper
                     :author    => entry.author }
           if entry.content =~ /title\/(tt\d{5,8})/
             sfile[:other] = {:imdbid => $1}          
+          end
+          @@web.get(entry.entry_id) do |spoiler|
+            sfile[:other] = {} if sfile[:other].nil?
+            sfile[:other][:spoiler] = [] if sfile[:other][:spoiler].nil?
+            sfile[:other][:spoiler] << spoiler.to_s
           end
           if entry.summary =~ /Bild: (http:\/\/[^ ]*)/
             sfile[:imageurl] = $1
@@ -175,7 +222,7 @@ module Scraper
   end
   
   def self.boerseupdate
-    BoerseSource.new
+    BoerseSourceRss.new
   end
   
 end
