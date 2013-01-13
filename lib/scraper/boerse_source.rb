@@ -105,6 +105,7 @@ module Scraper
         entry.content = entry.content.to_ascii
         entry.title   = entry.title.to_ascii
         entry.author  = entry.author.to_ascii
+        
         if entry.entry_id =~ /\?t=(\d*)$/
           sfile = { :title     => entry.title, 
                     :srcid     => $1,
@@ -113,6 +114,9 @@ module Scraper
                     :category  => entry.categories.join(" "), #feed.title
                     :content   => entry.content,
                     :author    => entry.author }
+          if entry.content =~ /title\/(tt\d{5,8})/
+            sfile[:other] = {:imdbid => $1}          
+          end
           if entry.summary =~ /Bild: (http:\/\/[^ ]*)/
             sfile[:imageurl] = $1
           end

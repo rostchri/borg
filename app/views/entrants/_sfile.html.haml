@@ -8,6 +8,8 @@
 
 	%li{:class => "icon-file"}
 		= object.title
+		- unless other[:imdbid].nil?
+			= link_to "[#{other[:imdbid]}]", "http://www.imdb.de/title/#{other[:imdbid]}",  :rel => "tooltip", :title => "IMDB"
 		
 	- unless object.category.nil? || object.category.empty?
 		%li{:class => "icon-tag"}
