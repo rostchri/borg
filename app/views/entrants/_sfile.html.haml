@@ -23,8 +23,8 @@
 			
 	- unless object.srcurl.nil? || object.srcurl.empty?
 		%li{:class => "icon-share-alt"}
-			= link_to "Quelle", entrant_url(object)
-			= link_to "Externe Quelle", object.srcurl
+			= link_to "Lokal", entrant_url(object)
+			= link_to "Extern", object.srcurl
 			
 	%li{:class => "icon-calendar"}
 		= l object.date, :format => :with_weekday_and_time

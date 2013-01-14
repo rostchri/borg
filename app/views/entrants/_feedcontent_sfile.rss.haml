@@ -1,14 +1,16 @@
 %ul
-	- unless item.imdbid.nil?
-		%li= link_to "[#{item.imdbid}]", "http://www.imdb.de/title/#{item.imdbid}"
+	%li= item.category
 	
-	%li= item.category 		
+	- unless item.imdbid.nil?
+		%li= link_to "#{item.imdbid}", "http://www.imdb.de/title/#{item.imdbid}"
+	
 	%li
-		= link_to "Quelle", entrant_url(item)
-		= link_to "Externe Quelle", item.srcurl
+		Quelle:
+		= link_to "Lokal", entrant_url(item)
+		= link_to "Extern", item.srcurl
 		
 	- if item.update_counter > 0
-		%li= "Bearbeitungen: #{item.update_counter}"
+		%li= "Updates: #{item.update_counter}"
 		- unless item.diff.nil? || item.diff.empty?
 			- item.diff.each do |diff|
 				%li= raw diff
