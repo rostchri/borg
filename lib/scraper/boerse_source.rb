@@ -146,7 +146,7 @@ module Scraper
                     :content   => entry.content,
                     :author    => entry.author }
           if entry.content =~ /title\/(tt\d{5,8})/
-            sfile[:imdbid] = $1
+            #sfile[:imdbid] = $1
           end
           if entry.summary =~ /Bild: (http:\/\/[^ ]*)/
             sfile[:imageurl] = $1
