@@ -34,3 +34,4 @@ end
 # ActiveRecord::Migration.change_column :entrants, :content, :text, :limit => 64.kilobytes + 1
 # ActiveRecord::Migration.change_column :entrants, :diff, :text, :limit => 64.kilobytes + 1
 # ActiveRecord::Migration.change_column :entrants, :other, :text, :limit => 64.kilobytes + 1
+# ActiveRecord::Migration.add_column :entrants, :imdbid, :string

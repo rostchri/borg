@@ -10,8 +10,8 @@
 		= object.title
 		- unless other[:spoiler].nil?
 			= other[:spoiler].size
-		- unless other[:imdbid].nil?
-			= link_to "[#{other[:imdbid]}]", "http://www.imdb.de/title/#{other[:imdbid]}",  :rel => "tooltip", :title => "IMDB"
+		- unless object.imdbid.nil?
+			= link_to "[#{object.imdbid}]", "http://www.imdb.de/title/#{object.imdbid}",  :rel => "tooltip", :title => "IMDB"
 		
 	- unless object.category.nil? || object.category.empty?
 		%li{:class => "icon-tag"}

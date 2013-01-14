@@ -157,16 +157,10 @@ module Scraper
                     :content   => entry.content,
                     :author    => entry.author }
           if entry.content =~ /title\/(tt\d{5,8})/
-            sfile[:other] = {:imdbid => $1}          
+            sfile[:imdbid] = $1
           end
           if entry.summary =~ /Bild: (http:\/\/[^ ]*)/
             sfile[:imageurl] = $1
-          end
-          @@web.get(entry.entry_id) do |spoiler|
-            unless spoiler.empty?
-              sfile[:other] = {} if sfile[:other].nil?
-              sfile[:other][:spoiler] = spoiler.map{|i| i.to_s} #if sfile[:other][:spoiler].nil?
-            end
           end
           usediffy = true
           retries  = 0
@@ -185,12 +179,12 @@ module Scraper
                 object.diff << Diffy::Diff.new(Nokogiri::HTML(object.content).to_str, Nokogiri::HTML(sfile[:content]).to_str, :context => 1).to_s(:html) 
                 webget = true
               end
-              # @@web.get(entry.entry_id) do |spoiler|
-              #   unless spoiler.empty?
-              #     sfile[:other] = {} if sfile[:other].nil?
-              #     sfile[:other][:spoiler] = spoiler.map{|i| i.to_s} #if sfile[:other][:spoiler].nil?
-              #   end
-              # end if webget
+              @@web.get(entry.entry_id) do |spoiler|
+                unless spoiler.empty?
+                  sfile[:other] = {} if sfile[:other].nil?
+                  sfile[:other][:spoiler] = spoiler.map{|i| i.to_s}
+                end
+              end if webget
               object.attributes = sfile
               #object.image = URI.parse(object.imageurl) if object.imageurl_changed? && !object.imageurl.nil?
             end

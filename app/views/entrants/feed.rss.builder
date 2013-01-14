@@ -40,7 +40,7 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
           when SFile
             xml.tag!('dc:creator',item.author)
             description << item.category
-            description << item.other[:imdbid] unless item.other[:imdbid].nil?
+            description << item.imdbid unless item.imdbid.nil?
           else
             xml.tag!('dc:creator',item.type)
         end

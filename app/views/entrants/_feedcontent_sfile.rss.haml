@@ -4,8 +4,8 @@
 	= link_to image_tag(item.imageurl, :style => "float: right; width: 15%;", :class => "img-rounded"), item.imageurl
 
 %ul
-	- unless item.other[:imdbid].nil?
-		%li= link_to "[#{item.other[:imdbid]}]", "http://www.imdb.de/title/#{item.other[:imdbid]}"
+	- unless item.imdbid.nil?
+		%li= link_to "[#{item.imdbid}]", "http://www.imdb.de/title/#{item.imdbid}"
 	
 	%li= item.category 		
 	%li
