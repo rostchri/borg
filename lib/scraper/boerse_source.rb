@@ -1,15 +1,8 @@
 # -*- encoding : utf-8 -*-
 require 'feedzirra'
 
-# require 'iconv'
-# For encoding-problems. see http://craigjolicoeur.com/blog/ruby-iconv-to-the-rescue
-# not working with german umlauts ...
-# class String
-#   def to_ascii_iconv
-#     converter = Iconv.new('ASCII//IGNORE//TRANSLIT', 'UTF-8')
-#     converter.iconv(self).unpack('U*').select{ |cp| cp < 127 }.pack('U*')
-#   end
-# end
+# http://linkdecrypter.com
+# http://dcrypt.it
 
 
 class String
@@ -157,6 +150,7 @@ module Scraper
                     :content   => entry.content,
                     :author    => entry.author }
           if entry.content =~ /title\/(tt\d{5,8})/
+            puts "IMDBID: #{$1}"
             sfile[:imdbid] = $1
           end
           if entry.summary =~ /Bild: (http:\/\/[^ ]*)/
@@ -189,14 +183,15 @@ module Scraper
               #object.image = URI.parse(object.imageurl) if object.imageurl_changed? && !object.imageurl.nil?
             end
             @@stats[feed.feed_url][:last][(object.new_record? ? :new : :updated)] += 1 if object.new_record? || object.changed?
-            printf "\t%s %s %s / %s %s: %s %s %p\n",  object.new_record? ? "(NEW)" : (object.changed? ? "(UPD)" : "(OLD)"),
-                                                      object.category,
-                                                      object.date.strftime("%d.%m.%y %a %H:%M"),
-                                                      entry.last_modified.strftime("%d.%m.%y %a %H:%M"),
-                                                      object.author,
-                                                      object.title,
-                                                      object.srcid,
-                                                      object.changes.keys
+            printf "\t%s %s %s / %s %s: %s %s %p %p\n",   object.new_record? ? "(NEW)" : (object.changed? ? "(UPD)" : "(OLD)"),
+                                                          object.category,
+                                                          object.date.strftime("%d.%m.%y %a %H:%M"),
+                                                          entry.last_modified.strftime("%d.%m.%y %a %H:%M"),
+                                                          object.author,
+                                                          object.title,
+                                                          object.srcid,
+                                                          object.imdbid,
+                                                          object.changes.keys.map{|i| i.to_sym}
             object.save if object.new_record? || object.changed?
           rescue Timeout::Error
             if sfile.include?(:image)
