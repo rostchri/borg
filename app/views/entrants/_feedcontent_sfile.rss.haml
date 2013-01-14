@@ -1,8 +1,3 @@
-- if item.image.exists?
-	= link_to image_tag(item.image.url, :style => "float: right; width: 15%;", :class => "img-rounded"), item.image.url
-- elsif !item.imageurl.nil? && !item.imageurl.empty?
-	= link_to image_tag(item.imageurl, :style => "float: right; width: 15%;", :class => "img-rounded"), item.imageurl
-
 %ul
 	- unless item.imdbid.nil?
 		%li= link_to "[#{item.imdbid}]", "http://www.imdb.de/title/#{item.imdbid}"
@@ -19,4 +14,4 @@
 				%li= raw diff
 
 	- unless item.content.nil?
-		%li= raw sfile_content(item)
+		%li= raw sfile_content(item,false)
