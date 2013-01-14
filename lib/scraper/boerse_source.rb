@@ -167,8 +167,11 @@ module Scraper
                 diff = Nokogiri::HTML(Diffy::Diff.new(Nokogiri::HTML(object.content).to_str, Nokogiri::HTML(sfile[:content]).to_str, :context => 1).to_s(:html))
                 diff_del = diff.xpath("//li[@class='del']").size
                 diff_ins = diff.xpath("//li[@class='ins']").size
-                printf "DEL: %d, INS: %d\n", diff_del, diff_ins
-                object.diff << diff.to_s if (diff_del > 0 || diff_ins > 0)
+                if (diff_del > 0 || diff_ins > 0)
+                  printf "DEL: %d, INS: %d\n", diff_del, diff_ins
+                  object.diff << diff.to_s 
+                  webget = true
+                end
               end
               #object.image = URI.parse(object.imageurl) if object.imageurl_changed? && !object.imageurl.nil?
             end
