@@ -175,14 +175,11 @@ module Scraper
                 end
               end
               #object.image = URI.parse(object.imageurl) if object.imageurl_changed? && !object.imageurl.nil?
+              object.attributes = sfile
             end
             @@web.get(entry.entry_id) do |spoiler|
-              unless spoiler.empty?
-                sfile[:other] = {} if sfile[:other].nil?
-                sfile[:other][:spoiler] = spoiler.map{|i| i.to_s}
-              end
+              object.other[:spoiler] = spoiler.map{|i| i.to_s} unless spoiler.empty?
             end if webget
-            object.attributes = sfile
             @@stats[feed.feed_url][:last][(object.new_record? ? :new : :updated)] += 1 if object.new_record? || object.changed?
             printf "\t%s %s %s / %s %s: %s %s %p %p\n",   object.new_record? ? "(NEW)" : (object.changed? ? "(UPD)" : "(OLD)"),
                                                           object.category,
