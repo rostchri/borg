@@ -166,12 +166,14 @@ module Scraper
               webget = true
             else
               if usediffy && !object.title.nil? && object.title != sfile[:title]
-                object.diff << Diffy::Diff.new(object.title, sfile[:title], :context => 1).to_s(:text) 
+                object.diff << Diffy::Diff.new(object.title, sfile[:title], :context => 1).to_s(:html) 
               end
               if usediffy && !object.content.nil? && object.content != sfile[:content]
-                #object.diff << Diffy::Diff.new(object.content, sfile[:content], :context => 1).to_s(:html) 
-                object.diff << Diffy::Diff.new(Nokogiri::HTML(object.content).to_str, Nokogiri::HTML(sfile[:content]).to_str, :context => 1).to_s(:html) 
-                webget = true
+                diff = Nokogiri::HTML(Diffy::Diff.new(Nokogiri::HTML(object.content).to_str, Nokogiri::HTML(sfile[:content]).to_str, :context => 1).to_s(:html))
+                diff_del = diff.xpath("//li[@class='del']").size
+                diff_ins = diff.xpath("//li[@class='ins']").size
+                puts "DEL: %d, INS: %d", diff_del, diff_ins
+                object.diff << diff.to_s if (diff_del > 0 || diff_ins > 0)
               end
               @@web.get(entry.entry_id) do |spoiler|
                 unless spoiler.empty?
