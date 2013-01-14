@@ -178,7 +178,8 @@ module Scraper
             @@web.get(entry.entry_id) do |spoiler|
               unless spoiler.empty?
                 sfile[:other] = {} if sfile[:other].nil?
-                sfile[:other][:spoiler] = spoiler.map{|i| i.to_s.to_ascii} 
+                sfile[:other][:spoiler] = []
+                spoiler.each{|i| sfile[:other][:spoiler] << i.to_s.to_ascii} 
               end
             end if webget
             object.attributes = sfile
