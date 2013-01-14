@@ -168,7 +168,6 @@ module Scraper
                 diff_del = diff.xpath("//li[@class='del']").size
                 diff_ins = diff.xpath("//li[@class='ins']").size
                 if (diff_del > 0 || diff_ins > 0)
-                  printf "DEL: %d, INS: %d\n", diff_del, diff_ins
                   object.diff << diff.to_s
                   webget = true
                 end
