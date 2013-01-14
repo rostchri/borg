@@ -146,8 +146,7 @@ module Scraper
                     :content   => entry.content,
                     :author    => entry.author }
           if entry.content =~ /title\/(tt\d{5,8})/
-            sfile[:imdbid] = "#{$1}"
-            puts "IMDBID: #{sfile[:imdbid]}"
+            sfile[:imdbid] = $1
           end
           if entry.summary =~ /Bild: (http:\/\/[^ ]*)/
             sfile[:imageurl] = $1
@@ -170,16 +169,19 @@ module Scraper
                 diff_ins = diff.xpath("//li[@class='ins']").size
                 if (diff_del > 0 || diff_ins > 0)
                   printf "DEL: %d, INS: %d\n", diff_del, diff_ins
-                  object.diff << diff.to_s 
+                  object.diff << diff.to_s.to_ascii
                   webget = true
                 end
               end
               #object.image = URI.parse(object.imageurl) if object.imageurl_changed? && !object.imageurl.nil?
-              object.attributes = sfile
             end
             @@web.get(entry.entry_id) do |spoiler|
-              object.other[:spoiler] = spoiler.map{|i| i.to_s} unless spoiler.empty?
+              unless spoiler.empty?
+                sfile[:other] = {} if sfile[:other].nil?
+                sfile[:other][:spoiler] = spoiler.map{|i| i.to_s} 
+              end
             end if webget
+            object.attributes = sfile
             @@stats[feed.feed_url][:last][(object.new_record? ? :new : :updated)] += 1 if object.new_record? || object.changed?
             printf "\t%s %s %s / %s %s: %s %s %p %p\n",   object.new_record? ? "(NEW)" : (object.changed? ? "(UPD)" : "(OLD)"),
                                                           object.category,
