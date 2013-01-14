@@ -41,7 +41,7 @@ module EntrantsHelper
       unless sfile.other[:spoiler].nil? || sfile.other[:spoiler].empty? || sfile.other[:spoiler][index].nil?
         webspoiler = Nokogiri::HTML(sfile.other[:spoiler][index]).at("div[@class='body-spoiler']")
         webspoiler.set_attribute('style','')
-        spoiler = webspoiler
+        spoiler.replace(webspoiler)
       end
     end
     content.to_html
