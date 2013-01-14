@@ -159,20 +159,23 @@ module Scraper
           if entry.content =~ /title\/(tt\d{5,8})/
             sfile[:other] = {:imdbid => $1}          
           end
-          @@web.get(entry.entry_id) do |spoiler|
-            sfile[:other] = {} if sfile[:other].nil?
-            sfile[:other][:spoiler] = [] if sfile[:other][:spoiler].nil?
-            sfile[:other][:spoiler] << spoiler.to_s
-          end
           if entry.summary =~ /Bild: (http:\/\/[^ ]*)/
             sfile[:imageurl] = $1
+          end
+          @@web.get(entry.entry_id) do |spoiler|
+            unless spoiler.empty?
+              sfile[:other] = {} if sfile[:other].nil?
+              sfile[:other][:spoiler] = spoiler.map{|i| i.to_s} #if sfile[:other][:spoiler].nil?
+            end
           end
           usediffy = true
           retries  = 0
           begin
             object = SFile.where(:srcid => sfile[:srcid]).first_or_initialize(sfile)
+            webget = false
             if object.new_record? 
               #object.image = URI.parse(object.imageurl) unless object.imageurl.nil?
+              webget = true
             else
               if usediffy && !object.title.nil? && object.title != sfile[:title]
                 object.diff << Diffy::Diff.new(object.title, sfile[:title], :context => 1).to_s(:text) 
@@ -180,7 +183,14 @@ module Scraper
               if usediffy && !object.content.nil? && object.content != sfile[:content]
                 #object.diff << Diffy::Diff.new(object.content, sfile[:content], :context => 1).to_s(:html) 
                 object.diff << Diffy::Diff.new(Nokogiri::HTML(object.content).to_str, Nokogiri::HTML(sfile[:content]).to_str, :context => 1).to_s(:html) 
+                webget = true
               end
+              # @@web.get(entry.entry_id) do |spoiler|
+              #   unless spoiler.empty?
+              #     sfile[:other] = {} if sfile[:other].nil?
+              #     sfile[:other][:spoiler] = spoiler.map{|i| i.to_s} #if sfile[:other][:spoiler].nil?
+              #   end
+              # end if webget
               object.attributes = sfile
               #object.image = URI.parse(object.imageurl) if object.imageurl_changed? && !object.imageurl.nil?
             end
