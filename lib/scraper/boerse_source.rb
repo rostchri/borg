@@ -6,7 +6,6 @@ require 'feedzirra'
 
 
 class String
-  
   def to_ascii
     # split in muti-byte aware fashion and translate characters over 127 and dropping characters not in the translation hash
     self.chars.collect do |c|
@@ -35,9 +34,6 @@ class String
         translation_hash
       end
 end
-
-
-
 
 module Scraper
   
@@ -175,15 +171,15 @@ module Scraper
                 puts "DEL: %d, INS: %d", diff_del, diff_ins
                 object.diff << diff.to_s if (diff_del > 0 || diff_ins > 0)
               end
-              @@web.get(entry.entry_id) do |spoiler|
-                unless spoiler.empty?
-                  sfile[:other] = {} if sfile[:other].nil?
-                  sfile[:other][:spoiler] = spoiler.map{|i| i.to_s}
-                end
-              end if webget
-              object.attributes = sfile
               #object.image = URI.parse(object.imageurl) if object.imageurl_changed? && !object.imageurl.nil?
             end
+            @@web.get(entry.entry_id) do |spoiler|
+              unless spoiler.empty?
+                sfile[:other] = {} if sfile[:other].nil?
+                sfile[:other][:spoiler] = spoiler.map{|i| i.to_s}
+              end
+            end if webget
+            object.attributes = sfile
             @@stats[feed.feed_url][:last][(object.new_record? ? :new : :updated)] += 1 if object.new_record? || object.changed?
             printf "\t%s %s %s / %s %s: %s %s %p %p\n",   object.new_record? ? "(NEW)" : (object.changed? ? "(UPD)" : "(OLD)"),
                                                           object.category,
