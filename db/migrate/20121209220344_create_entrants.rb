@@ -5,6 +5,7 @@ class CreateEntrants < ActiveRecord::Migration
       t.string            :title
       t.string            :category
       t.string            :srcid
+      t.string            :imdbid
       t.string            :srcurl
       t.string            :author
       t.text              :content, :limit => 64.kilobytes + 1
