@@ -145,10 +145,10 @@ module Scraper
                     :category  => entry.categories.join(" "), #feed.title
                     :content   => entry.content,
                     :author    => entry.author }
-          # if entry.content =~ /title\/(tt\d{5,8})/
-          #   sfile[:imdbid] = $1
-          #   puts "IMDBID: #{sfile[:imdbid]}"
-          # end
+          if entry.content =~ /title\/(tt\d{5,8})/
+            sfile[:imdbid] = "#{$1}"
+            puts "IMDBID: #{sfile[:imdbid]}"
+          end
           if entry.summary =~ /Bild: (http:\/\/[^ ]*)/
             sfile[:imageurl] = $1
           end
