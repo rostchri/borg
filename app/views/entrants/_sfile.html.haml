@@ -8,8 +8,6 @@
 
 	%li{:class => "icon-file"}
 		= object.title
-		- unless other[:spoiler].nil?
-			= other[:spoiler].size
 		- unless object.imdbid.nil?
 			= link_to "[#{object.imdbid}]", "http://www.imdb.de/title/#{object.imdbid}",  :rel => "tooltip", :title => "IMDB"
 		
