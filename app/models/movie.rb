@@ -16,6 +16,8 @@ class Movie < ActiveRecord::Base
   scope :by_title,   ->(title)    {{:conditions =>["c00 like ?","%#{title}%"]}}
   scope :by_plot,    ->(word)     {{:conditions =>["c01 like ?","%#{word}%"]}}
 
+  scope :by_imdbid,   ->(imdbid)    {{:conditions =>["c09 = ?","%#{imdbid}%"]}}
+
   paginates_per 50
   
   # c08: Alternative Cover
