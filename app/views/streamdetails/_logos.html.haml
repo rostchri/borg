@@ -2,32 +2,32 @@
 	- streamdetails.each do |streamdetail|
 	
 		- unless streamdetail.video_codec_logo.nil?
-			.videocodec
+			.videocodec.techflag
 				= image_tag streamdetail.video_codec_logo
 				
 		- unless streamdetail.video_resolution_logo.nil?
-			.videoresolution
+			.videoresolution.techflag
 				= image_tag streamdetail.video_resolution_logo
 
 		- unless streamdetail.aspect_ratio_logo.nil?
-			.aspectratio
+			.aspectratio.techflag
 				= image_tag streamdetail.aspect_ratio_logo
 				
 		- unless streamdetail.strAudioLanguage.nil? || streamdetail.strAudioLanguage.empty?
-			.audiolanguage
+			.audiolanguage.techflag
 				%span{:class => "label label-success", :rel => "tooltip", :title => "Sprache"}
 					= streamdetail.strAudioLanguage
 		
 		- unless streamdetail.audio_codec_logo.nil?
-			.audiocodec
+			.audiocodec.techflag
 				= image_tag streamdetail.audio_codec_logo
 
 		- unless streamdetail.audio_channels_logo.nil?
-			.audiochannels
+			.audiochannels.techflag
 				= image_tag streamdetail.audio_channels_logo
 
 		- unless streamdetail.strSubtitleLanguage.nil? || streamdetail.strSubtitleLanguage.empty?
-			.subtitlelanguage
+			.subtitlelanguage.techflag
 				%span{:class => "label label-warning", :rel => "tooltip", :title => "Untertitel"}
 					= streamdetail.strSubtitleLanguage
 				

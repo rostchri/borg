@@ -31,6 +31,12 @@
 	white-space: nowrap;
 }
 
+ul.entrant_other {
+	.techflag {
+		display: inline-block;
+	}
+}
+
 
 table#tablegrid_movies {
 	margin: 2%;
@@ -42,15 +48,8 @@ table#tablegrid_movies {
 
 
 	td.movie {
-		.videocodec,
-		.audiocodec,
-		.videoresolution,
-		.audiochannels,
-		.audiolanguage,
-		.subtitlelanguage,
-		.aspectratio {
+		.techflag {
 			display: inline-block;
-			background-color: black;
 			height: 2em;
 			text-indent: 0;
 			img {height: 100%;}
@@ -79,9 +78,12 @@ table#tablegrid_movies {
 	}
 }
 
-.moviecover {
+.techflag {
 	background-color: black;
 }
+
+
+
 
 .fanartbackground {
 	position: absolute; 
@@ -108,16 +110,9 @@ table#tablegrid_movies {
 			float: right;
 			align: right;
 			text-align: right;
-			.videocodec,
-			.audiocodec,
-			.videoresolution,
-			.audiochannels,
-			.audiolanguage,
-			.subtitlelanguage,
-			.aspectratio {
+			.techflag {
 				height: 2em;
 				margin: 2px;
-				background-color: black;
 				float: left;
 				img {height: 100%;}
 			}
