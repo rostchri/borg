@@ -42,7 +42,7 @@ module EntrantsHelper
               sfile.other[:spoiler].nil? || 
               sfile.other[:spoiler].empty? || 
               sfile.other[:spoiler].size <= index
-        webspoiler = Nokogiri::HTML(sfile.other[:spoiler][index]).at("div[@class='body-spoiler']")
+        webspoiler = Nokogiri::HTML(Base64::decode(sfile.other[:spoiler][index])).at("div[@class='body-spoiler']")
         webspoiler.set_attribute('style','')
         spoiler.replace(webspoiler)
       end
