@@ -11,7 +11,8 @@
 	- unless item.imdbid.nil? || (movies = Movie.by_imdbid(item.imdbid)).empty?
 		- movies.each do |movie|
 			%li
-				=# render("mediapath/mediapath", :mediapath => movie.path, :title_path_mismatch => movie.path.topdirectory != movie.localtitle)
+				= link_to movie.path.topdirectory, mediapath_path(movie.path), :rel => "tooltip", :title => movie.path.strPath
+				= render("mediapath/mediapath", :mediapath => movie.path, :title_path_mismatch => movie.path.topdirectory != movie.localtitle)
 				= render(:partial => "mediafiles/mediafile", :object => movie.file)
 				= render "streamdetails/logos", :streamdetails => movie.details
 	
