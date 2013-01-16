@@ -11,7 +11,7 @@
 		- unless object.imdbid.nil?
 			= link_to "[#{object.imdbid}]", "http://www.imdb.de/title/#{object.imdbid}",  :rel => "tooltip", :title => "IMDB"
 		
-	- unless other[:movietitle].nil?
+	- unless other.nil? || other[:movietitle].nil?
 		%li{:class => "icon-film"}
 			= other[:movietitle]
 		
