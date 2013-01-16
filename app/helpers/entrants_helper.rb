@@ -38,8 +38,7 @@ module EntrantsHelper
     content.xpath("//img").each { |image|  image.remove if image.attributes['src'].value == sfile.imageurl } unless !removeimage || sfile.imageurl.nil?
     content.xpath("//a").each { |link| link.set_attribute('href',"http://www.boerse.bz/out/?url=#{$1}") if link.attributes['href'].value =~ /(http:\/\/.*.gulli.bz\/.*)/ }
     content.xpath("//div[@class='body-spoiler']").each_with_index do |spoiler,index| 
-      unless  !sfile.other.is_a?(Hash) ||
-              sfile.other[:spoiler].nil? || 
+      unless  sfile.other[:spoiler].nil? || 
               sfile.other[:spoiler].empty? || 
               sfile.other[:spoiler].size <= index
         webspoiler = Nokogiri::HTML(Base64::decode64(sfile.other[:spoiler][index])).at("div[@class='body-spoiler']")

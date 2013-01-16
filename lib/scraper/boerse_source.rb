@@ -151,9 +151,10 @@ module Scraper
           if entry.summary =~ /Bild: (http:\/\/[^ ]*)/
             sfile[:imageurl] = $1
           end
-          if entry.title =~ /^(.*?(19|20)\d{2})/
+          if entry.title =~ /^(.*?)((19|20)\d{2})/
             sfile[:other] = {} if sfile[:other].nil?
             sfile[:other][:movietitle] = $1
+            sfile[:other][:movieyear] = $2
           end
           usediffy = true
           retries  = 0
@@ -195,15 +196,15 @@ module Scraper
             end if webget
             object.attributes = sfile
             @@stats[feed.feed_url][:last][(object.new_record? ? :new : :updated)] += 1 if object.new_record? || object.changed?
-            printf "\t%s %s %s / %s %s: %s %s %p %p\n",   object.new_record? ? "(NEW)" : (object.changed? ? "(UPD)" : "(OLD)"),
+            printf "\t%s %s %s / %s %s: %s %s %p\n",   object.new_record? ? "(NEW)" : (object.changed? ? "(UPD)" : "(OLD)"),
                                                           object.category,
                                                           object.date.strftime("%d.%m.%y %a %H:%M"),
                                                           entry.last_modified.strftime("%d.%m.%y %a %H:%M"),
                                                           object.author,
                                                           object.title,
                                                           object.srcid,
-                                                          object.imdbid,
-                                                          object.changes.keys.map{|i| i.to_sym}
+                                                          object.imdbid#,
+                                                          #object.changes.keys.map{|i| i.to_sym}
             object.save if object.new_record? || object.changed?
           rescue Timeout::Error
             if sfile.include?(:image)
