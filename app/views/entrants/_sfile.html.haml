@@ -14,7 +14,7 @@
 	- unless other[:movietitle].nil?
 		%li{:class => "icon-film"}
 			= other[:movietitle]
-			= other[:movieyear]
+			= "(#{other[:movieyear]})"
 		
 	- unless object.category.nil? || object.category.empty?
 		%li{:class => "icon-tag"}
