@@ -20,7 +20,7 @@
 		%li{:class => "icon-tag"}
 			= object.category
 	
-	- unless object.imdbid.nil? || (movies = Movie.by_imdbid(object.imdbid)).empty
+	- unless object.imdbid.nil? || (movies = Movie.by_imdbid(object.imdbid)).empty?
 		%li{:class => "icon-list"}
 			- movies.each do |movie|
 				= render "movies/movie", :movie => movie
