@@ -151,6 +151,10 @@ module Scraper
           if entry.summary =~ /Bild: (http:\/\/[^ ]*)/
             sfile[:imageurl] = $1
           end
+          if entry.title =~ /^(.*?(19|20)\d{2})/
+            sfile[:other] = {} if sfile[:other].nil?
+            sfile[:other][:movietitle] = $1
+          end
           usediffy = true
           retries  = 0
           begin

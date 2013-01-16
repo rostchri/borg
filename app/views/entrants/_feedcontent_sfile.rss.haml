@@ -1,6 +1,9 @@
 %ul
 	%li= item.category
 	
+	- unless item.other[:movietitle].nil?
+		%li= item.other[:movietitle]
+	
 	- unless item.imdbid.nil?
 		%li= link_to "#{item.imdbid}", "http://www.imdb.de/title/#{item.imdbid}"
 	
