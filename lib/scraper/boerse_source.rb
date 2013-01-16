@@ -178,7 +178,15 @@ module Scraper
               unless spoiler.empty?
                 sfile[:other] = {} if sfile[:other].nil?
                 sfile[:other][:spoiler] = []
-                spoiler.each{|i| sfile[:other][:spoiler] << i.to_s.to_ascii} 
+                spoiler.each do |i| 
+                  spoiler_content = i.to_s.to_ascii
+                  sfile[:other][:spoiler] << spoiler_content
+                  if sfile[:imdbid].nil?
+                    if spoiler_content =~ /title\/(tt\d{5,8})/
+                      sfile[:imdbid] = $1
+                    end
+                  end
+                end
               end
             end if webget
             object.attributes = sfile
