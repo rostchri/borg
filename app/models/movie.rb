@@ -15,7 +15,7 @@ class Movie < ActiveRecord::Base
   scope :by_genre,   ->(genres)   {{:conditions =>["genrelinkmovie.idGenre in (?)",genres], :include => :genres}}
   scope :by_title,   ->(title)    {{:conditions =>["c00 like ?","%#{title}%"]}}
   scope :by_plot,    ->(word)     {{:conditions =>["c01 like ?","%#{word}%"]}}
-  scope :by_imdbid,  ->(imdbid)   {{:conditions =>["c09 = ?","%#{imdbid}%"]}}
+  scope :by_imdbid,  ->(imdbid)   {{:conditions =>["c09 = ?",imdbid]}}
 
   paginates_per 50
   
