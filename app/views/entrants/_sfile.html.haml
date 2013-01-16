@@ -22,7 +22,7 @@
 	
 	- unless object.imdbid.nil? || (movies = Movie.by_imdbid(object.imdbid)).empty
 		%li{:class => "icon-list"}
-			- movies.each |movie|
+			- movies.each do |movie|
 				= render "movies/movie", :movie => movie
 
 	-# unless object.imageurl.nil? || object.imageurl.empty?
