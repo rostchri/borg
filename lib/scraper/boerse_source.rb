@@ -184,7 +184,7 @@ module Scraper
                 sfile[:other][:spoiler] = []
                 spoiler.each do |i| 
                   spoiler_content = i.to_s.to_ascii
-                  sfile[:other][:spoiler] << Base64::encode(spoiler_content)
+                  sfile[:other][:spoiler] << Base64.encode64(spoiler_content)
                   if sfile[:imdbid].nil?
                     if spoiler_content =~ /title\/(tt\d{5,8})/
                       sfile[:imdbid] = $1
