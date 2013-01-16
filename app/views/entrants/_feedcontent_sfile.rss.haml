@@ -14,7 +14,7 @@
 				= link_to movie.path.topdirectory, mediapath_path(movie.path), :rel => "tooltip", :title => movie.path.strPath
 				= render("mediapath/mediapath", :mediapath => movie.path, :title_path_mismatch => movie.path.topdirectory != movie.localtitle)
 				= render(:partial => "mediafiles/mediafile", :object => movie.file)
-				= render("streamdetails/logos", :streamdetails => movie.details)
+				=# render("streamdetails/logos", :streamdetails => movie.details)
 	%li
 		Quelle:
 		= link_to "Lokal", entrant_url(item)
