@@ -50,7 +50,6 @@ table#tablegrid_movies {
 	td.movie {
 		.techflag {
 			display: inline-block;
-			text-indent: 0;
 		}
 	}
 	
@@ -77,6 +76,7 @@ table#tablegrid_movies {
 }
 
 .techflag {
+	text-indent: 0;
 	height: 2em;
 	margin: 2px;
 	background-color: black;
