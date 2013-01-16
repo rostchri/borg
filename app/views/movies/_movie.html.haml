@@ -1,15 +1,15 @@
 %ul{:class => "movie icons"}
 	%li{:class => "icon-film"}
-		= render("title", :movie => movie)
+		= render("movies/title", :movie => movie)
 	%li{:class => "icon-tags"}
 		= render(:partial =>"genres/genres", :object => movie.genres)
 	%li{:class => "icon-heart"}
-		= render("rating", :movie => movie)
+		= render("movies/rating", :movie => movie)
 	%li{:class => "icon-book"}
 		=# render("modaldetails", :movie => movie)
 		= link_to movie.plot[0..250], movie_path(movie)
 	%li{:class => "icon-facetime-video"}
-		= render("techinfos", :movie => movie)
+		= render("movies/techinfos", :movie => movie)
 	%li{:class => "icon-folder-open"}
 		= render("mediapath/mediapath", :mediapath => movie.path, :title_path_mismatch => movie.path.topdirectory != movie.localtitle) 
 	%li{:class => "icon-hdd"}
