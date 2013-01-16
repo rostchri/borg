@@ -50,9 +50,7 @@ table#tablegrid_movies {
 	td.movie {
 		.techflag {
 			display: inline-block;
-			height: 2em;
 			text-indent: 0;
-			img {height: 100%;}
 		}
 	}
 	
@@ -79,11 +77,11 @@ table#tablegrid_movies {
 }
 
 .techflag {
+	height: 2em;
+	margin: 2px;
 	background-color: black;
+	img {height: 100%;}
 }
-
-
-
 
 .fanartbackground {
 	position: absolute; 
@@ -111,10 +109,7 @@ table#tablegrid_movies {
 			align: right;
 			text-align: right;
 			.techflag {
-				height: 2em;
-				margin: 2px;
 				float: left;
-				img {height: 100%;}
 			}
 		}
 	}
