@@ -16,7 +16,7 @@
 				= render(:partial => "mediafiles/mediafile", :object => movie.file)
 				=# render("streamdetails/logos", :streamdetails => movie.details)
 				
-	- if item.imdbid.nil? && !item.other[:movietitle].nil? && !(movies = Movie.soundex_find(:all, :soundex => item.other[:movietitle])[0..10]).empty?
+	- if item.imdbid.nil? && !item.other[:movietitle].nil? && !item.other[:c07].nil?  && !(movies = Movie.soundex_find(:all, :conditions => {:c07 => item.other[:movieyear]}, :soundex => item.other[:movietitle])[0..10]).empty?
 		- movies.each do |movie|
 			%li{:class => "icon-list"}
 				= render("mediapath/mediapath", :mediapath => movie.path, :title_path_mismatch => movie.path.topdirectory != movie.localtitle)
