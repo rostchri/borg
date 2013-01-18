@@ -12,7 +12,7 @@ class CreateEntrants < ActiveRecord::Migration
       t.has_attached_file :image
       t.string            :imageurl
       t.number            :update_counter, :default => 0
-      t.date              :date
+      t.datetime          :date
       t.text              :other, :limit => 64.kilobytes + 1
       t.text              :diff, :limit => 64.kilobytes + 1
       t.timestamps
@@ -36,3 +36,6 @@ end
 # ActiveRecord::Migration.change_column :entrants, :diff, :text, :limit => 64.kilobytes + 1
 # ActiveRecord::Migration.change_column :entrants, :other, :text, :limit => 64.kilobytes + 1
 # ActiveRecord::Migration.add_column :entrants, :imdbid, :string
+
+
+# ActiveRecord::Migration.add_column :movie, :c00_soundex, :string, :default => "", :limit => 20, :null => false
