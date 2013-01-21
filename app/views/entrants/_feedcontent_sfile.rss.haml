@@ -1,39 +1,67 @@
-%ul
-	%li= item.category
-	
-	- unless item.other[:movietitle].nil?
-		%li= item.other[:movietitle]
-		%li= "#{item.other[:movieyear]}"
-	
-	- unless item.imdbid.nil?
-		%li= link_to "#{item.imdbid}", "http://www.imdb.de/title/#{item.imdbid}"
+%table
+	%tr
+		%th Kategorie
+		- unless item.other[:movietitle].nil?
+			%th Titel
+			%th Jahr
+		- unless item.imdbid.nil?
+			%th IMDB
+		%th{:colspan => 2} Quelle
+		- if item.update_counter > 0
+			%th Updates
+	%tr
+		%td= item.category
 		
-	- unless item.imdbid.nil? || (movies = Movie.by_imdbid(item.imdbid)).empty?
+		- unless item.other[:movietitle].nil?
+			%td= item.other[:movietitle]
+			%td= item.other[:movieyear]
+		
+		- unless item.imdbid.nil?
+			%th= link_to "#{item.imdbid}", "http://www.imdb.de/title/#{item.imdbid}"
+		
+		%td
+			= link_to "Lokal", entrant_url(item)
+			= link_to "Extern", item.srcurl
+		%td= item.update_counter
+
+- unless item.update_counter == 0 || item.diff.nil? || item.diff.empty?
+	%table
+		- item.diff.each do |diff|
+			%tr
+				%td= raw diff
+
+- unless item.imdbid.nil? || (movies = Movie.by_imdbid(item.imdbid)).empty?
+	%table
+		%tr
+			%th Vorhandener Titel
+			%th Pfad
+			%th Dateien
+			-#
+				%th Technische Daten
 		- movies.each do |movie|
-			%li
-				= link_to movie.path.topdirectory, mediapath_path(movie.path), :rel => "tooltip", :title => movie.path.strPath
-				= render("mediapath/mediapath", :mediapath => movie.path, :title_path_mismatch => movie.path.topdirectory != movie.localtitle)
-				= render(:partial => "mediafiles/mediafile", :object => movie.file)
-				=# render("streamdetails/logos", :streamdetails => movie.details)
+			%tr
+				%td= link_to movie.path.topdirectory, mediapath_path(movie.path), :rel => "tooltip", :title => movie.path.strPath
+				%td= render("mediapath/mediapath", :mediapath => movie.path, :title_path_mismatch => movie.path.topdirectory != movie.localtitle)
+				%td= render(:partial => "mediafiles/mediafile", :object => movie.file)
+				-#
+					%td= render("streamdetails/logos", :streamdetails => movie.details)
 				
-	- if item.imdbid.nil? && !item.other[:movietitle].nil? && !item.other[:c07].nil?  && !(movies = Movie.soundex_find(:all, :limit => 10, :conditions => {:c07 => item.other[:movieyear]}, :soundex => item.other[:movietitle])).empty?
+				
+- if item.imdbid.nil? && !item.other[:movietitle].nil? && !item.other[:c07].nil?  && !(movies = Movie.soundex_find(:all, :limit => 10, :conditions => {:c07 => item.other[:movieyear]}, :soundex => item.other[:movietitle])).empty?
+	%table
+		%tr
+			%th Vorhandener Titel
+			%th Pfad
+			%th Dateien
+			-#
+				%th Technische Daten
 		- movies.each do |movie|
-			%li{:class => "icon-list"}
-				= render("mediapath/mediapath", :mediapath => movie.path, :title_path_mismatch => movie.path.topdirectory != movie.localtitle)
-				= render(:partial => "mediafiles/mediafile", :object => movie.file)
-				=# render "streamdetails/logos", :streamdetails => movie.details
-
-
-	%li
-		Quelle:
-		= link_to "Lokal", entrant_url(item)
-		= link_to "Extern", item.srcurl
-		
-	- if item.update_counter > 0
-		%li= "Updates: #{item.update_counter}"
-		- unless item.diff.nil? || item.diff.empty?
-			- item.diff.each do |diff|
-				%li= raw diff
-
-	- unless item.content.nil?
-		%li= raw sfile_content(item,false)
+			%tr
+				%td= link_to movie.path.topdirectory, mediapath_path(movie.path), :rel => "tooltip", :title => movie.path.strPath
+				%td= render("mediapath/mediapath", :mediapath => movie.path, :title_path_mismatch => movie.path.topdirectory != movie.localtitle)
+				%td= render(:partial => "mediafiles/mediafile", :object => movie.file)
+				-#
+					%td= render("streamdetails/logos", :streamdetails => movie.details)
+			
+- unless item.content.nil?
+	= raw sfile_content(item,false)
