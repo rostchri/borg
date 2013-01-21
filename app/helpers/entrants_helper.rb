@@ -33,7 +33,7 @@ module EntrantsHelper
   end
   
   
-  def sfile_content(sfile,removeimage=true)
+  def sfile_content_old(sfile,removeimage=true)
     content = Nokogiri::HTML(sfile.content)
     content.xpath("//img").each { |image|  image.remove if image.attributes['src'].value == sfile.imageurl } unless !removeimage || sfile.imageurl.nil?
     content.xpath("//a").each { |link| link.set_attribute('href',"http://www.boerse.bz/out/?url=#{$1}") if !link.attributes['href'].nil? && link.attributes['href'].value =~ /(http:\/\/.*.gulli.bz\/.*)/ }
@@ -47,6 +47,29 @@ module EntrantsHelper
       end
     end
     content.to_html
+  end
+  
+  def sfile_content(sfile,removeimage=true)
+    capture_haml do
+      unless sfile.other[:messages].nil? || sfile.other[:messages].empty?
+        haml_tag :ul, :class => "entrant_other icons" do
+          sfile.other[:messages].each_with_index do |message,index|
+            haml_tag :li, :class => "icon-book" do
+              haml_concat "Eintrag: #{index + 1}"
+              content = Nokogiri::HTML(Base64::decode64(message).to_ascii)
+              # remove image
+              content.xpath("//img").each { |image| image.remove if image.attributes['src'].value == sfile.imageurl } unless !removeimage || sfile.imageurl.nil?
+              # make spoiler visible
+              content.xpath("//div[@class='body-spoiler']").each { |spoiler| spoiler.set_attribute('style','')}
+              haml_concat content.to_s #.to_ascii
+            end
+          end
+        end
+      else
+        haml_concat "0 Posts"
+        haml_concat raw(sfile_content_old(sfile,removeimage))
+      end
+    end
   end
 
 end

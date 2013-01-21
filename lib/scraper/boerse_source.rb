@@ -72,8 +72,8 @@ module Scraper
       #spoilerlinks = page.search("//div[@class='alt1 messagearea-wrap']/descendant::div[@class='body-spoiler']/descendant::a[@target='_blank']")
       #sharelinks   = page.search("//div[@class='alt1 messagearea-wrap']/descendant::a[@target='_blank']").each{|l| puts l.attributes['href'].value if l.attributes['href'].value =~ /share-links.biz/}
       #page.search("//div[@class='alt1 messagearea-wrap']/descendant::a[@target='_blank']").select{|l| l.attributes['href'].value =~ /share-links.biz/},
-      yield page.search("//div[@class='alt1 messagearea-wrap']/descendant::div[@class='body-spoiler']") if block_given?
-            
+      #yield page.search("//div[@class='alt1 messagearea-wrap']/descendant::div[@class='body-spoiler']") if block_given?
+      yield page.search("//div[@class='alt1 messagearea-wrap']") if block_given?
     end
   end
   
@@ -109,15 +109,19 @@ module Scraper
     def stats
       total = {:last => {:updated => 0, :new => 0}, :total => {:updated => 0, :new => 0}}
       @feeds.each do |u,feed|
-        total[:last][:new]      += @@stats[feed.feed_url][:last][:new]
-        total[:last][:updated]  += @@stats[feed.feed_url][:last][:updated]
-        total[:total][:new]     += @@stats[feed.feed_url][:total][:new]
-        total[:total][:updated] += @@stats[feed.feed_url][:total][:updated]
-        printf "### Zuletzt aktualisiert: %3d neu: %3d Total aktualisiert: %3d neu: %3d ### %s\n",  @@stats[feed.feed_url][:last][:updated], 
-                                                                                                    @@stats[feed.feed_url][:last][:new],
-                                                                                                    @@stats[feed.feed_url][:total][:updated], 
-                                                                                                    @@stats[feed.feed_url][:total][:new],
-                                                                                                    feed.title
+        unless feed.is_a? Fixnum
+          total[:last][:new]      += @@stats[feed.feed_url][:last][:new]
+          total[:last][:updated]  += @@stats[feed.feed_url][:last][:updated]
+          total[:total][:new]     += @@stats[feed.feed_url][:total][:new]
+          total[:total][:updated] += @@stats[feed.feed_url][:total][:updated]
+          printf "### Zuletzt aktualisiert: %3d neu: %3d Total aktualisiert: %3d neu: %3d ### %s\n",  @@stats[feed.feed_url][:last][:updated], 
+                                                                                                      @@stats[feed.feed_url][:last][:new],
+                                                                                                      @@stats[feed.feed_url][:total][:updated], 
+                                                                                                      @@stats[feed.feed_url][:total][:new],
+                                                                                                      feed.title
+        else
+          puts "### ERROR: #{u} #{feed}"
+        end
       end
       printf "### Zuletzt aktualisiert: %3d neu: %3d Total aktualisiert: %3d neu: %3d ### Total\n", total[:last][:updated], 
                                                                                           total[:last][:new],
@@ -179,21 +183,38 @@ module Scraper
               end
               #object.image = URI.parse(object.imageurl) if object.imageurl_changed? && !object.imageurl.nil?
             end
-            @@web.get(entry.entry_id) do |spoiler|
-              unless spoiler.empty?
+            # @@web.get(entry.entry_id) do |spoiler|
+            #   unless spoiler.empty?
+            #     sfile[:other] = {} if sfile[:other].nil?
+            #     sfile[:other][:spoiler] = []
+            #     spoiler.each do |i| 
+            #       spoiler_content = i.to_s.to_ascii
+            #       sfile[:other][:spoiler] << Base64.encode64(spoiler_content)
+            #       if sfile[:imdbid].nil?
+            #         if spoiler_content =~ /title\/(tt\d{5,8})/
+            #           sfile[:imdbid] = $1
+            #         end
+            #       end
+            #     end
+            #   end
+            # end if webget
+            
+            @@web.get(entry.entry_id) do |messages|
+              unless messages.empty?
                 sfile[:other] = {} if sfile[:other].nil?
-                sfile[:other][:spoiler] = []
-                spoiler.each do |i| 
-                  spoiler_content = i.to_s.to_ascii
-                  sfile[:other][:spoiler] << Base64.encode64(spoiler_content)
+                sfile[:other][:messages] = []
+                messages.each do |message| 
+                  message_content = message.to_s
+                  sfile[:other][:messages] << Base64.encode64(message_content)
                   if sfile[:imdbid].nil?
-                    if spoiler_content =~ /title\/(tt\d{5,8})/
+                    if message_content =~ /title\/(tt\d{5,8})/
                       sfile[:imdbid] = $1
                     end
                   end
                 end
               end
             end if webget
+            
             object.attributes = sfile
             @@stats[feed.feed_url][:last][(object.new_record? ? :new : :updated)] += 1 if object.new_record? || object.changed?
             printf "\t%s %s %s / %s %s: %s %s %p\n",   object.new_record? ? "(NEW)" : (object.changed? ? "(UPD)" : "(OLD)"),
