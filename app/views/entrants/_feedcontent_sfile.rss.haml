@@ -2,8 +2,8 @@
 	%tr
 		%th Kategorie
 		- unless item.other[:movietitle].nil?
-			%th Titel
-			%th Jahr
+			%th Filmtitel
+			%th Erscheinungsjahr
 		- unless item.imdbid.nil?
 			%th IMDB
 		%th{:colspan => 2} Quelle
@@ -22,10 +22,14 @@
 		%td
 			= link_to "Lokal", entrant_url(item)
 			= link_to "Extern", item.srcurl
-		%td= item.update_counter
+		
+		- if item.update_counter > 0
+			%td= item.update_counter
 
 - unless item.update_counter == 0 || item.diff.nil? || item.diff.empty?
 	%table
+		%tr
+			%th Änderungen
 		- item.diff.each do |diff|
 			%tr
 				%td= raw diff
