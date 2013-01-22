@@ -182,6 +182,10 @@ module Scraper
                 end
               end
               #object.image = URI.parse(object.imageurl) if object.imageurl_changed? && !object.imageurl.nil?
+              unless webget
+                sfile[:other] = {} if sfile[:other].nil?
+                sfile[:other][:messages] = object.other[:messages] unless object.other[:messages].nil?
+              end
             end
             # @@web.get(entry.entry_id) do |spoiler|
             #   unless spoiler.empty?
@@ -198,6 +202,7 @@ module Scraper
             #     end
             #   end
             # end if webget
+            
             
             @@web.get(entry.entry_id) do |messages|
               unless messages.empty?

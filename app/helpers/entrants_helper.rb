@@ -66,7 +66,6 @@ module EntrantsHelper
           end
         end
       else
-        haml_concat "0 Posts"
         haml_concat raw(sfile_content_old(sfile,removeimage))
       end
     end
