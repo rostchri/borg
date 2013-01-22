@@ -20,7 +20,7 @@
 		%li{:class => "icon-tag"}
 			= object.category
 	
-	- unless object.imdbid.nil? || ((movies = Movie.by_imdbid(object.imdbid)).empty? && (movies = Movie.soundex_find(:all, :limit => 10, :conditions => {:c07 => other[:movieyear]}, :soundex => other[:movietitle])).empty?)
+	- unless object.imdbid.nil? || !(!(movies = Movie.by_imdbid(object.imdbid)).empty? || !(movies = Movie.soundex_find(:all, :limit => 10, :conditions => {:c07 => other[:movieyear]}, :soundex => other[:movietitle])).empty?)
 		- movies.each do |movie|
 			%li{:class => "icon-list"}
 				= render("movies/title", :movie => movie)
