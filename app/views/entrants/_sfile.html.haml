@@ -30,6 +30,7 @@
 	- if object.imdbid.nil? && !other[:movietitle].nil? && !other[:movieyear].nil? && !(movies = Movie.soundex_find(:all, :limit => 10, :conditions => {:c07 => other[:movieyear]}, :soundex => other[:movietitle])).empty?
 		- movies.each do |movie|
 			%li{:class => "icon-list"}
+				= render("movies/title", :movie => movie)
 				= render("mediapath/mediapath", :mediapath => movie.path, :title_path_mismatch => movie.path.topdirectory != movie.localtitle)
 				= render(:partial => "mediafiles/mediafile", :object => movie.file)
 				= render "streamdetails/logos", :streamdetails => movie.details
