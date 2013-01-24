@@ -10,7 +10,7 @@ use Rack::ReverseProxy do
 		if rackreq.fullpath =~ /^\/entrants\/(\d+)\/([^\/]*)\/decrypt\/$/ 
 			entrant = $1.to_i 
 			url = Base64::urlsafe_decode64($2)
-			puts "ENTRANT: #{entrant} URL: #{url}"
+			#puts "ENTRANT: #{entrant} URL: #{url}"
 			page = Nokogiri::HTML(body)
 			
 			# on first page set url to decrypt and set link-mode
@@ -20,7 +20,7 @@ use Rack::ReverseProxy do
 			
 			# on last page extract urls and save to database
 			links = []
-			page.xpath("//pre[@class='enlaces']/a[@target='_blank']").each { |link| puts link.attributes['href'].value; links << link.attributes['href'].value }
+			page.xpath("//pre[@class='enlaces']/a[@target='_blank']").each { |link| links << link.attributes['href'].value }
 			if !links.empty? && entrant = Entrant.find(entrant)
 				entrant.links = links
 				entrant.save
