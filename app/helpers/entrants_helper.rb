@@ -61,6 +61,17 @@ module EntrantsHelper
               content.xpath("//img").each { |image| image.remove if image.attributes['src'].value == sfile.imageurl } unless !removeimage || sfile.imageurl.nil?
               # make spoiler visible
               content.xpath("//div[@class='body-spoiler']").each { |spoiler| spoiler.set_attribute('style','')}
+              # use linkdecryter for certain links
+              content.xpath("//a[@target='_blank']").each do |link| 
+                if link.attributes['href'].value =~ /ncrypt.in/ ||
+                   link.attributes['href'].value =~ /share-links.biz/ ||
+                   link.attributes['href'].value =~ /linkcrypt.ws/ || 
+                   link.attributes['href'].value =~ /s2l.biz/ ||
+                   link.attributes['href'].value =~ /relink.us/
+                   
+                  link.attributes['href'].value = entrant_path(sfile) + "/#{Base64::urlsafe_encode64(link.attributes['href'].value)}/decrypt/"
+                end
+              end
               haml_concat content.to_s #.to_ascii
             end
           end

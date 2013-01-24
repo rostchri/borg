@@ -39,3 +39,4 @@ end
 
 
 # ActiveRecord::Migration.add_column :movie, :c00_soundex, :string, :default => "", :limit => 20, :null => false
+# ActiveRecord::Migration.add_column :entrants, :links, :text

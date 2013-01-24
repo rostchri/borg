@@ -13,6 +13,8 @@ Borg::Application.routes.draw do
     end
   end
   
+  #resources :s_files
+  
   resources :entrants do
     get 'page/:page', :action => :index, :on => :collection
     collection do

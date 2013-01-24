@@ -1,3 +1,4 @@
 # Scraper-Extension
-require 'scraper/torrent_source'
-require 'scraper/boerse_source'
+require 'scraper/torrent'
+require 'scraper/boerse'
+require 'scraper/linkdecrypter'

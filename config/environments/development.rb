@@ -33,5 +33,25 @@ Borg::Application.configure do
   # Log the query plan for queries taking more than this (works
   # with SQLite, MySQL, and PostgreSQL)
   config.active_record.auto_explain_threshold_in_seconds = 0.5
+  
+  # config.middleware.use(Rack::ReverseProxy) do
+  #   reverse_proxy_options :preserve_host => true
+  #   reverse_proxy '/kickerliganord', 'http://www.kickerliganord.net'
+  # end
+    
+  # config.middleware.use Rack::Cache
+  # # Deflater is inserted here so gzipped assets aren't cached
+  # config.middleware.insert_before Rack::Cache, Rack::Deflater
+  # config.middleware.insert_after(Rack::Cache, Rack::ReverseProxy) do
+  #   reverse_proxy_options :preserve_host => true
+  #   reverse_proxy '/kickerliganord', 'http://www.kickerliganord.net'
+  # end
+
+  # https://devcenter.heroku.com/articles/rack-cache-memcached-static-assets-rails31#configure-rails-cachestore
+  # config.action_dispatch.rack_cache = {
+  #   :metastore    => Dalli::Client.new,
+  #   :entitystore  => 'file:tmp/cache/rack/body',
+  #   :allow_reload => false
+  # }
 
 end

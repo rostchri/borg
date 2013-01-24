@@ -20,6 +20,8 @@ group :production do
   gem 'mysql2'
 end
 
+gem "rack-reverse-proxy", :require => "rack/reverse_proxy", :git => 'https://github.com/rostchri/rack-reverse-proxy.git', :branch => 'post-process-body'
+
 gem 'authlogic'
 gem "inherited_resources"
 gem 'kaminari'
