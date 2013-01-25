@@ -28,8 +28,11 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
             description << item.category
             unless item.links.nil? || item.links.empty?
               item.clustered_links.each do |hoster,links|
-          		  description << "#{hoster}: #{links.count} Links"
+          		  description << "#{hoster}: #{links.count} Links\n"
           		end
+          		item.links.each do |link|
+          		  description << link
+            	end
           	end
           else
             xml.tag!('dc:creator',item.type)
