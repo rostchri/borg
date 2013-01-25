@@ -1,0 +1,9 @@
+%table
+	- unless item.links.nil? || item.links.empty?
+		- item.clustered_links.each do |hoster,links|
+			%tr
+				%th= "Links auf #{hoster}: #{links.size}"
+			%tr
+				%td
+					- links.each do |link|
+						= link
