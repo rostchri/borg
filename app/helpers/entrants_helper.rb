@@ -75,7 +75,7 @@ module EntrantsHelper
                     ""
                   end
                   links.each do |l|
-                    element.add_next_sibling Nokogiri::HTML("<a href='#{entrant_path(sfile) + "/#{Base64::urlsafe_encode64(l)}/decrypt/"}'>#{l}</a>").search('a')
+                    element.add_next_sibling Nokogiri::HTML("<a href='#{entrant_path(sfile) + "/#{Base64::urlsafe_encode64(l)}/decrypt/"}' target='_blank'>#{l}</a>").search('a')
                   end
                 end
                 
