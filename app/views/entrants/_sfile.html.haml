@@ -19,7 +19,6 @@
 	- unless object.category.nil? || object.category.empty?
 		%li{:class => "icon-tag"}
 			= object.category
-			
 	
 	- if !(object.imdbid.nil? || (movies = Movie.by_imdbid(object.imdbid)).empty?) || (object.imdbid.nil? && !other[:movietitle].nil? && !other[:movieyear].nil? && !(movies = Movie.soundex_find(:all, :limit => 10, :conditions => {:c07 => other[:movieyear]}, :soundex => other[:movietitle])).empty?)
 		- movies.each do |movie|
@@ -39,10 +38,9 @@
 			= link_to "Extern", object.srcurl
 			
 	- unless object.links.nil? || object.links.empty?
-		- object.links.each do |link|
+		- object.clustered_links.each do |hoster,links|
 			%li{:class => "icon-share-alt"}
-				= link_to link, link
-
+				= "#{hoster}: #{links.count} Links"
 			
 	%li{:class => "icon-calendar"}
 		= l object.date, :format => :with_weekday_and_time
@@ -53,8 +51,6 @@
 
 		%li{:class => "icon-repeat"}
 			= object.update_counter
-
-
 	
 		- unless object.diff.nil? || object.diff.empty?
 			- object.diff.each do |diff|

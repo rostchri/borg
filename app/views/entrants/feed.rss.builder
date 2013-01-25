@@ -36,12 +36,10 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
             description << item.other[:size] unless item.other[:size].nil?
             description << item.other[:stats] unless item.other[:stats].nil?
             description << item.other[:details][:'IMDb Rating:'] unless item.other[:details].nil? || item.other[:details][:'IMDb Rating:'].nil?
-            
           when SFile
             xml.tag!('dc:creator',item.author)
-            description << item.other[:movietitle] unless item.other[:movietitle].nil?
+            xml.title item.other[:movietitle] unless item.other[:movietitle].nil?
             description << item.category
-            description << item.imdbid unless item.imdbid.nil?
           else
             xml.tag!('dc:creator',item.type)
         end
@@ -49,12 +47,9 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
         xml.tag!('content:encoded') do
           xml.cdata! render("entrants/feedcontent_#{item.type.downcase}", :item => item)
         end
-        xml.pubDate       item.updated_at.to_s(:rfc822)
-        xml.guid          entrant_url(item)
+        xml.pubDate item.updated_at.to_s(:rfc822)
+        xml.guid entrant_url(item)
       end
     end
-    
   end
 end
-
-

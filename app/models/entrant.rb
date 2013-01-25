@@ -26,4 +26,13 @@ class Entrant < ActiveRecord::Base
   def self.recycle(age = 30.days.ago)
     Entrant.older_than(age).each(&:destroy)
   end
+  
+  def clustered_links
+    unless links.empty?
+      links.inject({}) {|r,i| (r[$1].nil? ? r[$1]=[i] : r[$1]<<i) if i =~ /http:\/\/([^\/]*)\//; r}
+    else
+      {}
+    end
+  end
+  
 end

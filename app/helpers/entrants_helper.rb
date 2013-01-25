@@ -52,27 +52,28 @@ module EntrantsHelper
   def sfile_content(sfile,removeimage=true)
     capture_haml do
       unless sfile.other[:messages].nil? || sfile.other[:messages].empty?
-        haml_tag :ul, :class => "entrant_other icons" do
+        haml_tag :table do
           sfile.other[:messages].each_with_index do |message,index|
-            haml_tag :li, :class => "icon-book" do
-              haml_concat "Eintrag: #{index + 1}"
-              content = Nokogiri::HTML(Base64::decode64(message).to_ascii)
-              # remove image
-              content.xpath("//img").each { |image| image.remove if image.attributes['src'].value == sfile.imageurl } unless !removeimage || sfile.imageurl.nil?
-              # make spoiler visible
-              content.xpath("//div[@class='body-spoiler']").each { |spoiler| spoiler.set_attribute('style','')}
-              # use linkdecryter for certain links
-              content.xpath("//a[@target='_blank']").each do |link| 
-                if link.attributes['href'].value =~ /ncrypt.in/ ||
-                   link.attributes['href'].value =~ /share-links.biz/ ||
-                   link.attributes['href'].value =~ /linkcrypt.ws/ || 
-                   link.attributes['href'].value =~ /s2l.biz/ ||
-                   link.attributes['href'].value =~ /relink.us/
-                   
-                  link.attributes['href'].value = entrant_path(sfile) + "/#{Base64::urlsafe_encode64(link.attributes['href'].value)}/decrypt/"
+            haml_tag :tr do
+              haml_tag :th, "#{index + 1}. Eintrag von #{sfile.other[:messages].size}"
+            end
+            haml_tag :tr do 
+              haml_tag :td do
+                content = Nokogiri::HTML(Base64::decode64(message).to_ascii)
+                # remove image
+                content.xpath("//img").each { |image| image.remove if image.attributes['src'].value == sfile.imageurl } unless !removeimage || sfile.imageurl.nil?
+                # make spoiler visible
+                content.xpath("//div[@class='body-spoiler']").each { |spoiler| spoiler.set_attribute('style','')}
+                # use linkdecryter for certain links
+                content.xpath("//a[@target='_blank']").each do |link| 
+                  ENV['LINKDECRYPTER_URLS'].split.map{|r| %r #{r} i }.each do |r|
+                    if link.attributes['href'].value =~ r
+                      link.attributes['href'].value = entrant_path(sfile) + "/#{Base64::urlsafe_encode64(link.attributes['href'].value)}/decrypt/"
+                    end
+                  end
                 end
+                haml_concat content.to_s #.to_ascii
               end
-              haml_concat content.to_s #.to_ascii
             end
           end
         end
