@@ -30,7 +30,7 @@ class EntrantsController < ResourcesController
   def feedlinks
     @title = "Borg"
     @description = "Root of content"
-    @feed_items = (params[:type]).constantize.where("links IS NOT NULL").limit(250)
+    @feed_items = (params[:type]).constantize.where("links IS NOT NULL").limit(250).select{|i| !i.links.empty?}
     @updated = @feed_items.first.updated_at unless @feed_items.empty?
     respond_to do |format|
       format.atom { render :layout => false }
