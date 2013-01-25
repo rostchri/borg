@@ -6,19 +6,23 @@
 	- elsif !object.imageurl.nil? && !object.imageurl.empty?
 		= link_to image_tag(object.imageurl, :style => "float: right; width: 15%;", :class => "img-rounded"), object.imageurl
 
-	%li{:class => "icon-file"}
-		= object.title
-		- unless object.imdbid.nil?
-			= link_to "[#{object.imdbid}]", "http://www.imdb.de/title/#{object.imdbid}",  :rel => "tooltip", :title => "IMDB"
-		
-	- unless other[:movietitle].nil?
-		%li{:class => "icon-film"}
-			= other[:movietitle]
-			= "(#{other[:movieyear]})"
-		
 	- unless object.category.nil? || object.category.empty?
 		%li{:class => "icon-tag"}
 			= object.category
+
+	- if other[:movietitle].nil?
+		%li{:class => "icon-file"}
+			= object.title
+			- unless object.imdbid.nil?
+				= link_to "[#{object.imdbid}]", "http://www.imdb.de/title/#{object.imdbid}",  :rel => "tooltip", :title => "IMDB"
+	- else
+		%li{:class => "icon-film"}
+			= other[:movietitle]
+			= "(#{other[:movieyear]})"
+
+	- unless other[:movietechinfo].nil?
+		%li{:class => "icon-wrench"}
+			= other[:movietechinfo]
 	
 	- if !(object.imdbid.nil? || (movies = Movie.by_imdbid(object.imdbid)).empty?) || (object.imdbid.nil? && !other[:movietitle].nil? && !other[:movieyear].nil? && !(movies = Movie.soundex_find(:all, :limit => 10, :conditions => {:c07 => other[:movieyear]}, :soundex => other[:movietitle])).empty?)
 		- movies.each do |movie|

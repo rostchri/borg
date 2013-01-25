@@ -13,6 +13,7 @@ class EntrantsController < ResourcesController
     end
   end
 
+
   def feed
     @title = "Borg"
     @description = "Root of content"
@@ -25,6 +26,20 @@ class EntrantsController < ResourcesController
       # format.rss { redirect_to feed_path(:format => :atom), :status => :moved_permanently }
     end
   end
+  
+  def feedlinks
+    @title = "Borg"
+    @description = "Root of content"
+    @feed_items = (params[:type]).constantize.where("links NOT NULL").limit(250)
+    @updated = @feed_items.first.updated_at unless @feed_items.empty?
+    respond_to do |format|
+      format.atom { render :layout => false }
+      format.rss  { render :layout => false }
+      # we want the RSS feed to redirect permanently to the ATOM feed
+      # format.rss { redirect_to feed_path(:format => :atom), :status => :moved_permanently }
+    end
+  end
+  
     
 end
 

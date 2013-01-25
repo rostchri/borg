@@ -12,12 +12,12 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
     xml.link sfilefeed_url(:rss) if params[:type] == "SFile"
     @feed_items.each do |item|
       xml.item do
-        xml.title item.title
         xml.category item.category
         xml.link entrant_url(item)
         description = []
         case item
           when Torrent
+            xml.title item.title
             # torrent-magnetURI-links will not work in atom-feeds, which is the default for google-reader starred feed, 
             # so we need some other tag which will be in atom-feed later for the magnet-link
             #xml.tag!('dc:creator',item.other[:details][:'Eingetragen von:']) unless item.other[:details].nil? || item.other[:details][:'Eingetragen von:'].nil?
@@ -37,9 +37,14 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
             description << item.other[:stats] unless item.other[:stats].nil?
             description << item.other[:details][:'IMDb Rating:'] unless item.other[:details].nil? || item.other[:details][:'IMDb Rating:'].nil?
           when SFile
+            unless item.other[:movietitle].nil?
+              xml.title item.other[:movietitle] 
+            else
+              xml.title item.title
+            end
             xml.tag!('dc:creator',item.author)
-            xml.title item.other[:movietitle] unless item.other[:movietitle].nil?
             description << item.category
+            description << item.other[:movietechinfo] unless item.other[:movietechinfo].nil?
           else
             xml.tag!('dc:creator',item.type)
         end

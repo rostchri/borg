@@ -5,6 +5,8 @@
 		- unless item.other[:movietitle].nil?
 			%th Filmtitel
 			%th Erscheinungsjahr
+		- unless item.other[:movietechinfo].nil?
+			%th Techinfos
 		- unless item.imdbid.nil?
 			%th IMDB
 		%th Quelle
@@ -12,21 +14,18 @@
 			%th Änderungen
 	%tr
 		%td= item.category
-		
 		- unless item.other[:movietitle].nil?
 			%td= item.other[:movietitle]
 			%td= item.other[:movieyear]
-		
+		- unless item.other[:movietechinfo].nil?
+			%td= item.other[:movietechinfo]
 		- unless item.imdbid.nil?
 			%th= link_to "#{item.imdbid}", "http://www.imdb.de/title/#{item.imdbid}"
-		
 		%td
 			= link_to "Lokal", entrant_url(item)
 			= link_to "Extern", item.srcurl
-		
 		- if item.update_counter > 0
 			%td= item.update_counter
-
 - unless item.update_counter == 0 || item.diff.nil? || item.diff.empty?
 	%table
 		%tr
