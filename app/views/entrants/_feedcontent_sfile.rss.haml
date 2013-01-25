@@ -1,12 +1,11 @@
-= item.category
 %table
 	%tr
 		%th Kategorie
 		- unless item.other[:movietitle].nil?
 			%th Filmtitel
 			%th Erscheinungsjahr
-		- unless item.other[:movietechinfo].nil?
-			%th Techinfos
+		- unless item.infos.nil?
+			%th Technische Informationen
 		- unless item.imdbid.nil?
 			%th IMDB
 		%th Quelle
@@ -17,8 +16,8 @@
 		- unless item.other[:movietitle].nil?
 			%td= item.other[:movietitle]
 			%td= item.other[:movieyear]
-		- unless item.other[:movietechinfo].nil?
-			%td= item.other[:movietechinfo]
+		- unless item.infos.nil?
+			%td= item.infos
 		- unless item.imdbid.nil?
 			%th= link_to "#{item.imdbid}", "http://www.imdb.de/title/#{item.imdbid}"
 		%td
@@ -37,7 +36,7 @@
 - if !(item.imdbid.nil? || (movies = Movie.by_imdbid(item.imdbid)).empty?) || (item.imdbid.nil? && !item.other[:movietitle].nil? && !item.other[:movieyear].nil? && !(movies = Movie.soundex_find(:all, :limit => 10, :conditions => {:c07 => item.other[:movieyear]}, :soundex => item.other[:movietitle])).empty?)
 	%table
 		%tr
-			%th Vorhandener Titel
+			%th Vorhandene Titel
 			%th Pfad
 			%th Dateien
 			-#

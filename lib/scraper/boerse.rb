@@ -87,19 +87,29 @@ module Scraper
       # Feedzirra::Feed.add_common_feed_element('generator')
       # Feedzirra::Feed.add_common_feed_entry_element('ttl')
       @@web  = Scraper::BoerseSourceWeb.new
-      @feeds = Feedzirra::Feed.fetch_and_parse ENV['BOERSE_FEEDS'].split(",").map{|id| "#{ENV['BOERSE_FEED_URL']}#{id}"}, 
-                                               :on_success => ->(url, feed) { BoerseSourceRss.items(feed)}
+      repeat = true
+      repeat_count = 0
+      while repeat && repeat_count < 5 do
+        repeat = false
+        repeat_count += 1
+        @feeds = Feedzirra::Feed.fetch_and_parse ENV['BOERSE_FEEDS'].split(",").map{|id| "#{ENV['BOERSE_FEED_URL']}#{id}"}, 
+                                                 :on_success => ->(url, feed) { BoerseSourceRss.items(feed)},
+                                                 :on_failure => ->(url, response_code, response_header, response_body) { repeat = true; puts "### ERROR #{url} #{response_header}"}
+        sleep 5
+      end
       stats
       nil
     end
     
     def update
       @feeds.each do |u,feed|
-        @@stats[feed.feed_url][:last] = {:updated => 0, :new => 0}
-        updated_feed = Feedzirra::Feed.update(feed)
-        unless updated_feed.is_a? Array
-          BoerseSourceRss.items updated_feed, false 
-          puts "#{updated_feed.updated?} #{updated_feed.last_modified}"
+        unless feed.is_a? Fixnum
+          @@stats[feed.feed_url][:last] = {:updated => 0, :new => 0}
+          updated_feed = Feedzirra::Feed.update(feed)
+          unless updated_feed.is_a? Array
+            BoerseSourceRss.items updated_feed, false 
+            puts "#{updated_feed.updated?} #{updated_feed.last_modified}"
+          end
         end
       end
       stats
@@ -155,11 +165,11 @@ module Scraper
           if entry.summary =~ /Bild: (http:\/\/[^ ]*)/
             sfile[:imageurl] = $1
           end
-          if entry.title =~ /^([^\(]*?)[ \(]*((19|20)\d{2})(.*)/
+          if entry.title =~ /^([^\(]*?)[ \(]*((19|20)\d{2})[ \)]*(.*)/
             sfile[:other] = {} if sfile[:other].nil?
             sfile[:other][:movietitle]    = $1
             sfile[:other][:movieyear]     = $2
-            sfile[:other][:movietechinfo] = $4
+            sfile[:infos] = $4
           end
           usediffy = true
           retries  = 0
@@ -223,15 +233,15 @@ module Scraper
             
             object.attributes = sfile
             @@stats[feed.feed_url][:last][(object.new_record? ? :new : :updated)] += 1 if object.new_record? || object.changed?
-            printf "\t%s %s %s / %s %s: %s %s %p\n",   object.new_record? ? "(NEW)" : (object.changed? ? "(UPD)" : "(OLD)"),
+            printf "\t%s %s %s / %s [%s] %14.14s: %s\n",  object.new_record? ? "(NEW)" : (object.changed? ? "(UPD)" : "(OLD)"),
                                                           object.category,
                                                           object.date.strftime("%d.%m.%y %a %H:%M"),
                                                           entry.last_modified.strftime("%d.%m.%y %a %H:%M"),
-                                                          object.author,
-                                                          object.title,
                                                           object.srcid,
-                                                          object.imdbid#,
-                                                          #object.changes.keys.map{|i| i.to_sym}
+                                                          object.author,
+                                                          object.title#,
+                                                          # object.imdbid#,
+                                                          # object.changes.keys.map{|i| i.to_sym}
             object.save if object.new_record? || object.changed?
           rescue Timeout::Error
             if sfile.include?(:image)

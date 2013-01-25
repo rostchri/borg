@@ -1,6 +1,7 @@
 class CreateEntrants < ActiveRecord::Migration
   def self.up
     create_table :entrants do |t|
+      t.datetime          :date
       t.string            :type
       t.string            :title
       t.string            :category
@@ -8,13 +9,14 @@ class CreateEntrants < ActiveRecord::Migration
       t.string            :imdbid
       t.string            :srcurl
       t.string            :author
-      t.text              :content, :limit => 64.kilobytes + 1
-      t.has_attached_file :image
       t.string            :imageurl
+      t.string            :infos
+      t.has_attached_file :image
+      t.text              :links
       t.number            :update_counter, :default => 0
-      t.datetime          :date
-      t.text              :other, :limit => 64.kilobytes + 1
-      t.text              :diff, :limit => 64.kilobytes + 1
+      t.text              :content, :limit => 64.kilobytes + 1
+      t.text              :other,   :limit => 64.kilobytes + 1
+      t.text              :diff,    :limit => 64.kilobytes + 1
       t.timestamps
     end
   end
@@ -40,3 +42,4 @@ end
 
 # ActiveRecord::Migration.add_column :movie, :c00_soundex, :string, :default => "", :limit => 20, :null => false
 # ActiveRecord::Migration.add_column :entrants, :links, :text
+# ActiveRecord::Migration.add_column :entrants, :infos, :string

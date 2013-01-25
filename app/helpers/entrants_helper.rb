@@ -63,7 +63,22 @@ module EntrantsHelper
                 # remove image
                 content.xpath("//img").each { |image| image.remove if image.attributes['src'].value == sfile.imageurl } unless !removeimage || sfile.imageurl.nil?
                 # make spoiler visible
-                content.xpath("//div[@class='body-spoiler']").each { |spoiler| spoiler.set_attribute('style','')}
+                content.xpath("//div[@class='body-spoiler']").each do |spoiler| 
+                  spoiler.set_attribute('style','')
+                end
+                
+                # replace text-links with real-links via link-decrypter
+                content.xpath("//text()").each do |element|
+                  links=[]
+                  element.content = element.content.strip.gsub /(http:\/\/.*)/ do |line|
+                    links << $1
+                    ""
+                  end
+                  links.each do |l|
+                    element.add_next_sibling Nokogiri::HTML("<a href='#{entrant_path(sfile) + "/#{Base64::urlsafe_encode64(l)}/decrypt/"}'>#{l}</a>").search('a')
+                  end
+                end
+                
                 # use linkdecryter for certain links
                 content.xpath("//a[@target='_blank']").each do |link| 
                   ENV['LINKDECRYPTER_URLS'].split.map{|r| %r #{r} i }.each do |r|

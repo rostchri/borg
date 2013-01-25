@@ -13,7 +13,7 @@ class Entrant < ActiveRecord::Base
   serialize :links, Array
   serialize :other, Hash
   serialize :diff, Array
-  attr_accessible :title, :srcid, :other, :date, :category, :srcurl, :image, :imageurl, :diff, :content, :author, :imdbid, :links
+  attr_accessible :title, :srcid, :other, :date, :category, :srcurl, :image, :imageurl, :diff, :content, :author, :imdbid, :links, :infos
   validates_presence_of :srcid
   has_attached_file :image, :storage => :s3, :s3_credentials => S3_SETTINGS, :url  => ":s3_eu_url", :path => "#{Rails.env}/:class/:id/:basename_:style.:extension"
   

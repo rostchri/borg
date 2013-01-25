@@ -20,9 +20,9 @@
 			= other[:movietitle]
 			= "(#{other[:movieyear]})"
 
-	- unless other[:movietechinfo].nil?
+	- unless object.infos.nil?
 		%li{:class => "icon-wrench"}
-			= other[:movietechinfo]
+			= object.infos
 	
 	- if !(object.imdbid.nil? || (movies = Movie.by_imdbid(object.imdbid)).empty?) || (object.imdbid.nil? && !other[:movietitle].nil? && !other[:movieyear].nil? && !(movies = Movie.soundex_find(:all, :limit => 10, :conditions => {:c07 => other[:movieyear]}, :soundex => other[:movietitle])).empty?)
 		- movies.each do |movie|
