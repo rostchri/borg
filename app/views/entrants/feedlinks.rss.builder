@@ -4,12 +4,12 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
     xml.title @title
     xml.description @description
     xml.language 'de'
-    xml.image do 
-      xml.url "http://borg.brainabuse.de/assets/borg.gif"
-    end
+    # xml.image do 
+    #   xml.url "http://borg.brainabuse.de/assets/borg.gif"
+    # end
     xml.ttl "60"
-    # xml.link torrentfeed_url(:rss) if params[:type] == "Torrent"
-    # xml.link sfilefeed_url(:rss) if params[:type] == "SFile"
+    xml.link torrentfeed_url(:rss) if params[:type] == "Torrent"
+    xml.link sfilefeed_url(:rss) if params[:type] == "SFile"
     @feed_items.each do |item|
       xml.item do
         xml.category item.category
@@ -21,16 +21,16 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
             # item.links.each do |link|
             #   xml.link link
             # end
-            #             description << item.category
-            #             unless item.links.nil? || item.links.empty?
-            #               item.clustered_links.each do |hoster,links|
-            #     description << "#{hoster}: #{links.count} Links\n"
-            #   end
-            # end
+            description << item.category
+            unless item.links.nil? || item.links.empty?
+              item.clustered_links.each do |hoster,links|
+                description << "#{hoster}: #{links.count} Links\n"
+              end
+            end
           else
             xml.tag!('dc:creator',item.type)
         end
-        #xml.description description.join(" ")
+        xml.description description.join(" ")
         xml.tag!('content:encoded') do
           xml.cdata! render("entrants/feedlinks_#{item.type.downcase}", :item => item)
         end
