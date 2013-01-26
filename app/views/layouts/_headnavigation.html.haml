@@ -1,6 +1,5 @@
 #navigation
 	= nav_bar :brand => "Borg - Root of all content", :responsive => false, :fluid => true do
-	
 		= menu_group do
 			= drop_down "Filme ...", movies_path do
 				= menu_item "sortiert nach Bewertung", movies_path(:order_by_rating => true)

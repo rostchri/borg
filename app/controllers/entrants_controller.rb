@@ -1,7 +1,6 @@
 class EntrantsController < ResourcesController
   has_scope :by_date, :type => :array
   has_scope :by_category, :type => :array
-  
   respond_to :js, :only => [:index]
   
   def overview

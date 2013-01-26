@@ -20,6 +20,9 @@ Borg::Application.routes.draw do
     collection do
       get "overview"
     end
+    member do
+      get "downloadlinks"
+    end
   end
   match '/torrents'     => 'entrants#feed',      :as => :torrentfeed,     :defaults => { :format => 'rss', :type => "Torrent" }
   match '/sfiles'       => 'entrants#feed',      :as => :sfilefeed,       :defaults => { :format => 'rss', :type => "SFile" }

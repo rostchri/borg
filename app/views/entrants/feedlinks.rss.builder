@@ -22,17 +22,11 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
           when SFile
             xml.title item.title
             xml.tag!('dc:creator',item.author)
-            xml.link entrant_url(item)
-            # item.links.each do |link|
-            #   xml.link link
-            # end
-            #description << item.category
+            xml.link downloadlinks_entrant_url(item)
+            description << item.category
             unless item.links.nil? || item.links.empty?
-              # item.clustered_links.each do |hoster,links|
-              #   description << "#{hoster}: #{links.count} Links\n"
-              # end
-              item.links.each do |link|
-                description << link
+              item.clustered_links.each do |hoster,links|
+                description << "#{hoster}: #{links.count} Links\n"
               end
             end
           else
@@ -43,7 +37,7 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
         #   xml.cdata! render("entrants/feedlinks_#{item.type.downcase}", :item => item)
         # end
         xml.pubDate item.updated_at.to_s(:rfc822)
-        xml.guid entrant_url(item)
+        xml.guid downloadlinks_entrant_url(item)
       end
     end
   end
