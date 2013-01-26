@@ -31,7 +31,7 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
               # item.clustered_links.each do |hoster,links|
               #   description << "#{hoster}: #{links.count} Links\n"
               # end
-              links.each do |link|
+              item.links.each do |link|
                 description << link
               end
             end
