@@ -1,10 +1,5 @@
 %table
 	- unless item.links.nil? || item.links.empty?
-		:javascript
-			var jdownloader=false;
-		%script{:language => "javascript", :src => "http://127.0.0.1:9666/jdcheck.js"}
-		:javascript
-			if(!jdownloader) document.write("<tr><th><font color='red'>JDownloader is NOT running</font></th></tr>");
 		- item.clustered_links.each do |hoster,links|
 			%tr
 				%th
