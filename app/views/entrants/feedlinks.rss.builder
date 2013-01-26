@@ -8,8 +8,12 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
     #   xml.url "http://borg.brainabuse.de/assets/borg.gif"
     # end
     xml.ttl "60"
-    xml.link torrentfeed_url(:rss) if params[:type] == "Torrent"
-    xml.link sfilefeed_url(:rss) if params[:type] == "SFile"
+    
+    if params[:type] == "SFile"
+      xml.tag! 'atom:link', :rel => 'self', :type => 'application/rss+xml', :href => sfilefeedlinks_url(:rss)
+      xml.link sfilefeedlinks_url(:rss)
+    end
+    
     @feed_items.each do |item|
       xml.item do
         xml.category item.category
