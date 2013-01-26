@@ -14,6 +14,6 @@
 					%input{:type => 'hidden', :name => 'urls', 			:value => "#{links.join("\r\n")}"}
 					%input{:type => 'SUBMIT', :name => 'submit', 		:value => "add #{links.count} #{hoster} - links to jdownloader"}
 				- links.each_with_index do |link,index|
-					= link_to index,link
+					= link_to "#{index+1}",link
 
 	

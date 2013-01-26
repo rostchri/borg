@@ -20,7 +20,11 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
         description = []
         case item
           when SFile
-            xml.title item.title
+            unless item.other[:movietitle].nil?
+              xml.title item.other[:movietitle] 
+            else
+              xml.title item.title
+            end
             xml.tag!('dc:creator',item.author)
             xml.link downloadlinks_entrant_url(item)
             description << item.category
