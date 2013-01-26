@@ -22,13 +22,17 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
           when SFile
             xml.title item.title
             xml.tag!('dc:creator',item.author)
-            item.links.each do |link|
-              xml.link link
-            end
-            description << item.category
+            xml.link entrant_url(item)
+            # item.links.each do |link|
+            #   xml.link link
+            # end
+            #description << item.category
             unless item.links.nil? || item.links.empty?
-              item.clustered_links.each do |hoster,links|
-                description << "#{hoster}: #{links.count} Links\n"
+              # item.clustered_links.each do |hoster,links|
+              #   description << "#{hoster}: #{links.count} Links\n"
+              # end
+              links.each do |link|
+                description << link
               end
             end
           else
