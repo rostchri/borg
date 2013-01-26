@@ -47,9 +47,10 @@
 		- object.clustered_links.each do |hoster,links|
 			%li{:class => "icon-share-alt"}
 				%form{:action => 'http://127.0.0.1:9666/flash/add', :target => "hidden", :method => "POST", :style => "margin: 0px; margin-left: 8px; display: inline-block;"}
-					%input{:type=>'hidden', :name => 'passwords', :value=>'myPassword'}
-					%input{:type=>'hidden', :name => 'source', 		:value=>'http://jdownloader.org/spielwiese'}
-					%input{:type=>'hidden', :name => 'urls', 			:value=>"#{object.links.join("\r\n")}"}
+					-#
+						%input{:type=>'hidden', :name => 'passwords', :value=>'myPassword'}
+						%input{:type=>'hidden', :name => 'source', 		:value=>'http://jdownloader.org/spielwiese'}
+					%input{:type=>'hidden', :name => 'urls', 			:value=>"#{links.join("\r\n")}"}
 					%input{:type=>'SUBMIT', :name => 'submit', 		:value=>"add #{links.count} #{hoster} - links to jdownloader"}
 		:javascript
 			var jdownloader=false;
