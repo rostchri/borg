@@ -36,7 +36,7 @@ xml.rss :version => "2.0", "xmlns:atom"    => "http://www.w3.org/2005/Atom",
             
             xml.category item.other[:format] unless item.other[:format].nil? || item.other[:format].empty?
             
-            xml.torrent :xmlns => "http://xmlns.ezrss.it/0.1/"  do
+            xml.torrent do
               xml.magnetURI do
                 xml.cdata! "#{item.other[:magnetlink]}&dn=#{CGI.escapeHTML(item.title)}"
               end
