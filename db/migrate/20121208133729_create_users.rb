@@ -10,6 +10,7 @@ class CreateUsers < ActiveRecord::Migration
       t.string :password_salt,          :null => false
       t.string :persistence_token,      :null => false
       t.string :perishable_token,       :null => false                # optional, see Authlogic::Session::Perishability
+      t.string :single_access_token,    :null => false
       # magic fields (all optional, see Authlogic::Session::MagicColumns)
       t.integer   :login_count,         :null => false, :default => 0
       t.integer   :failed_login_count,  :null => false, :default => 0
@@ -29,3 +30,5 @@ class CreateUsers < ActiveRecord::Migration
     drop_table :users
   end
 end
+
+# ActiveRecord::Migration.add_column :users, :single_access_token, :string, :null => false
