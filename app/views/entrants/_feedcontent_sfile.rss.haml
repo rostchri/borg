@@ -42,13 +42,13 @@
 			-#
 				%th Technische Daten
 		- movies.each do |movie|
-			%tr
-				%td= link_to movie.path.topdirectory, mediapath_path(movie.path), :rel => "tooltip", :title => movie.path.strPath
-				- unless movie.path.nil?
+			- unless movie.path.nil?
+				%tr
+					%td= link_to movie.path.topdirectory, mediapath_path(movie.path), :rel => "tooltip", :title => movie.path.strPath
 					%td= render("mediapath/mediapath", :mediapath => movie.path, :title_path_mismatch => movie.path.topdirectory != movie.localtitle)
-				%td= render(:partial => "mediafiles/mediafile", :object => movie.file)
-				-#
-					%td= render("streamdetails/logos", :streamdetails => movie.details)
+					%td= render(:partial => "mediafiles/mediafile", :object => movie.file)
+					-#
+						%td= render("streamdetails/logos", :streamdetails => movie.details)
 			
 - unless item.content.nil?
 	= raw sfile_content(item,false)
