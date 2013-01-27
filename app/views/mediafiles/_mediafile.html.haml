@@ -1,5 +1,6 @@
-= content_tag :span, :rel => "tooltip", :title => mediafile.strFilename do
-	%ul.files
-		- mediafile.filenames.each do |file|
-			%li
-				%span.label= file
+- unless mediafile.nil?
+	= content_tag :span, :rel => "tooltip", :title => mediafile.strFilename do
+		%ul.files
+			- mediafile.filenames.each do |file|
+				%li
+					%span.label= file
