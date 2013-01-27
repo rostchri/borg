@@ -3,6 +3,8 @@ class Mediapath < ActiveRecord::Base
   has_many :files, :foreign_key => "idPath", :class_name => Mediafile.name
   scope :sum_and_group_by_files, :include => :files, :select => "strPath", :group => "files.idPath", :having => "count(files.idFile) > 1" 
 
+  scope :maindir, {:conditions =>["Noupdate IS NOT NULL AND Exclude IS NOT NULL"]}
+  
   def topdirectory
     strPath.split("/").last
   end
