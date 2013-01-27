@@ -20,11 +20,7 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
         description = []
         case item
           when SFile
-            unless item.other[:movietitle].nil?
-              xml.title item.other[:movietitle] 
-            else
-              xml.title item.title
-            end
+            xml.title(item.other[:movietitle].nil? ? "[#{item.id}] #{item.title}" : "[#{item.id}] #{item.other[:movietitle]}")
             xml.tag!('dc:creator',item.author)
             xml.link downloadlinks_entrant_url(item)
             description << item.category
@@ -37,9 +33,6 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
             xml.tag!('dc:creator',item.type)
         end
         xml.description description.join(" ")
-        # xml.tag!('content:encoded') do
-        #   xml.cdata! render("entrants/feedlinks_#{item.type.downcase}", :item => item)
-        # end
         xml.pubDate item.updated_at.to_s(:rfc822)
         xml.guid downloadlinks_entrant_url(item)
       end

@@ -137,7 +137,6 @@ module Scraper
     end
   end
   
-  
   def self.torrentupdate(pastdays=0)
     torrentsource = TorrentSource.new
     torrentsource.mainindex
@@ -159,6 +158,5 @@ module Scraper
     end      
     nil
   end
-  
     
 end
