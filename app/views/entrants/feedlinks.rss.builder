@@ -4,16 +4,11 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
     xml.title @title
     xml.description @description
     xml.language 'de'
-    # xml.image do 
-    #   xml.url "http://borg.brainabuse.de/assets/borg.gif"
-    # end
     xml.ttl "60"
-    
     if params[:type] == "SFile"
       xml.tag! 'atom:link', :rel => 'self', :type => 'application/rss+xml', :href => sfilefeedlinks_url(:rss)
       xml.link sfilefeedlinks_url(:rss)
     end
-    
     @feed_items.each do |item|
       xml.item do
         xml.category item.category
@@ -24,11 +19,9 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
             xml.tag!('dc:creator',item.author)
             xml.link downloadlinks_entrant_url(item)
             description << item.category
-            unless item.links.nil? || item.links.empty?
-              item.clustered_links.each do |hoster,links|
-                description << "#{hoster}: #{links.count} Links\n"
-              end
-            end
+            item.clustered_links.each do |hoster,links|
+              description << "#{hoster}: #{links.count} Links\n"
+            end unless item.links.nil? || item.links.empty?
           else
             xml.tag!('dc:creator',item.type)
         end
