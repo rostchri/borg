@@ -9,6 +9,11 @@ xml.rss :version => "2.0", "xmlns:atom"    => "http://www.w3.org/2005/Atom",
     xml.image do 
       xml.title @title
       xml.url "http://borg.brainabuse.de/assets/borg.gif"
+      if params[:type] == "SFile"
+        xml.link sfilefeed_url(:rss)
+      elsif params[:type] == "Torrent"
+        xml.link torrentfeed_url(:rss) 
+      end
     end
     xml.ttl "60"
     
@@ -19,7 +24,6 @@ xml.rss :version => "2.0", "xmlns:atom"    => "http://www.w3.org/2005/Atom",
       xml.link torrentfeed_url(:rss) 
       xml.tag! 'atom:link', :rel => 'self', :type => 'application/rss+xml', :href => torrentfeed_url(:rss)
     end
-    
     
     @feed_items.each do |item|
       xml.item do
