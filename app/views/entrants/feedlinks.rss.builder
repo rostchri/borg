@@ -26,7 +26,7 @@ xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xm
             xml.tag!('dc:creator',item.type)
         end
         xml.description description.join(" ")
-        xml.pubDate item.created_at.to_s(:rfc822)
+        xml.pubDate item.updated_at.to_s(:rfc822)
         xml.guid downloadlinks_entrant_url(item)
       end
     end
