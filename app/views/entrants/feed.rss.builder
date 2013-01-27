@@ -1,15 +1,23 @@
 xml.instruct! :xml, :version => "1.0" 
-xml.rss :version => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xmlns:content" => "http://purl.org/rss/1.0/modules/content/" do
+xml.rss :version => "2.0", "xmlns:atom" => "http://www.w3.org/2005/Atom", "xmlns:dc" => "http://purl.org/dc/elements/1.1/", "xmlns:content" => "http://purl.org/rss/1.0/modules/content/", "xmlns:torrent" => "http://xmlns.ezrss.it/" do
   xml.channel do
     xml.title @title
     xml.description @description
     xml.language 'de'
-    xml.image do 
-      xml.url "http://borg.brainabuse.de/assets/borg.gif"
-    end
+    # xml.image do 
+    #   xml.url "http://borg.brainabuse.de/assets/borg.gif"
+    # end
     xml.ttl "60"
-    xml.link torrentfeed_url(:rss) if params[:type] == "Torrent"
-    xml.link sfilefeed_url(:rss) if params[:type] == "SFile"
+    
+    if params[:type] == "SFile"
+      xml.link sfilefeed_url(:rss)
+      xml.tag! 'atom:link', :rel => 'self', :type => 'application/rss+xml', :href => sfilefeed_url(:rss)
+    elsif params[:type] == "Torrent"
+      xml.link torrentfeed_url(:rss) 
+      xml.tag! 'atom:link', :rel => 'self', :type => 'application/rss+xml', :href => torrentfeed_url(:rss)
+    end
+    
+    
     @feed_items.each do |item|
       xml.item do
         xml.category item.category
