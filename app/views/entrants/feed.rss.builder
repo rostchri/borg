@@ -1,15 +1,15 @@
 xml.instruct! :xml, :version => "1.0" 
 xml.rss :version => "2.0", "xmlns:atom"    => "http://www.w3.org/2005/Atom", 
                            "xmlns:dc"      => "http://purl.org/dc/elements/1.1/", 
-                           "xmlns:content" => "http://purl.org/rss/1.0/modules/content/", 
-                           "xmlns:torrent" => "http://xmlns.ezrss.it/0.1/" do
+                           "xmlns:content" => "http://purl.org/rss/1.0/modules/content/" do
   xml.channel do
     xml.title @title
     xml.description @description
     xml.language 'de'
-    # xml.image do 
-    #   xml.url "http://borg.brainabuse.de/assets/borg.gif"
-    # end
+    xml.image do 
+      xml.title @title
+      xml.url "http://borg.brainabuse.de/assets/borg.gif"
+    end
     xml.ttl "60"
     
     if params[:type] == "SFile"
@@ -36,7 +36,7 @@ xml.rss :version => "2.0", "xmlns:atom"    => "http://www.w3.org/2005/Atom",
             
             xml.category item.other[:format] unless item.other[:format].nil? || item.other[:format].empty?
             
-            xml.torrent do
+            xml.torrent :xmlns => "http://xmlns.ezrss.it/0.1/"  do
               xml.magnetURI do
                 xml.cdata! "#{item.other[:magnetlink]}&dn=#{CGI.escapeHTML(item.title)}"
               end
