@@ -16,7 +16,7 @@ class EntrantsController < ResourcesController
   def feed
     @title = "Borg"
     @description = "Root of content"
-    @feed_items = (params[:type]).constantize.limit(250)
+    @feed_items = (params[:type]).constantize.limit(10)
     @updated = @feed_items.first.updated_at unless @feed_items.empty?
     respond_to do |format|
       format.atom { render :layout => false }
