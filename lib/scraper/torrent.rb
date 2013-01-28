@@ -102,7 +102,8 @@ module Scraper
                                :srcurl    => "#{ENV['TORRENT_SOURCE_MAIN']}?Mod=Details&ID=#{item[:id]}",
                                :image     => URI.parse("#{ENV['TORRENT_SOURCE_HOST']}/#{item[:thumbnail]}"),
                                :imageurl  => "#{ENV['TORRENT_SOURCE_HOST']}/#{item[:thumbnail]}",
-                               :date      => date,
+                               #:date      => date,
+                               :date      => Time.now,
                                :category  => groupname,
                                :other     => item.clone.delete_if {|key, value| [:title,:id].include?(key) }
                                
