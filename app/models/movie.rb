@@ -17,7 +17,7 @@ class Movie < ActiveRecord::Base
   scope :by_plot,    ->(word)     {{:conditions =>["c01 like ?","%#{word}%"]}}
   scope :by_imdbid,  ->(imdbid)   {{:conditions =>["c09 = ?",imdbid]}}
   
-  soundex_columns [:c00] # Movie.where("c00_soundex is NULL").each { |m| m.update_attribute :c00_soundex, Movie.soundex(m.localtitle)}
+  soundex_columns [:c00] # Movie.where("c00_soundex is NULL OR c00_soundex = ''").each { |m| m.update_attribute :c00_soundex, Movie.soundex(m.localtitle) }
 
   paginates_per 50
   
