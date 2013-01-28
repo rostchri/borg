@@ -67,7 +67,7 @@ xml.rss :version => "2.0", "xmlns:atom"    => "http://www.w3.org/2005/Atom",
         xml.tag!('content:encoded') do
           xml.cdata! render("entrants/feedcontent_#{item.type.downcase}", :item => item)
         end
-        xml.pubDate item.updated_at.to_s(:rfc822)
+        xml.pubDate item.date.to_s(:rfc822)
         xml.guid entrant_url(item)
       end
     end

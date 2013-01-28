@@ -23,6 +23,7 @@ use Rack::ReverseProxy do
 			page.xpath("//pre[@class='enlaces']/a[@target='_blank']").each { |link| links << link.attributes['href'].value }
 			if !links.empty? && entrant = Entrant.find(entrant)
 				entrant.links = (entrant.links + links).uniq
+				entrant.date = Time.now
 				entrant.save
 			end
 			page.to_s

@@ -1,7 +1,7 @@
 class Entrant < ActiveRecord::Base
   paginates_per 30
-  #default_scope order("date DESC", "created_at DESC", :category, :title)
-  default_scope order("updated_at DESC", :category, :title)
+  default_scope order("date DESC", "created_at DESC", :category, :title)
+  #default_scope order("updated_at DESC", :category, :title)
   
   scope :older_than, lambda { |date| { :conditions=>["updated_at < ?", date] } }
   scope :by_category, ->(categories) {{:conditions =>["category in (?)",categories]}}
