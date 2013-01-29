@@ -19,7 +19,7 @@ class Movie < ActiveRecord::Base
   
   soundex_columns [:c00]
   
-  paginates_per 50
+  paginates_per 200
   
   # c08: Alternative Cover
   # c13: Top 250
