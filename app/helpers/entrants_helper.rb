@@ -49,52 +49,50 @@ module EntrantsHelper
     content.to_html
   end
   
+
   def sfile_content(sfile,removeimage=true)
     capture_haml do
-      unless sfile.other[:messages].nil? || sfile.other[:messages].empty?
-        haml_tag :table do
+      haml_concat(collapsible_group(:connected => true, :show => false) do |group|
+        unless sfile.other[:messages].nil? || sfile.other[:messages].empty?
           sfile.other[:messages].each_with_index do |message,index|
-            haml_tag :tr do
-              haml_tag :th, "#{index + 1}. Eintrag von #{sfile.other[:messages].size}"
-            end
-            haml_tag :tr do 
-              haml_tag :td do
-                content = Nokogiri::HTML(Base64::decode64(message).to_ascii)
-                # remove image
-                content.xpath("//img").each { |image| image.remove if image.attributes['src'].value == sfile.imageurl } unless !removeimage || sfile.imageurl.nil?
-                # make spoiler visible
-                content.xpath("//div[@class='body-spoiler']").each do |spoiler| 
-                  spoiler.set_attribute('style','')
-                end
-                
-                # replace text-links with real-links via link-decrypter
-                content.xpath("//text()").each do |element|
-                  links=[]
-                  element.content = element.content.strip.gsub /(http:\/\/.*)/ do |line|
-                    links << $1
-                    ""
-                  end
-                  links.each do |l|
-                    element.add_next_sibling Nokogiri::HTML("<a href='#{entrant_path(sfile) + "/#{Base64::urlsafe_encode64(l)}/decrypt/"}' target='_blank'>#{l}</a>").search('a')
-                  end
-                end
-                
-                # use linkdecryter for certain links
-                content.xpath("//a[@target='_blank']").each do |link| 
-                  ENV['LINKDECRYPTER_URLS'].split.map{|r| %r #{r} i }.each do |r|
-                    if link.attributes['href'].value =~ r
-                      link.attributes['href'].value = entrant_path(sfile) + "/#{Base64::urlsafe_encode64(link.attributes['href'].value)}/decrypt/"
-                    end
-                  end
-                end
-                haml_concat content.to_s #.to_ascii
+            group.item :title => "#{index + 1}. Eintrag von #{sfile.other[:messages].size}" do |groupitem|
+              content = Nokogiri::HTML(Base64::decode64(message).to_ascii)
+              # remove image
+              content.xpath("//img").each { |image| image.remove if image.attributes['src'].value == sfile.imageurl } unless !removeimage || sfile.imageurl.nil?
+              # make spoiler visible
+              content.xpath("//div[@class='body-spoiler']").each do |spoiler| 
+                spoiler.set_attribute('style','')
               end
+          
+              # replace text-links with real-links via link-decrypter
+              content.xpath("//text()").each do |element|
+                links=[]
+                element.content = element.content.strip.gsub /(http:\/\/.*)/ do |line|
+                  links << $1
+                  ""
+                end
+                links.each do |l|
+                  element.add_next_sibling Nokogiri::HTML("<a href='#{entrant_path(sfile) + "/#{Base64::urlsafe_encode64(l)}/decrypt/"}' target='_blank'>#{l}</a>").search('a')
+                end
+              end
+          
+              # use linkdecryter for certain links
+              content.xpath("//a[@target='_blank']").each do |link| 
+                ENV['LINKDECRYPTER_URLS'].split.map{|r| %r #{r} i }.each do |r|
+                  if link.attributes['href'].value =~ r
+                    link.attributes['href'].value = entrant_path(sfile) + "/#{Base64::urlsafe_encode64(link.attributes['href'].value)}/decrypt/"
+                  end
+                end
+              end
+              groupitem.set :body => content.to_s
             end
           end
+        else
+          group.item :title => "RSS-Inhalt" do |groupitem|
+            groupitem.set :body => raw(sfile_content_old(sfile,removeimage))
+          end
         end
-      else
-        haml_concat raw(sfile_content_old(sfile,removeimage))
-      end
+      end) 
     end
   end
 
