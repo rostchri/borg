@@ -19,6 +19,8 @@
 		%li{:class => "icon-film"}
 			= other[:movietitle]
 			= "(#{other[:movieyear]})"
+			- unless object.imdbid.nil?
+				= link_to "[#{object.imdbid}]", "http://www.imdb.de/title/#{object.imdbid}",  :rel => "tooltip", :title => "IMDB"
 
 	- unless object.infos.nil?
 		%li{:class => "icon-wrench"}

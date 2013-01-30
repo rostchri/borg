@@ -233,14 +233,14 @@ module Scraper
             
             object.attributes = sfile
             @@stats[feed.feed_url][:last][(object.new_record? ? :new : :updated)] += 1 if object.new_record? || object.changed?
-            printf "\t%s %s %s / %s [%s] %14.14s: %s\n",  object.new_record? ? "(NEW)" : (object.changed? ? "(UPD)" : "(OLD)"),
+            printf "\t%s %s %s / %s [%s] %14.14s: %s %p %p\n", object.new_record? ? "(NEW)" : (object.changed? ? "(UPD)" : "(OLD)"),
                                                           object.category,
                                                           object.date.strftime("%d.%m.%y %a %H:%M"),
                                                           entry.last_modified.strftime("%d.%m.%y %a %H:%M"),
                                                           object.srcid,
                                                           object.author,
-                                                          object.title#,
-                                                          # object.imdbid#,
+                                                          object.title,
+                                                          object.imdbid, sfile[:imdbid]#,
                                                           # object.changes.keys.map{|i| i.to_sym}
             object.save if object.new_record? || object.changed?
           rescue Timeout::Error
