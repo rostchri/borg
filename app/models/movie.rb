@@ -17,6 +17,11 @@ class Movie < ActiveRecord::Base
   scope :by_plot,    ->(word)     {{:conditions =>["c01 like ?","%#{word}%"]}}
   scope :by_imdbid,  ->(imdbid)   {{:conditions =>["c09 = ?",imdbid]}}
   
+  scope :localtitle_matches_topdirectory, ->(year) {{:conditions =>["path.strPath like ? AND path.strPath like CONCAT(?,c00,?)", "%/#{year}/%",'%/','/%'], :include => [:file => :path]}}
+  
+  
+	
+  
   soundex_columns [:c00]
   
   paginates_per 50
@@ -88,6 +93,17 @@ class Movie < ActiveRecord::Base
     parse_html(xmbc_mapping(:c20)).inject([]){|r,i| r << i.attributes['preview'] if i.name == "thumb"; r}
   end
   
+  
+  def self.reorganize_directories(year)
+    Movie.localtitle_matches_topdirectory(year).map{|m| m.file.path}.uniq.each do |path| 
+      printf "%130s -> %s (%d) %sp %s\n", path.strPath, 
+                                          path.topdirectory, 
+                                          path.files.first.movie.year,  
+                                          path.files.first.details.map{|d| d.video_resolution}.join(""),
+                                          path.files.first.details.map{|d| d.strVideoCodec}.join("").upcase
+    end
+  end
+  
   private
   
   def parse_html(html)
@@ -103,6 +119,8 @@ class Movie < ActiveRecord::Base
   def xmbc_mapping(col)
     send(col)
   end
+  
+  
   
     
 end

@@ -2,53 +2,53 @@ class Streamdetail < ActiveRecord::Base
   set_table_name "streamdetails" 
   self.primary_key = 'idFile'
   belongs_to :file, :foreign_key => "idFile", :class_name => Mediafile.name
-  
+
   def video_codec_logo
-    unless strVideoCodec.nil? || strVideoCodec.empty?
-      logo = "flagging/video/#{strVideoCodec}.png"
-      return logo if File.exists?("#{Rails.root}/app/assets/images/#{logo}")
+    unless strVideoCodec.nil? || strVideoCodec.empty? || !File.exists?("#{Rails.root}/app/assets/images/flagging/video/#{strVideoCodec}.png")
+      "flagging/video/#{strVideoCodec}.png"
     else
       #printf "### Warning: No video-codec for %s\n", file.filenames
     end
   end
 
   def audio_codec_logo
-    unless strAudioCodec.nil? || strAudioCodec.empty?
-      logo = "flagging/audio/#{strAudioCodec}.png"
-      return logo if File.exists?("#{Rails.root}/app/assets/images/#{logo}")
+    unless strAudioCodec.nil? || strAudioCodec.empty? || !File.exists?("#{Rails.root}/app/assets/images/flagging/audio/#{strAudioCodec}.png")
+      "flagging/audio/#{strAudioCodec}.png"
     else
       #printf "### Warning: No audio-codec for %s\n", file.filenames
     end
   end
-
-
-  def video_resolution_logo
+  
+  def video_resolution
     unless iVideoHeight.nil? || iVideoWidth.nil?
-      logo = "flagging/video/"
       if iVideoHeight < 720 && iVideoWidth < 1280 
         # SD
         if iVideoHeight >= 240 && iVideoHeight < 360
-          logo += "240.png"
+          240
         elsif iVideoHeight < 480
-          logo += "360.png"
+          360
         elsif iVideoHeight < 540
-          logo += "480.png"
+          480
         elsif iVideoHeight < 576
-          logo += "540.png"
+          540
         else
-          logo += "576.png"
+          576
         end
-      elsif (iVideoHeight >= 720 && iVideoWidth < 1920) || (1280 <= iVideoWidth && iVideoWidth < 1920)
-        # HD: 720
-        logo += "720.png"
-      else #iVideoWidth >= 1920
-        # HD: 1080
-        logo += "1080.png"
+      elsif (iVideoHeight >= 720 && iVideoWidth < 1920) || (1280 <= iVideoWidth && iVideoWidth < 1920) # -> HD: 720
+        720
+      else #iVideoWidth >= 1920  -> HD: 1080
+        1080
       end
-      return logo
     else
       #printf "### Warning: No video-resolution for %s\n", file.filenames
+      nil
     end
+  end
+
+  def video_resolution_logo
+    unless (res=video_resolution).nil?
+      logo = "flagging/video/#{res}.png"
+    end    
   end
 
   def audio_channels_logo
@@ -60,12 +60,10 @@ class Streamdetail < ActiveRecord::Base
     end
   end
 
-
   def aspect_ratio_logo
     unless fVideoAspect.nil?
       logo = "flagging/aspectratio/"
-      
-      
+
       if fVideoAspect < 1.4859
         logo += "1.33.png" # 4:3
       elsif fVideoAspect < 1.7190
