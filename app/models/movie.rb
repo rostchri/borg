@@ -19,9 +19,6 @@ class Movie < ActiveRecord::Base
   
   scope :localtitle_matches_topdirectory, ->(year) {{:conditions =>["path.strPath like ? AND path.strPath like CONCAT(?,c00,?)", "%/#{year}/%",'%/','/%'], :include => [:file => :path]}}
   
-  
-	
-  
   soundex_columns [:c00]
   
   paginates_per 50
