@@ -5,6 +5,11 @@
 			.videocodec.techflag
 				= image_tag streamdetail.video_codec_logo
 				
+		- unless streamdetail.iVideoDuration.nil?
+			.duration.techflag
+				%span{:class => "label label-info", :rel => "tooltip", :title => "Länge"}
+					= "#{streamdetail.iVideoDuration / 60}m"
+				
 		- unless streamdetail.video_resolution_logo.nil?
 			.videoresolution.techflag
 				= image_tag streamdetail.video_resolution_logo
