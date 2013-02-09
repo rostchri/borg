@@ -19,3 +19,4 @@
 //= require kickstrap
 //= require cycle
 //= require imagesloaded
+//= require lazyload

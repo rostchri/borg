@@ -3,13 +3,13 @@
 
 %div{:class => cssclass, :id => "fanart_#{mediafile.id}"}
 	- unless  mediafile.fanart_thumbnail.nil?
-		= image_tag(url_for(:controller => :mediafiles, :action => :fanart_thumbnail, :hash => mediafile.fanart_thumbnail), :class=>"fanart local")
+		= lazy_image_tag(url_for(:controller => :mediafiles, :action => :fanart_thumbnail, :hash => mediafile.fanart_thumbnail), :class=>"fanart local", :placeholderimage => "grey.gif")
 	- else
-		= image_tag(mediafile.movie.fanart.first, :class=>"fanart remote") unless mediafile.movie.fanart.empty?
+		= lazy_image_tag(mediafile.movie.fanart.first, :class=>"fanart remote") unless mediafile.movie.fanart.empty?
 
 	- if animate
 		- mediafile.movie.fanart.each do |image|
-			= image_tag(image, :class=>"fanart remote", :style => "display: none;")
+			= lazy_image_tag(image, :class=>"fanart remote", :style => "display: none;")
 
 - if animate
 	:javascript

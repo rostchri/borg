@@ -61,3 +61,8 @@ $('.to_modal').click(function(e) {
     }
 });
 });
+
+// lazyload all images
+$(document).ready(function() {
+		$("img.lazy").lazyload();
+});

@@ -3,13 +3,13 @@
 
 %div{:class => [:moviecover] + classes, :id => "cover_#{mediafile.id}"}
 	- unless mediafile.video_thumbnail.nil?
-		= image_tag(url_for(:controller => :mediafiles, :action => :video_thumbnail, :hash => mediafile.video_thumbnail), :class=>"cover local")
+		= lazy_image_tag(url_for(:controller => :mediafiles, :action => :video_thumbnail, :hash => mediafile.video_thumbnail), :class=>"cover local", :placeholderimage => "grey.gif")
 	- else
-		= image_tag(mediafile.movie.cover.first, :class=>"cover remote") unless mediafile.movie.cover.empty?
+		= lazy_image_tag(mediafile.movie.cover.first, :class=>"cover remote") unless mediafile.movie.cover.empty?
 
 	- if animate
 		- mediafile.movie.cover.each do |image|
-			= image_tag(image, :class=>"cover remote", :style => "display: none;")
+			= lazy_image_tag(image, :class=>"cover remote", :style => "display: none;")
 
 
 - if animate

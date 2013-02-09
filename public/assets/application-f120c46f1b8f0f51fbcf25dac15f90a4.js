@@ -9931,11 +9931,6 @@ $('.to_modal').click(function(e) {
     }
 });
 });
-
-// lazyload all images
-$(document).ready(function() {
-		$("img.lazy").lazyload();
-});
 /*!
  * jQuery Cycle Plugin (with Transition Definitions)
  * Examples and documentation at: http://jquery.malsup.com/cycle/

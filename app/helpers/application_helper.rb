@@ -48,4 +48,14 @@ module ApplicationHelper
     end
   end  
   
+  
+  def lazy_image_tag(imagesrc,options={})
+    options[:class] = options[:class].nil? ? "lazy" : "lazy #{options[:class]}"
+    options[:'data-original'] = imagesrc
+    placeholderimage = options[:placeholderimage].nil? ? "transparent.gif" : options[:placeholderimage]
+    options.delete(:placeholderimage)
+    image_tag placeholderimage, options
+  end
+  
+  
 end
