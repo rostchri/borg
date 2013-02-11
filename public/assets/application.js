@@ -15777,10 +15777,10 @@ function imdb_verify(movierow,status) {
 
 $("table#tablegrid_movies >> .tablegrid_tr").swipe({
     swipeLeft:function(event, direction, distance, duration, fingerCount) {
-			imdb_verify($(this),'valid');
+			imdb_verify($(this),'invalid');
 		},
 		swipeRight:function(event, direction, distance, duration, fingerCount) {
-			imdb_verify($(this),'invalid')
+			imdb_verify($(this),'valid')
 		},
     threshold:75 //Default is 75px, set to 0 for demo so any distance triggers swipe
 });
