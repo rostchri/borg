@@ -15758,25 +15758,32 @@ $.fn.imagesLoaded = function( callback ) {
 
 })(jQuery);
 
+function imdb_verify(movierow,status) {
+	if (movieid = /movie_(\d*)/.exec(movierow.attr('id'))) {
+		$.ajax({
+			        url: '/ajax/imdbverify/' + movieid[1] + '/' + status ,
+							type: "GET",
+			        dataType: 'script',
+							beforeSend: function(xhr) {
+								xhr.setRequestHeader('Accept', 'text/javascript');
+							},
+							success: function(data){
+								movierow.fadeOut(300).fadeIn(300);
+							}
+			     });
+  }
+}
+
+
 $("table#tablegrid_movies >> .tablegrid_tr").swipe({
-    swipe:function(event, direction, distance, duration, fingerCount) {
-			var that = $(this);
-			if (movieid = /movie_(\d*)/.exec(that.attr('id'))) {
-				$.ajax({
-					        url: '/ajax/imdbverify/' + movieid[1] + '/' + ((direction == 'left') ? 'valid' : 'invalid') ,
-									type: "GET",
-					        dataType: 'script',
-									beforeSend: function(xhr) {
-										xhr.setRequestHeader('Accept', 'text/javascript');
-									},
-									success: function(data){
-										that.fadeOut(300).fadeIn(300);
-									}
-					     });
-	      }},
-      //Default is 75px, set to 0 for demo so any distance triggers swipe
-      threshold:75
-  });
+    swipeLeft:function(event, direction, distance, duration, fingerCount) {
+			imdb_verify($(this),'valid');
+		},
+		swipeRight:function(event, direction, distance, duration, fingerCount) {
+			imdb_verify($(this),'invalid')
+		},
+    threshold:75 //Default is 75px, set to 0 for demo so any distance triggers swipe
+});
 
 
 });
