@@ -1559,14 +1559,14 @@ function imdb_verify(movierow,status) {
 	if (movieid = /movie_(\d*)/.exec(movierow.attr('id'))) {
 		$.ajax({
 			        url: '/ajax/imdbverify/' + movieid[1] + '/' + status ,
-							type: "GET",
+							// type: "GET",
 			        dataType: 'script',
-							beforeSend: function(xhr) {
-								xhr.setRequestHeader('Accept', 'text/javascript');
-							},
-							success: function(data){
-								movierow.fadeOut(300).fadeIn(300);
-							}
+							// beforeSend: function(xhr) {
+							// 	xhr.setRequestHeader('Accept', 'text/javascript');
+							// },
+							// success: function(data){
+							// 	movierow.fadeOut(300).fadeIn(300);
+							// }
 			     });
   }
 }
