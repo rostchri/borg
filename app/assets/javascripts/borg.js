@@ -16,6 +16,9 @@ $(document).ready(function() {
       var _this = this;
       if (query.length >= 2) return $.ajax({
         url: "/ajax/autocomplete/titlesearch/" + query,
+				beforeSend: function(xhr) {
+					xhr.setRequestHeader('Accept', 'text/javascript');
+				},
         success: function(data) {
           return typeahead.process(data);
         }
@@ -32,6 +35,9 @@ $(document).ready(function() {
       var _this = this;
       if (query.length >= 3) return $.ajax({
         url: "/ajax/autocomplete/plotsearch/" + query,
+				beforeSend: function(xhr) {
+					xhr.setRequestHeader('Accept', 'text/javascript');
+				},
         success: function(data) {
           return typeahead.process(data);
         }
@@ -65,4 +71,38 @@ $('.to_modal').click(function(e) {
 // lazyload all images
 $(document).ready(function() {
 		$("img.lazy").lazyload({ threshold : 100, effect : "fadeIn" });
+});
+
+
+
+$(document).ready(function() {
+	$('input.imdb_verify').click(function() {
+		var that = $(this);
+		if (that.attr('checked')) {
+		$.ajax({
+		        url: "/movies/" + that.attr('movie') + "/imdbvalid",
+		        dataType: 'html',
+						beforeSend: function(xhr) {
+							xhr.setRequestHeader('Accept', 'text/javascript');
+						},
+		        success: function(data){
+							that.fadeOut(150).delay(150).fadeIn(150);
+		          //that.attr('checked', 'checked');
+		        }
+		       });
+		} else {
+			$.ajax({
+			        url: "/movies/" + that.attr('movie') + "/imdbinvalid",
+			        dataType: 'html',
+							beforeSend: function(xhr) {
+								xhr.setRequestHeader('Accept', 'text/javascript');
+							},
+								// 			        success: function(data){
+								// that.fadeOut(150).delay(150).fadeIn(150);
+								// 			          //that.attr('checked', 'checked');
+								// 			        }
+			       });
+		}
+		
+	});
 });

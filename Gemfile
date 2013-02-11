@@ -54,7 +54,6 @@ gem 'less-rails' # kickstrap_rails needs this. deps are missing in kickstrap_rai
 gem 'therubyracer', :platform => :ruby
 
 
-
 # Gems used only for assets and not required
 # in production environments by default.
 group :assets do

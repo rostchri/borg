@@ -1,6 +1,7 @@
-%ul{:class => "movie icons"}
+- title_path_mismatch = movie.path.topdirectory != movie.localtitle
+%ul{:class => "movie icons swipe"}
 	%li{:class => "icon-film"}
-		= render("movies/title", :movie => movie)
+		= render("movies/title", :movie => movie, :title_path_mismatch => title_path_mismatch)
 	%li{:class => "icon-tags"}
 		= render(:partial =>"genres/genres", :object => movie.genres)
 	%li{:class => "icon-heart"}
@@ -11,7 +12,7 @@
 	%li{:class => "icon-facetime-video"}
 		= render("movies/techinfos", :movie => movie)
 	%li{:class => "icon-folder-open"}
-		= render("mediapath/mediapath", :mediapath => movie.path, :title_path_mismatch => movie.path.topdirectory != movie.localtitle) 
+		= render("mediapath/mediapath", :mediapath => movie.path, :title_path_mismatch => title_path_mismatch) 
 	%li{:class => "icon-hdd"}
 		= render(:partial => "mediafiles/mediafile", :object => movie.file)
 

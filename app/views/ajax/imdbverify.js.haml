@@ -1,0 +1,3 @@
+- unless @movie.nil?
+	- content = escape_javascript(render :partial => "movies/movie", :object => @movie)
+	= preserve "$('tr.tablegrid_tr#movie_#{params['id']} > td.movie').html('#{content}');"

@@ -1,4 +1,15 @@
 class AjaxController < ApplicationController
+  
+  def imdbverify
+    if params[:id]
+      @movie = Movie.find(params[:id]) 
+      unless ((validimdb = (params[:status] == "valid") ? true : false) == @movie.validimdb)
+        @movie.validimdb = (params[:status] == "valid") ? true : false
+        @movie.save
+      end
+    end
+  end
+    
       
   def moviedetails
     @movie = Movie.find(params[:id]) if params[:id]

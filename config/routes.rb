@@ -1,6 +1,7 @@
 Borg::Application.routes.draw do
   
   # all ajax-actions
+  match '/ajax/imdbverify/:id/:status' => 'ajax#imdbverify', :as => :imdbverify, :id => /[^\/]+/
   match '/ajax/moviedetails/:id/:md' => 'ajax#moviedetails', :as => :moviedetails, :id => /[^\/]+/
   match '/ajax/autocomplete/titlesearch/:title' => 'ajax#autocomplete_titlesearch', :title => /[^\/]+/ 
   match '/ajax/autocomplete/plotsearch/:plot' => 'ajax#autocomplete_plotsearch', :plot => /[^\/]+/ 
