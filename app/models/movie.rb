@@ -45,6 +45,10 @@ class Movie < ActiveRecord::Base
     labels.include?(Label.find_by_key('imdbinvalid'))
   end
   
+  def localtitle_topdirectory_match?
+    path.topdirectory == localtitle || path.topdirectory == "#{localtitle} (#{year})"
+  end
+  
   def localtitle
     xmbc_mapping(:c00)
   end

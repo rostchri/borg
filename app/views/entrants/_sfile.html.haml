@@ -31,7 +31,7 @@
 			%li{:class => "icon-list"}
 				= render("movies/title", :movie => movie)
 				- unless movie.path.nil?
-					= render("mediapath/mediapath", :mediapath => movie.path, :title_path_mismatch => movie.path.topdirectory != movie.localtitle)
+					= render("mediapath/mediapath", :mediapath => movie.path, :title_dir_match => movie.localtitle_topdirectory_match?)
 				= render(:partial => "mediafiles/mediafile", :object => movie.file)
 				= render "streamdetails/logos", :streamdetails => movie.details
 

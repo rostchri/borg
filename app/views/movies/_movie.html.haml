@@ -11,7 +11,7 @@
 	%li{:class => "icon-facetime-video"}
 		= render("movies/techinfos", :movie => movie)
 	%li{:class => "icon-folder-open"}
-		= render("mediapath/mediapath", :mediapath => movie.path, :title_path_mismatch => movie.path.topdirectory != movie.localtitle) 
+		= render("mediapath/mediapath", :mediapath => movie.path, :title_dir_match => movie.localtitle_topdirectory_match?) 
 	%li{:class => "icon-hdd"}
 		= render(:partial => "mediafiles/mediafile", :object => movie.file)
 

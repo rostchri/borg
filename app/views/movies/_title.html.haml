@@ -1,4 +1,3 @@
-- title_path_mismatch = movie.path.topdirectory != movie.localtitle
 %span{:class => "label label-info", :rel => "tooltip", :title => "Deutscher Titel"}
 	= movie.localtitle
 %span.label.label-info{:rel => "tooltip", :title => "Erscheinungsjahr"}
@@ -12,4 +11,4 @@
 		- if ((imdbvalid=movie.imdbvalid?) || movie.imdbinvalid?)
 			= railstrap_image(imdbvalid ? "status/verified.png" : "status/unverified.png", nil, :rel=> "tooltip", :title => imdbvalid ? "verified" : "unverified")
 		- else
-			= railstrap_image(title_path_mismatch ? "status/exclamationmark.png" : "status/questionmark.png" , nil, :rel=> "tooltip", :title => title_path_mismatch ? "IMDB-Name stimmt NICHT mit Verzeichnisnamen überein" : "IMDB-Name stimmt mit Verzeichnisnamen überein")
+			= railstrap_image(movie.localtitle_topdirectory_match? ? "status/questionmark.png" : "status/exclamationmark.png" , nil, :rel=> "tooltip", :title => movie.localtitle_topdirectory_match? ? "IMDB-Info stimmt mit Verzeichnisnamen überein" : "IMDB-Info stimmt NICHT mit Verzeichnisnamen überein")
