@@ -12,17 +12,20 @@ de:
   firstpage: Erste Seite
   lastpage: Letzte Seite
   actions: Aktion
+  
 
   # Zeit-Formate
   date:
     formats:
       short: "%b %d.%m.%Y"
+      short_with_time: "%d.%m.%Y %H:%M"
       short_with_day: "%A, %d.%m.%Y"
       
   time:
     formats:
       with_weekday_and_time: '%A %d. %B %Y %H:%M Uhr'
       without_time: '%A %d. %B %Y'
+      short_with_time: "%d.%m.%Y %H:%M"
   
   User:
     show: "Über diesen Benutzer"
@@ -124,7 +127,16 @@ de:
       genre:
         one: Genre
         other: Genres
+      label:
+        one: Label
+        other: Labels
     attributes:
+      label:
+        id: ID
+        movies: Filme
+        key: Key
+        name: Name
+        description: Beschreibung
       genre:
         movies: Filme
         name: Genre

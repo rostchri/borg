@@ -1,4 +1,11 @@
 class MoviesController < ResourcesController
+  
+  belongs_to :label ,  :optional => true
+  
+  has_scope :by_label, :only => [:index]
+  has_scope :by_label_key, :only => [:index]
+  
+  
   has_scope :order_by_rating, :type => :boolean
   has_scope :order_by_title, :type => :boolean
   has_scope :order_by_id, :type => :boolean

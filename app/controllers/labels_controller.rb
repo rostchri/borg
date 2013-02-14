@@ -1,0 +1,2 @@
+class LabelsController < ResourcesController
+end

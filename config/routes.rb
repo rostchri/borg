@@ -39,6 +39,13 @@ Borg::Application.routes.draw do
       get "overview"
     end
   end
+  
+  resources :labels do
+    get 'page/:page', :action => :index, :on => :collection
+    resources :movies do
+      get 'page/:page', :action => :index, :on => :collection
+    end
+  end
 
   resources :genres do
     get 'page/:page', :action => :index, :on => :collection

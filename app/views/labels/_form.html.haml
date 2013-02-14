@@ -1,0 +1,6 @@
+= form.inputs do
+	= form.input :name
+	= form.input :key
+	= form.input :description
+	= form.actions do 
+		= form.action :submit, :button_html => {:class => "btn-large btn-primary"}, :label => t("save")

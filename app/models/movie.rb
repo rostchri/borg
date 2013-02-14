@@ -6,6 +6,9 @@ class Movie < ActiveRecord::Base
   has_many :details, :through => :file
   has_and_belongs_to_many :genres, :join_table => "genrelinkmovie", :foreign_key => "idMovie", :association_foreign_key => "idGenre"
   
+  has_many :tags, :as => :tagable, :dependent => :delete_all
+  has_many :labels, :through => :tags
+  
   scope :order_by_rating, :order => "c05 DESC"
   scope :order_by_title, :order => "c00 ASC"
   scope :order_by_id, :order => "idMovie DESC"
@@ -16,6 +19,10 @@ class Movie < ActiveRecord::Base
   scope :by_title,   ->(title)    {{:conditions =>["c00 like ?","%#{title}%"]}}
   scope :by_plot,    ->(word)     {{:conditions =>["c01 like ?","%#{word}%"]}}
   scope :by_imdbid,  ->(imdbid)   {{:conditions =>["c09 = ?",imdbid]}}
+  
+  scope :by_label,      lambda { |label|   {:conditions =>["labels.id in (?)",label],:include => [:labels]}}
+  scope :by_label_key,  lambda { |label|   {:conditions =>["labels.key in (?)",label],:include => [:labels]}}
+  
   
   scope :localtitle_matches_topdirectory, ->(year) {{:conditions =>["path.strPath like ? AND path.strPath like CONCAT(?,c00,?)", "%/#{year}/%",'%/','/%'], :include => [:file => :path]}}
   
