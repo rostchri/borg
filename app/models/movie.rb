@@ -37,6 +37,14 @@ class Movie < ActiveRecord::Base
   # c20: Alternative Fanart
   
   
+  def imdbvalid?
+    labels.include?(Label.find_by_key('imdbvalid'))
+  end
+
+  def imdbinvalid?
+    labels.include?(Label.find_by_key('imdbinvalid'))
+  end
+  
   def localtitle
     xmbc_mapping(:c00)
   end

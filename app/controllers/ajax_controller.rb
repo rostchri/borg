@@ -3,8 +3,8 @@ class AjaxController < ApplicationController
   def imdbverify
     if params[:id]
       @movie = Movie.find(params[:id]) 
-      unless ((validimdb = (params[:status] == "valid") ? true : false) == @movie.validimdb)
-        @movie.validimdb = (params[:status] == "valid") ? true : false
+      unless ((imdbvalid = (params[:status] == "valid") ? true : false) == @movie.imdbvalid?)
+        @movie.labels = [Label.find_by_key(imdbvalid ? 'imdbvalid' : 'imdbinvalid')]
         @movie.save
       end
     end

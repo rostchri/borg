@@ -9,7 +9,7 @@
 			= movie.originaltitle
 	= link_to "#{movie.imdbid}", "http://www.imdb.de/title/#{movie.imdbid}",  :rel => "tooltip", :title => "IMDB"
 	- unless movie.imdbid.nil?
-		- unless movie.validimdb.nil?
-			= railstrap_image(movie.validimdb ? "status/verified.png" : "status/unverified.png", nil, :rel=> "tooltip", :title => movie.validimdb ? "verified" : "unverified")
+		- if ((imdbvalid=movie.imdbvalid?) || movie.imdbinvalid?)
+			= railstrap_image(imdbvalid ? "status/verified.png" : "status/unverified.png", nil, :rel=> "tooltip", :title => imdbvalid ? "verified" : "unverified")
 		- else
 			= railstrap_image(title_path_mismatch ? "status/exclamationmark.png" : "status/questionmark.png" , nil, :rel=> "tooltip", :title => title_path_mismatch ? "IMDB-Name stimmt NICHT mit Verzeichnisnamen überein" : "IMDB-Name stimmt mit Verzeichnisnamen überein")
