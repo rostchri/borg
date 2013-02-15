@@ -24,17 +24,6 @@ GIT
       rack (>= 1.0.0)
 
 GIT
-  remote: https://github.com/rostchri/railstrap.git
-  revision: 8dc3dc047f16537762d18eee9cee2b8d710f99c7
-  branch: develop
-  specs:
-    railstrap (0.0.5)
-      actionpack (>= 3.0.0)
-      activesupport (>= 3.0.0)
-      haml
-      railties (>= 3.0.0)
-
-GIT
   remote: https://github.com/rostchri/rubyrep.git
   revision: aa334b84297d1178dde78c946f2c934be14ed33e
   branch: develop
@@ -46,6 +35,15 @@ GIT
   revision: 59569026eb24144d9cf843fa1d08b168fc962f53
   specs:
     tablegrid (0.0.16)
+      actionpack (>= 3.0.0)
+      activesupport (>= 3.0.0)
+      haml
+      railties (>= 3.0.0)
+
+PATH
+  remote: ~/bo/programming/github/railstrap
+  specs:
+    railstrap (0.0.5)
       actionpack (>= 3.0.0)
       activesupport (>= 3.0.0)
       haml
