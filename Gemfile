@@ -33,7 +33,7 @@ gem 'feedzirra'
 gem 'diffy'
 
 # paperclip with amazon s3
-gem "paperclip", "~> 3.0"
+gem "paperclip", "~> 4.3"
 gem 'aws-sdk', '~> 1.3.4'
 
 gem 'formtastic', :git => 'git://github.com/justinfrench/formtastic.git', :branch => '2.1-stable', :require => 'formtastic'
