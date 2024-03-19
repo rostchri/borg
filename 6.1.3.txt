@@ -1,0 +1,4298 @@
+diff --git a/plugins/module_utils/network/ios/argspec/bgp_global/bgp_global.py b/plugins/module_utils/network/ios/argspec/bgp_global/bgp_global.py
+index 21bb051..6e82c99 100644
+--- a/plugins/module_utils/network/ios/argspec/bgp_global/bgp_global.py
++++ b/plugins/module_utils/network/ios/argspec/bgp_global/bgp_global.py
+@@ -163,6 +163,20 @@ class Bgp_globalArgs(object):  # pylint: disable=R0903
+                                 "route_map": {"type": "str"},
+                             },
+                         },
++                        "default": {
++                            "type": "dict",
++                            "apply_defaults": True,
++                            "options": {
++                                "ipv4_unicast": {"type": "bool", "default": True},
++                                "route_target": {
++                                    "type": "dict",
++                                    "apply_defaults": True,
++                                    "options": {
++                                        "filter": {"type": "bool", "default": True},
++                                    },
++                                },
++                            },
++                        },
+                         "deterministic_med": {"type": "bool"},
+                         "dmzlink_bw": {"type": "bool"},
+                         "enforce_first_as": {"type": "bool"},
+diff --git a/plugins/module_utils/network/ios/argspec/l3_interfaces/l3_interfaces.py b/plugins/module_utils/network/ios/argspec/l3_interfaces/l3_interfaces.py
+index 4552614..82ae98e 100644
+--- a/plugins/module_utils/network/ios/argspec/l3_interfaces/l3_interfaces.py
++++ b/plugins/module_utils/network/ios/argspec/l3_interfaces/l3_interfaces.py
+@@ -36,6 +36,8 @@ class L3_interfacesArgs(object):  # pylint: disable=R0903
+             "type": "list",
+             "elements": "dict",
+             "options": {
++                "autostate": {"type": "bool"},
++                "mac_address": {"type": "str"},
+                 "name": {"type": "str", "required": True},
+                 "ipv4": {
+                     "type": "list",
+@@ -54,6 +56,14 @@ class L3_interfacesArgs(object):  # pylint: disable=R0903
+                             },
+                         },
+                         "pool": {"type": "str"},
++                        "source_interface": {
++                            "type": "dict",
++                            "options": {
++                                "name": {"type": "str"},
++                                "poll": {"type": "bool"},
++                                "point_to_point": {"type": "bool"},
++                            },
++                        },
+                     },
+                 },
+                 "ipv6": {
+@@ -72,6 +82,7 @@ class L3_interfacesArgs(object):  # pylint: disable=R0903
+                                 "rapid_commit": {"type": "bool"},
+                             },
+                         },
++                        "enable": {"type": "bool"},
+                         "anycast": {"type": "bool"},
+                         "cga": {"type": "bool"},
+                         "eui": {"type": "bool"},
+diff --git a/plugins/module_utils/network/ios/argspec/vlans/vlans.py b/plugins/module_utils/network/ios/argspec/vlans/vlans.py
+index 9db593d..65e6318 100644
+--- a/plugins/module_utils/network/ios/argspec/vlans/vlans.py
++++ b/plugins/module_utils/network/ios/argspec/vlans/vlans.py
+@@ -51,7 +51,10 @@ class VlansArgs(object):
+                 "private_vlan": {
+                     "type": "dict",
+                     "options": {
+-                        "type": {"type": "str", "choices": ["primary", "community", "isolated"]},
++                        "type": {
++                            "type": "str",
++                            "choices": ["primary", "community", "isolated"],
++                        },
+                         "associated": {"type": "list", "elements": "int"},
+                     },
+                 },
+@@ -65,7 +68,6 @@ class VlansArgs(object):
+             },
+             "type": "list",
+         },
+-        "configuration": {"type": "bool"},
+         "running_config": {"type": "str"},
+         "state": {
+             "choices": [
+@@ -75,6 +77,7 @@ class VlansArgs(object):
+                 "deleted",
+                 "rendered",
+                 "parsed",
++                "purged",
+                 "gathered",
+             ],
+             "default": "merged",
+diff --git a/plugins/module_utils/network/ios/config/acls/acls.py b/plugins/module_utils/network/ios/config/acls/acls.py
+index 164c75c..7e784eb 100644
+--- a/plugins/module_utils/network/ios/config/acls/acls.py
++++ b/plugins/module_utils/network/ios/config/acls/acls.py
+@@ -119,6 +119,16 @@ class Acls(ResourceModule):
+         for wname, wentry in iteritems(wplists):
+             hentry = hplists.pop(wname, {})
+             acl_type = wentry["acl_type"] if wentry.get("acl_type") else hentry.get("acl_type")
++            # If ACLs type is different between existing and wanted ACL, we need first remove it
++            if acl_type != hentry.get("acl_type", acl_type):
++                self.commands.append(
++                    "no " + self.acl_name_cmd(wname, afi, hentry.get("acl_type", "")),
++                )
++                hentry.pop(
++                    "aces",
++                    {},
++                )  # We remove ACEs because we have previously add a command to suppress completely the ACL
++
+             begin = len(self.commands)  # to determine the index for acl command
+             self._compare_aces(
+                 wentry.pop("aces", {}),
+@@ -205,15 +215,36 @@ class Acls(ResourceModule):
+                                             negate=True,
+                                         )
+                         # remove ace if not in want
++                        # we might think why not update it directly,
++                        # if we try to update without negating the entry appliance
++                        # reports % Duplicate sequence number
+                         if hentry != wentry:
+                             self.addcmd(add_afi(hentry, afi), "aces", negate=True)
++                            # once an ace is negated intentionally emptying out have so that
++                            # the remarks are repopulated, as the remarks and ace behavior is sticky
++                            # if an ace is taken out all the remarks is removed automatically.
++                            rem_hentry["remarks"] = {}
++
+                 if rem_wentry.get("remarks"):  # add remark if not in have
+                     for k_wrems, wrems in rem_wentry.get("remarks").items():
+                         if k_wrems not in rem_hentry.get("remarks", {}).keys():
+                             self.addcmd(
+-                                {"remarks": wrems, "sequence": hentry.get("sequence", "")},
++                                {
++                                    "remarks": wrems,
++                                    "sequence": hentry.get("sequence", ""),
++                                },
+                                 "remarks",
+                             )
++                        else:
++                            rem_hentry.get("remarks", {}).pop(k_wrems)
++                    # We remove remarks that are not in the wentry for this ACE
++                    for k_hrems, hrems in rem_hentry.get("remarks", {}).items():
++                        self.addcmd(
++                            {"remarks": hrems, "sequence": hentry.get("sequence", "")},
++                            "remarks",
++                            negate=True,
++                        )
++
+                 # add ace if not in have
+                 if hentry != wentry:
+                     self.addcmd(add_afi(wentry, afi), "aces")
+@@ -227,8 +258,12 @@ class Acls(ResourceModule):
+                         "remarks",
+                         negate=True,
+                     )
+-            else:  # remove extra aces
+-                self.addcmd(add_afi(hseq, afi), "aces", negate=True)
++                hseq.pop("remarks")
++            self.addcmd(
++                add_afi(hseq, afi),
++                "aces",
++                negate=True,
++            )  # deal with the rest of ace entry
+ 
+     def sanitize_protocol_options(self, wace, hace):
+         """handles protocol and protocol options as optional attribute"""
+@@ -262,7 +297,7 @@ class Acls(ResourceModule):
+     def list_to_dict(self, param):
+         """converts list attributes to dict"""
+ 
+-        temp, count = dict(), 0
++        temp = dict()
+         if param:
+             for each in param:  # ipv4 and ipv6 acl
+                 temp_acls = {}
+@@ -271,7 +306,9 @@ class Acls(ResourceModule):
+                         temp_aces = {}
+                         if acl.get("aces"):
+                             rem_idx = 0  # remarks if defined in an ace
+-                            for ace in acl.get("aces"):  # each ace turned to dict
++                            for count, ace in enumerate(
++                                acl.get("aces"),
++                            ):  # each ace turned to dict
+                                 if (
+                                     ace.get("destination")
+                                     and ace.get("destination", {}).get(
+@@ -311,13 +348,14 @@ class Acls(ResourceModule):
+                                     # temp_rem.extend(ace.pop("remarks"))
+                                     for remks in ace.get("remarks"):
+                                         rem_ace[remks.replace(" ", "_")] = remks
+-                                        rem_idx += 1
+                                     ace["remarks"] = rem_ace
+ 
+                                 if ace.get("sequence"):
+                                     temp_aces.update({ace.get("sequence"): ace})
++                                elif ace.get("remarks"):
++                                    temp_aces.update({"__{0}".format(rem_idx): ace})
++                                    rem_idx += 1
+                                 elif ace:
+-                                    count += 1
+                                     temp_aces.update({"_" + to_text(count): ace})
+ 
+                             # if temp_rem:  # add remarks to the temp ace
+@@ -325,7 +363,12 @@ class Acls(ResourceModule):
+ 
+                         if acl.get("acl_type"):  # update acl dict with req info
+                             temp_acls.update(
+-                                {acl.get("name"): {"aces": temp_aces, "acl_type": acl["acl_type"]}},
++                                {
++                                    acl.get("name"): {
++                                        "aces": temp_aces,
++                                        "acl_type": acl["acl_type"],
++                                    },
++                                },
+                             )
+                         else:  # if no acl type then here eg: ipv6
+                             temp_acls.update({acl.get("name"): {"aces": temp_aces}})
+diff --git a/plugins/module_utils/network/ios/config/bgp_global/bgp_global.py b/plugins/module_utils/network/ios/config/bgp_global/bgp_global.py
+index c48cac9..77112ff 100644
+--- a/plugins/module_utils/network/ios/config/bgp_global/bgp_global.py
++++ b/plugins/module_utils/network/ios/config/bgp_global/bgp_global.py
+@@ -61,6 +61,8 @@ class Bgp_global(ResourceModule):
+         "route_server_context.description",
+         "synchronization",
+         "table_map",
++        "template.peer_policy",
++        "template.peer_session",
+         "timers",
+         "bgp.additional_paths",
+         "bgp.advertise_best_external",
+@@ -79,6 +81,8 @@ class Bgp_global(ResourceModule):
+         "bgp.consistency_checker.auto_repair",
+         "bgp.consistency_checker.error_message",
+         "bgp.dampening",
++        "bgp.default.ipv4_unicast",
++        "bgp.default.route_target.filter",
+         "bgp.deterministic_med",
+         "bgp.dmzlink_bw",
+         "bgp.enforce_first_as",
+@@ -168,7 +172,10 @@ class Bgp_global(ResourceModule):
+         if self.state == "deleted":
+             # deleted, clean up global params
+             if not self.want or (self.have.get("as_number") == self.want.get("as_number")):
+-                self._compare(want={}, have=self.have)
++                if "as_number" not in self.want:
++                    self.want["as_number"] = self.have.get("as_number")
++                self._set_bgp_defaults(self.want)
++                self._compare(self.want, have=self.have)
+ 
+         elif self.state == "purged":
+             # delete as_number takes down whole bgp config
+@@ -190,10 +197,16 @@ class Bgp_global(ResourceModule):
+         for the Bgp_global network resource.
+         """
+         self.generic_list_parsers = ["distributes", "aggregate_addresses", "networks"]
++
+         if self._has_bgp_inject_maps(want):
+             self.generic_list_parsers.insert(0, "inject_maps")
+ 
+         cmd_len = len(self.commands)  # holds command length to add as_number
++
++        # for clean bgp global setup
++        if not have.get("bgp", {}).get("default"):
++            self._set_bgp_defaults(have)
++
+         # for dict type attributes
+         self.compare(parsers=self.parsers, want=want, have=have)
+ 
+@@ -206,17 +219,40 @@ class Bgp_global(ResourceModule):
+                     _parse,
+                 )
+             else:
+-                self._compare_generic_lists(want.get(_parse, {}), have.get(_parse, {}), _parse)
++                self._compare_generic_lists(
++                    want.get(_parse, {}),
++                    have.get(_parse, {}),
++                    _parse,
++                )
+ 
+         # for neighbors
+-        self._compare_neighbor_lists(want.get("neighbors", {}), have.get("neighbors", {}))
++        self._compare_neighbor_lists(
++            want.get("neighbors", {}),
++            have.get("neighbors", {}),
++        )
+ 
+         # for redistribute
+-        self._compare_redistribute_lists(want.get("redistribute", {}), have.get("redistribute", {}))
++        self._compare_redistribute_lists(
++            want.get("redistribute", {}),
++            have.get("redistribute", {}),
++        )
+ 
+-        # add as_number in the begining fo command set if commands generated
++        # add as_number in the beginning of commands set if commands generated
+         if len(self.commands) != cmd_len or (not have and want):
+-            self.commands.insert(0, self._tmplt.render(want or have, "as_number", False))
++            self.commands.insert(
++                0,
++                self._tmplt.render(want or have, "as_number", False),
++            )
++
++    def _set_bgp_defaults(self, bgp_dict):
++        bgp_dict.setdefault("bgp", {}).setdefault("default", {}).setdefault(
++            "ipv4_unicast",
++            True,
++        )
++        bgp_dict.setdefault("bgp", {}).setdefault("default", {}).setdefault(
++            "route_target",
++            {},
++        ).setdefault("filter", True)
+ 
+     def _has_bgp_inject_maps(self, want):
+         if want.get("bgp", {}).get("inject_maps", {}):
+@@ -324,10 +360,21 @@ class Bgp_global(ResourceModule):
+         ]
+ 
+         for name, w_neighbor in want.items():
++            handle_shutdown_default = False
+             have_nbr = have.pop(name, {})
+             want_route = w_neighbor.pop("route_maps", {})
+             have_route = have_nbr.pop("route_maps", {})
++            if (
++                not w_neighbor.get("shutdown", {}).get("set")
++                and have_nbr.get("shutdown", {}).get("set")
++                and self.state in ["merged", "replaced", "overridden"]
++            ):
++                neig_parses.remove("shutdown")
++                handle_shutdown_default = True
+             self.compare(parsers=neig_parses, want=w_neighbor, have=have_nbr)
++            if handle_shutdown_default:
++                self.addcmd(have_nbr, "shutdown", True)
++
+             if want_route:
+                 for k_rmps, w_rmps in want_route.items():
+                     have_rmps = have_route.pop(k_rmps, {})
+diff --git a/plugins/module_utils/network/ios/config/l3_interfaces/l3_interfaces.py b/plugins/module_utils/network/ios/config/l3_interfaces/l3_interfaces.py
+index b4b874d..b862ac4 100644
+--- a/plugins/module_utils/network/ios/config/l3_interfaces/l3_interfaces.py
++++ b/plugins/module_utils/network/ios/config/l3_interfaces/l3_interfaces.py
+@@ -29,7 +29,6 @@ from ansible_collections.cisco.ios.plugins.module_utils.network.ios.rm_templates
+ )
+ from ansible_collections.cisco.ios.plugins.module_utils.network.ios.utils.utils import (
+     normalize_interface,
+-    validate_ipv6,
+     validate_n_expand_ipv4,
+ )
+ 
+@@ -48,12 +47,18 @@ class L3_interfaces(ResourceModule):
+             tmplt=L3_interfacesTemplate(),
+         )
+         self.parsers = [
++            "mac_address",
+             "ipv4.address",
+             "ipv4.pool",
+             "ipv4.dhcp",
++            "ipv4.source_interface",
+             "ipv6.address",
+             "ipv6.autoconfig",
+             "ipv6.dhcp",
++            "ipv6.enable",
++        ]
++        self.gen_parsers = [
++            "autostate",
+         ]
+ 
+     def execute_module(self):
+@@ -101,10 +106,16 @@ class L3_interfaces(ResourceModule):
+                     self._compare(want={}, have=have)
+ 
+         for k, want in wantd.items():
+-            self._compare(want=want, have=haved.pop(k, {}))
++            have = haved.pop(k, {})
++            # New interface (doesn't use fact file)
++            if k[:4] == "Vlan":
++                have.setdefault("autostate", True)
++                want.setdefault("autostate", True)
++            self._compare(want=want, have=have)
+ 
+     def _compare(self, want, have):
+         begin = len(self.commands)
++        self.compare(parsers=self.gen_parsers, want=want, have=have)
+         self._compare_lists(want=want, have=have)
+         if len(self.commands) != begin:
+             self.commands.insert(begin, self._tmplt.render(want or have, "name", False))
+@@ -141,7 +152,12 @@ class L3_interfaces(ResourceModule):
+                     # hacl is set as primary, if wacls has no other primary entry we must keep
+                     # this entry as primary (so we'll compare entry to hacl and not
+                     # generate commands)
+-                    if list(filter(lambda w: w.get("secondary", False) is False, wacls.values())):
++                    if list(
++                        filter(
++                            lambda w: w.get("secondary", False) is False,
++                            wacls.values(),
++                        ),
++                    ):
+                         # another primary is in wacls
+                         hacl = {}
+                 self.validate_ips(afi, want=entry, have=hacl)
+@@ -168,17 +184,11 @@ class L3_interfaces(ResourceModule):
+             v4_addr = validate_n_expand_ipv4(self._module, want) if want.get("address") else {}
+             if v4_addr:
+                 want["address"] = v4_addr
+-        elif afi == "ipv6" and want:
+-            if want.get("address"):
+-                validate_ipv6(want["address"], self._module)
+ 
+         if afi == "ipv4" and have:
+             v4_addr_h = validate_n_expand_ipv4(self._module, have) if have.get("address") else {}
+             if v4_addr_h:
+                 have["address"] = v4_addr_h
+-        elif afi == "ipv6" and have:
+-            if have.get("address"):
+-                validate_ipv6(have["address"], self._module)
+ 
+     def list_to_dict(self, param):
+         if param:
+diff --git a/plugins/module_utils/network/ios/config/snmp_server/snmp_server.py b/plugins/module_utils/network/ios/config/snmp_server/snmp_server.py
+index 187d077..d61a70a 100644
+--- a/plugins/module_utils/network/ios/config/snmp_server/snmp_server.py
++++ b/plugins/module_utils/network/ios/config/snmp_server/snmp_server.py
+@@ -237,39 +237,20 @@ class Snmp_server(ResourceModule):
+     def _compare_lists_attrs(self, want, have):
+         """Compare list of dict"""
+         for _parser in self.list_parsers:
+-            if _parser == "users":
+-                i_want = want.get(_parser, {})
+-                i_have = have.get(_parser, {})
+-                for key, wanting in iteritems(i_want):
+-                    wanting_compare = deepcopy(wanting)
+-                    if (
+-                        "authentication" in wanting_compare
+-                        and "password" in wanting_compare["authentication"]
+-                    ):
+-                        wanting_compare["authentication"].pop("password")
+-                    if (
+-                        "encryption" in wanting_compare
+-                        and "password" in wanting_compare["encryption"]
+-                    ):
+-                        wanting_compare["encryption"].pop("password")
+-                    haveing = i_have.pop(key, {})
+-                    if wanting_compare != haveing:
+-                        if haveing and self.state in ["overridden", "replaced"]:
++            i_want = want.get(_parser, {})
++            i_have = have.get(_parser, {})
++            for key, wanting in iteritems(i_want):
++                haveing = i_have.pop(key, {})
++                if wanting != haveing:
++                    if haveing and self.state in ["overridden", "replaced"]:
++                        if not (
++                            _parser == "users"
++                            and wanting.get("username") == haveing.get("username")
++                        ):
+                             self.addcmd(haveing, _parser, negate=True)
+-                        self.addcmd(wanting, _parser)
+-                for key, haveing in iteritems(i_have):
+-                    self.addcmd(haveing, _parser, negate=True)
+-            else:
+-                i_want = want.get(_parser, {})
+-                i_have = have.get(_parser, {})
+-                for key, wanting in iteritems(i_want):
+-                    haveing = i_have.pop(key, {})
+-                    if wanting != haveing:
+-                        if haveing and self.state in ["overridden", "replaced"]:
+-                            self.addcmd(haveing, _parser, negate=True)
+-                        self.addcmd(wanting, _parser)
+-                for key, haveing in iteritems(i_have):
+-                    self.addcmd(haveing, _parser, negate=True)
++                    self.addcmd(wanting, _parser)
++            for key, haveing in iteritems(i_have):
++                self.addcmd(haveing, _parser, negate=True)
+ 
+     def _snmp_list_to_dict(self, data):
+         """Convert all list of dicts to dicts of dicts"""
+diff --git a/plugins/module_utils/network/ios/config/vlans/vlans.py b/plugins/module_utils/network/ios/config/vlans/vlans.py
+index ad95b68..d195c31 100644
+--- a/plugins/module_utils/network/ios/config/vlans/vlans.py
++++ b/plugins/module_utils/network/ios/config/vlans/vlans.py
+@@ -1,62 +1,60 @@
+ #
+ # -*- coding: utf-8 -*-
+-# Copyright 2019 Red Hat
++# Copyright 2024 Red Hat
+ # GNU General Public License v3.0+
+ # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+-"""
+-The ios_vlans class
+-It is in this file where the current configuration (as dict)
+-is compared to the provided configuration (as dict) and the command set
+-necessary to bring the current configuration to it's desired end-state is
+-created
+-"""
++#
+ 
+ from __future__ import absolute_import, division, print_function
+ 
+ 
+ __metaclass__ = type
+ 
++"""
++The ios_vlans config file.
++It is in this file where the current configuration (as dict)
++is compared to the provided configuration (as dict) and the command set
++necessary to bring the current configuration to its desired end-state is
++created.
++"""
++
+ 
+-from ansible_collections.ansible.netcommon.plugins.module_utils.network.common.cfg.base import (
+-    ConfigBase,
++from ansible.module_utils.six import iteritems
++from ansible_collections.ansible.netcommon.plugins.module_utils.network.common.rm_base.resource_module import (
++    ResourceModule,
+ )
+ from ansible_collections.ansible.netcommon.plugins.module_utils.network.common.utils import (
+-    remove_empties,
+-    to_list,
++    dict_merge,
+ )
+ 
+ from ansible_collections.cisco.ios.plugins.module_utils.network.ios.facts.facts import Facts
+-from ansible_collections.cisco.ios.plugins.module_utils.network.ios.utils.utils import dict_to_set
++from ansible_collections.cisco.ios.plugins.module_utils.network.ios.rm_templates.vlans import (
++    VlansTemplate,
++)
+ 
+ 
+-class Vlans(ConfigBase):
++class Vlans(ResourceModule):
+     """
+-    The ios_vlans class
++    The ios_vlans config class
+     """
+ 
+-    gather_subset = ["!all", "!min"]
+-
+-    gather_network_resources = ["vlans"]
+-
+     def __init__(self, module):
+-        super(Vlans, self).__init__(module)
+-
+-    def get_vlans_facts(self, data=None):
+-        """Get the 'facts' (the current configuration)
+-
+-        :rtype: A dictionary
+-        :returns: The current configuration as a dictionary
+-        """
+-
+-        facts, _warnings = Facts(self._module).get_facts(
+-            self.gather_subset,
+-            self.gather_network_resources,
+-            data=data,
++        super(Vlans, self).__init__(
++            empty_fact_val={},
++            facts_module=Facts(module),
++            module=module,
++            resource="vlans",
++            tmplt=VlansTemplate(),
+         )
+-        vlans_facts = facts["ansible_network_resources"].get("vlans")
+-        if not vlans_facts:
+-            return []
+-        return vlans_facts
++        self.parsers = [
++            "name",
++            "state",
++            "mtu",
++            "remote_span",
++            "private_vlan.type",
++            "private_vlan.associated",
++            "member",
++        ]
+ 
+     def execute_module(self):
+         """Execute the module
+@@ -64,394 +62,106 @@ class Vlans(ConfigBase):
+         :rtype: A dictionary
+         :returns: The result from module execution
+         """
+-        result = {"changed": False}
+-        commands = list()
+-        warnings = list()
+-        self.have_now = list()
+-        self.configuration = self._module.params["configuration"]
+-        if not self.configuration:
+-            self.vlan_parent = "vlan {0}"
+-        else:
+-            self.vlan_parent = "vlan configuration {0}"
+-        if self.state in self.ACTION_STATES:
+-            existing_vlans_facts = self.get_vlans_facts()
+-        else:
+-            existing_vlans_facts = []
+-
+-        if self.state in self.ACTION_STATES or self.state == "rendered":
+-            commands.extend(self.set_config(existing_vlans_facts))
+-        if commands and self.state in self.ACTION_STATES:
+-            if not self._module.check_mode:
+-                self._connection.edit_config(commands)
+-            result["changed"] = True
+-        if self.state in self.ACTION_STATES:
+-            result["commands"] = commands
+-
+-        if self.state in self.ACTION_STATES or self.state == "gathered":
+-            changed_vlans_facts = self.get_vlans_facts()
+-        elif self.state == "rendered":
+-            result["rendered"] = commands
+-        elif self.state == "parsed":
+-            running_config = self._module.params["running_config"]
+-            if not running_config:
+-                self._module.fail_json(
+-                    msg="value of running_config parameter must not be empty for state parsed",
++        if self.state not in ["parsed", "gathered"]:
++            self.segregate_resource()
++            self.run_commands()
++        return self.result
++
++    def segregate_resource(self):
++        self.want_vlan_config = []
++        self.have_vlan_config = []
++        for vlan_data in self.want:
++            if vlan_data.get("member"):
++                self.want_vlan_config.append(
++                    {
++                        "vlan_id": vlan_data.get("vlan_id"),
++                        "member": vlan_data.pop("member"),
++                    },
+                 )
+-            result["parsed"] = self.get_vlans_facts(data=running_config)
+-        else:
+-            changed_vlans_facts = []
+-
+-        if self.state in self.ACTION_STATES:
+-            result["before"] = existing_vlans_facts
+-            if result["changed"]:
+-                result["after"] = changed_vlans_facts
+-        elif self.state == "gathered":
+-            result["gathered"] = changed_vlans_facts
+-
+-        result["warnings"] = warnings
+-        return result
+-
+-    def set_config(self, existing_vlans_facts):
+-        """Collect the configuration from the args passed to the module,
+-            collect the current configuration (as a dict from facts)
+-
+-        :rtype: A list
+-        :returns: the commands necessary to migrate the current configuration
+-                  to the desired configuration
+-        """
+-        want = []
+-        if self._module.params.get("config"):
+-            for cfg in self._module.params["config"]:
+-                want.append(remove_empties(cfg))
+-        have = existing_vlans_facts
+-        resp = self.set_state(want, have)
+-        return to_list(resp)
+-
+-    def set_state(self, want, have):
+-        """Select the appropriate function based on the state provided
+-
+-        :param want: the desired configuration as a dictionary
+-        :param have: the current configuration as a dictionary
+-        :rtype: A list
+-        :returns: the commands necessary to migrate the current configuration
+-                  to the desired configuration
+-        """
+-
+-        if self.state in ("overridden", "merged", "replaced", "rendered") and not want:
+-            self._module.fail_json(
+-                msg="value of config parameter must not be empty for state {0}".format(self.state),
+-            )
+-
+-        if self.state == "overridden":
+-            commands = self._state_overridden(want, have)
+-        elif self.state == "deleted":
+-            commands = self._state_deleted(want, have)
+-        elif self.state in ("merged", "rendered"):
+-            commands = self._state_merged(want, have)
+-        elif self.state == "replaced":
+-            commands = self._state_replaced(want, have)
+-        return commands
+-
+-    def _state_replaced(self, want, have):
+-        """The command generator when state is replaced
+-
+-        :rtype: A list
+-        :returns: the commands necessary to migrate the current configuration
+-                  to the desired configuration
+-        """
+-        commands = []
+-
+-        check = False
+-        for each in want:
+-            for every in have:
+-                if every["vlan_id"] == each["vlan_id"]:
+-                    check = True
+-                    break
+-                continue
+-            if check:
+-                commands.extend(self._set_config(each, every))
+-            else:
+-                commands.extend(self._set_config(each, dict()))
+-
+-        return commands
+-
+-    def _state_overridden(self, want, have):
+-        """The command generator when state is overridden
+-
+-        :rtype: A list
+-        :returns: the commands necessary to migrate the current configuration
+-                  to the desired configuration
+-        """
+-        commands = []
+-
+-        want_local = want
+-        self.have_now = have.copy()
+-        for each in have:
+-            count = 0
+-            for every in want_local:
+-                if each["vlan_id"] == every["vlan_id"]:
+-                    break
+-                count += 1
+             else:
+-                # We didn't find a matching desired state, which means we can
+-                # pretend we received an empty desired state.
+-                commands.extend(self._clear_config(every, each))
+-                continue
+-            commands.extend(self._set_config(every, each))
+-            # as the pre-existing VLAN are now configured by
+-            # above set_config call, deleting the respective
+-            # VLAN entry from the want_local list
+-            del want_local[count]
+-
+-        # Iterating through want_local list which now only have new VLANs to be
+-        # configured
+-        for each in want_local:
+-            commands.extend(self._set_config(each, dict()))
+-
+-        return commands
+-
+-    def _state_merged(self, want, have):
+-        """The command generator when state is merged
+-
+-        :rtype: A list
+-        :returns: the commands necessary to merge the provided into
+-                  the current configuration
+-        """
+-        commands = []
+-
+-        check = False
+-        for each in want:
+-            for every in have:
+-                if each.get("vlan_id") == every.get("vlan_id"):
+-                    check = True
+-                    break
+-                continue
+-            if check:
+-                commands.extend(self._set_config(each, every))
++                self.want_vlan_config.append(
++                    {"vlan_id": vlan_data.get("vlan_id")},
++                )
++        for vlan_data in self.have:
++            if vlan_data.get("member"):
++                self.have_vlan_config.append(
++                    {
++                        "vlan_id": vlan_data.get("vlan_id"),
++                        "member": vlan_data.pop("member"),
++                    },
++                )
+             else:
+-                commands.extend(self._set_config(each, dict()))
+-
+-        return commands
+-
+-    def _state_deleted(self, want, have):
+-        """The command generator when state is deleted
++                self.have_vlan_config.append(
++                    {"vlan_id": vlan_data.get("vlan_id")},
++                )
++        if self.want or self.have:
++            self.generate_commands(self.want, self.have, "vlans")
++        if self.want_vlan_config or self.have_vlan_config:
++            self.generate_commands(
++                self.want_vlan_config,
++                self.have_vlan_config,
++                "vlan_configuration",
++            )
+ 
+-        :rtype: A list
+-        :returns: the commands necessary to remove the current configuration
+-                  of the provided objects
++    def generate_commands(self, conf_want, conf_have, resource=None):
++        """Generate configuration commands to send based on
++        want, have and desired state.
+         """
+-        commands = []
+-
+-        if want:
+-            check = False
+-            for each in want:
+-                for every in have:
+-                    if each.get("vlan_id") == every.get("vlan_id"):
+-                        check = True
+-                        break
+-                    check = False
+-                    continue
+-                if check:
+-                    commands.extend(self._clear_config(each, every))
++        wantd = {entry["vlan_id"]: entry for entry in conf_want}
++        haved = {entry["vlan_id"]: entry for entry in conf_have}
++
++        # if state is merged, merge want onto have and then compare
++        if self.state == "merged":
++            wantd = dict_merge(haved, wantd)
++
++        # if state is deleted, empty out wantd and set haved to wantd
++        if self.state == "deleted":
++            haved = {k: v for k, v in iteritems(haved) if k in wantd or not wantd}
++            wantd = {}
++
++        # if state is deleted, empty out wantd and set haved to wantd
++        if self.state in ["deleted", "purged"]:
++            haved = {k: v for k, v in iteritems(haved) if k in wantd or not wantd}
++            wantd = {}
++
++        # remove superfluous config for overridden and deleted
++        if self.state in ["overridden", "deleted"]:
++            for k, have in iteritems(haved):
++                if k not in wantd:
++                    self._compare(want={}, have=have, resource=resource)
++
++        if self.state == "purged":
++            for k, have in iteritems(haved):
++                self.purge(have, resource)
+         else:
+-            for each in have:
+-                commands.extend(self._clear_config(dict(), each))
+-
+-        return commands
+-
+-    def remove_command_from_config_list(self, vlan_id, cmd, commands):
+-        if vlan_id not in commands and cmd != "vlan":
+-            commands.insert(0, vlan_id)
+-        elif cmd == "vlan":
+-            commands.append("no %s" % vlan_id)
+-            return commands
+-        commands.append("no %s" % cmd)
+-        return commands
+-
+-    def add_command_to_config_list(self, vlan_id, cmd, commands):
+-        if vlan_id not in commands:
+-            commands.insert(0, vlan_id)
+-        if cmd not in commands:
+-            commands.append(cmd)
+-
+-    def _set_config(self, want, have):
+-        # Set the interface config based on the want and have config
+-        commands = []
+-
+-        vlan = self.vlan_parent.format(want.get("vlan_id"))
+-
+-        def negate_have_config(want_diff, have_diff, vlan, commands):
+-            name = dict(have_diff).get("name")
+-            if name and not dict(want_diff).get("name"):
+-                self.remove_command_from_config_list(vlan, "name {0}".format(name), commands)
+-            state = dict(have_diff).get("state")
+-            if state and not dict(want_diff).get("state"):
+-                self.remove_command_from_config_list(vlan, "state {0}".format(state), commands)
+-            shutdown = dict(have_diff).get("shutdown")
+-            if shutdown and not dict(want_diff).get("shutdown"):
+-                self.remove_command_from_config_list(vlan, "shutdown", commands)
+-            mtu = dict(have_diff).get("mtu")
+-            if mtu and not dict(want_diff).get("mtu"):
+-                self.remove_command_from_config_list(vlan, "mtu {0}".format(mtu), commands)
+-            remote_span = dict(have_diff).get("remote_span")
+-            if remote_span and not dict(want_diff).get("remote_span"):
+-                self.remove_command_from_config_list(vlan, "remote-span", commands)
+-            private_vlan = dict(have_diff).get("private_vlan")
+-            if private_vlan and not dict(want_diff).get("private_vlan"):
+-                private_vlan_type = dict(private_vlan).get("type")
+-                self.remove_command_from_config_list(
+-                    vlan,
+-                    "private-vlan {0}".format(private_vlan_type),
+-                    commands,
+-                )
+-                if private_vlan_type == "primary" and dict(private_vlan).get("associated"):
+-                    self.remove_command_from_config_list(vlan, "private-vlan association", commands)
+-
+-        # Get the diff b/w want n have
+-
+-        want_dict = dict_to_set(want, sort_dictionary=True)
+-        have_dict = dict_to_set(have, sort_dictionary=True)
+-        diff = want_dict - have_dict
+-        have_diff = have_dict - want_dict
+-
+-        if diff:
+-            if have_diff and (self.state == "replaced" or self.state == "overridden"):
+-                negate_have_config(diff, have_diff, vlan, commands)
+-
+-            if not self.configuration:
+-                name = dict(diff).get("name")
+-                state = dict(diff).get("state")
+-                shutdown = dict(diff).get("shutdown")
+-                mtu = dict(diff).get("mtu")
+-                remote_span = dict(diff).get("remote_span")
+-                private_vlan = dict(diff).get("private_vlan")
+-
+-                if name:
+-                    self.add_command_to_config_list(vlan, "name {0}".format(name), commands)
+-                if state:
+-                    self.add_command_to_config_list(vlan, "state {0}".format(state), commands)
+-                if mtu:
+-                    self.add_command_to_config_list(vlan, "mtu {0}".format(mtu), commands)
+-                if remote_span:
+-                    self.add_command_to_config_list(vlan, "remote-span", commands)
+-
+-                if private_vlan:
+-                    private_vlan_type = dict(private_vlan).get("type")
+-                    private_vlan_associated = dict(private_vlan).get("associated")
+-                    if private_vlan_type:
+-                        self.add_command_to_config_list(
+-                            vlan,
+-                            "private-vlan {0}".format(private_vlan_type),
+-                            commands,
+-                        )
+-                    if private_vlan_associated:
+-                        associated_list = ",".join(
+-                            str(e) for e in private_vlan_associated
+-                        )  # Convert python list to string with elements separated by a comma
+-                        self.add_command_to_config_list(
+-                            vlan,
+-                            "private-vlan association {0}".format(associated_list),
+-                            commands,
+-                        )
+-                if shutdown == "enabled":
+-                    self.add_command_to_config_list(vlan, "shutdown", commands)
+-                elif shutdown == "disabled":
+-                    self.add_command_to_config_list(vlan, "no shutdown", commands)
++            for k, want in iteritems(wantd):
++                self._compare(want=want, have=haved.pop(k, {}), resource=resource)
++
++    def _compare(self, want, have, resource=None):
++        """Leverages the base class `compare()` method and
++        populates the list of commands to be run by comparing
++        the `want` and `have` data with the `parsers` defined
++        for the Vlans network resource.
++        """
++        begin = len(self.commands)
++        self.compare(parsers=self.parsers, want=want, have=have)
++        if want.get("shutdown") != have.get("shutdown"):
++            if want.get("shutdown"):
++                self.addcmd(want, "shutdown", True)
+             else:
+-                member_dict = dict(diff).get("member")
+-                if member_dict:
+-                    member_dict = dict(member_dict)
+-                    member_vni = member_dict.get("vni")
+-                    member_evi = member_dict.get("evi")
+-                    commands.extend(
+-                        self._remove_vlan_vni_evi_mapping(
+-                            want,
+-                        ),
+-                    )
+-                    commands.extend(
+-                        [
+-                            vlan,
+-                            self._get_member_cmds(member_dict),
+-                        ],
+-                    )
+-
+-        elif have_diff and (self.state == "replaced" or self.state == "overridden"):
+-            negate_have_config(diff, have_diff, vlan, commands)
+-        return commands
+-
+-    def _clear_config(self, want, have):
+-        # Delete the interface config based on the want and have config
+-        commands = []
+-        vlan = self.vlan_parent.format(have.get("vlan_id"))
+-
+-        if (
+-            have.get("vlan_id")
+-            and "default" not in have.get("name", "")
+-            and (have.get("vlan_id") != want.get("vlan_id") or self.state == "deleted")
+-        ):
+-            self.remove_command_from_config_list(vlan, "vlan", commands)
+-            if self.configuration and self.state == "overridden":
+-                self.have_now.remove(have)
+-        elif "default" not in have.get("name", ""):
+-            if not self.configuration:
+-                if have.get("mtu") != want.get("mtu"):
+-                    self.remove_command_from_config_list(vlan, "mtu", commands)
+-                if have.get("remote_span") != want.get("remote_span") and want.get("remote_span"):
+-                    self.remove_command_from_config_list(vlan, "remote-span", commands)
+-                if have.get("shutdown") != want.get("shutdown") and want.get("shutdown"):
+-                    self.remove_command_from_config_list(vlan, "shutdown", commands)
+-                if have.get("state") != want.get("state") and want.get("state"):
+-                    self.remove_command_from_config_list(vlan, "state", commands)
+-        return commands
+-
+-    def _remove_vlan_vni_evi_mapping(self, want_dict):
+-        commands = []
+-        have_copy = self.have_now.copy()
+-        vlan = want_dict["vlan_id"]
+-        for vlan_dict in have_copy:
+-            if vlan_dict["vlan_id"] == vlan:
+-                if "member" in vlan_dict:
+-                    commands.extend(
+-                        [
+-                            self.vlan_parent.format(vlan),
+-                            self._get_member_cmds(
+-                                vlan_dict.get("member", {}),
+-                                prefix="no",
+-                            ),
+-                        ],
+-                    )
+-                    vlan_dict.pop("member")
+-            if vlan_dict["vlan_id"] != vlan:
+-                delete_member = False
+-                have_vni = vlan_dict.get("member", {}).get("vni")
+-                have_evi = vlan_dict.get("member", {}).get("evi")
+-                if have_vni and (have_vni == want_dict["member"].get("vni")):
+-                    delete_member = True
+-                if have_evi and (have_evi == want_dict["member"].get("evi")):
+-                    delete_member = True
+-                if delete_member:
+-                    commands.extend(
+-                        [
+-                            self.vlan_parent.format(vlan_dict["vlan_id"]),
+-                            self._get_member_cmds(
+-                                vlan_dict.get("member", {}),
+-                                prefix="no",
+-                            ),
+-                        ],
+-                    )
+-                    self.have_now.remove(vlan_dict)
+-        return commands
+-
+-    def _get_member_cmds(self, member_dict, prefix=""):
+-        cmd = ""
+-        if prefix:
+-            prefix = prefix + " "
+-        member_vni = member_dict.get("vni")
+-        member_evi = member_dict.get("evi")
+-
+-        if member_evi:
+-            cmd = prefix + "member evpn-instance {0} vni {1}".format(member_evi, member_vni)
+-        elif member_vni:
+-            cmd = prefix + "member vni {0}".format(member_vni)
++                if want:
++                    self.addcmd(want, "shutdown", False)
++                elif have.get("shutdown"):
++                    # handles deleted as want be blank and only
++                    # negates if no shutdown
++                    self.addcmd(have, "shutdown", False)
++        if len(self.commands) != begin:
++            self.commands.insert(
++                begin,
++                self._tmplt.render(want or have, resource, False),
++            )
+ 
+-        return cmd
++    def purge(self, have, resource):
++        """Handle operation for purged state"""
++        if resource == "vlan_configuration":
++            self.commands.append(self._tmplt.render(have, resource, True))
+diff --git a/plugins/module_utils/network/ios/facts/bgp_global/bgp_global.py b/plugins/module_utils/network/ios/facts/bgp_global/bgp_global.py
+index 37bbfab..c5b90d9 100644
+--- a/plugins/module_utils/network/ios/facts/bgp_global/bgp_global.py
++++ b/plugins/module_utils/network/ios/facts/bgp_global/bgp_global.py
+@@ -35,6 +35,17 @@ class Bgp_globalFacts(object):
+     def get_bgp_global_data(self, connection):
+         return connection.get("show running-config | section ^router bgp")
+ 
++    def _set_defaults(self, objs):
++        """makes data as per the facts after data obtained from parsers"""
++
++        if objs.get("as_number"):
++            objs.setdefault("bgp", {}).setdefault("default", {}).setdefault("ipv4_unicast", True)
++            objs.setdefault("bgp", {}).setdefault("default", {}).setdefault(
++                "route_target",
++                {},
++            ).setdefault("filter", True)
++        return objs
++
+     def populate_facts(self, connection, ansible_facts, data=None):
+         """Populate the facts for Bgp_global network resource
+ 
+@@ -56,6 +67,9 @@ class Bgp_globalFacts(object):
+             module=self._module,
+         )
+         objs = bgp_global_parser.parse()
++        if objs:
++            objs = self._set_defaults(objs)
++
+         neighbor_list = objs.get("neighbors", {})
+         if neighbor_list:
+             objs["neighbors"] = sorted(
+diff --git a/plugins/module_utils/network/ios/facts/facts.py b/plugins/module_utils/network/ios/facts/facts.py
+index 7718b47..583c86b 100644
+--- a/plugins/module_utils/network/ios/facts/facts.py
++++ b/plugins/module_utils/network/ios/facts/facts.py
+@@ -104,7 +104,12 @@ from ansible_collections.cisco.ios.plugins.module_utils.network.ios.facts.vxlan_
+ )
+ 
+ 
+-FACT_LEGACY_SUBSETS = dict(default=Default, hardware=Hardware, interfaces=Interfaces, config=Config)
++FACT_LEGACY_SUBSETS = dict(
++    default=Default,
++    hardware=Hardware,
++    interfaces=Interfaces,
++    config=Config,
++)
+ 
+ FACT_RESOURCE_SUBSETS = dict(
+     interfaces=InterfacesFacts,
+@@ -155,7 +160,11 @@ class Facts(FactsBase):
+         :return: the facts gathered
+         """
+         if self.VALID_RESOURCE_SUBSETS:
+-            self.get_network_resources_facts(FACT_RESOURCE_SUBSETS, resource_facts_type, data)
++            self.get_network_resources_facts(
++                FACT_RESOURCE_SUBSETS,
++                resource_facts_type,
++                data,
++            )
+ 
+         if self.VALID_LEGACY_GATHER_SUBSETS:
+             self.get_network_legacy_facts(FACT_LEGACY_SUBSETS, legacy_facts_type)
+diff --git a/plugins/module_utils/network/ios/facts/l3_interfaces/l3_interfaces.py b/plugins/module_utils/network/ios/facts/l3_interfaces/l3_interfaces.py
+index bea4915..1b36db5 100644
+--- a/plugins/module_utils/network/ios/facts/l3_interfaces/l3_interfaces.py
++++ b/plugins/module_utils/network/ios/facts/l3_interfaces/l3_interfaces.py
+@@ -40,6 +40,14 @@ class L3_InterfacesFacts(object):
+     def get_l3_interfaces_data(self, connection):
+         return connection.get("show running-config | section ^interface")
+ 
++    def _set_defaults(self, objs):
++        """Set default parameters"""
++
++        for intf in objs:
++            if intf.get("name") and intf["name"][:4] == "Vlan":
++                intf.setdefault("autostate", True)
++        return objs
++
+     def populate_facts(self, connection, ansible_facts, data=None):
+         """Populate the facts for l3 interfaces
+         :param connection: the device connection
+@@ -71,6 +79,10 @@ class L3_InterfacesFacts(object):
+         temp = sorted(temp, key=lambda k, sk="name": k[sk])
+ 
+         objs = temp
++
++        if objs:
++            objs = self._set_defaults(objs)
++
+         facts = {}
+         if objs:
+             facts["l3_interfaces"] = []
+diff --git a/plugins/module_utils/network/ios/facts/vlans/vlans.py b/plugins/module_utils/network/ios/facts/vlans/vlans.py
+index 9b506fa..7bfed68 100644
+--- a/plugins/module_utils/network/ios/facts/vlans/vlans.py
++++ b/plugins/module_utils/network/ios/facts/vlans/vlans.py
+@@ -16,8 +16,6 @@ from __future__ import absolute_import, division, print_function
+ __metaclass__ = type
+ 
+ 
+-import re
+-
+ from copy import deepcopy
+ 
+ from ansible_collections.ansible.netcommon.plugins.module_utils.network.common import utils
+@@ -25,6 +23,9 @@ from ansible_collections.ansible.netcommon.plugins.module_utils.network.common i
+ from ansible_collections.cisco.ios.plugins.module_utils.network.ios.argspec.vlans.vlans import (
+     VlansArgs,
+ )
++from ansible_collections.cisco.ios.plugins.module_utils.network.ios.rm_templates.vlans import (
++    VlansTemplate,
++)
+ 
+ 
+ class VlansFacts(object):
+@@ -44,154 +45,60 @@ class VlansFacts(object):
+ 
+         self.generated_spec = utils.generate_dict(facts_argument_spec)
+ 
+-    def get_vlans_data(self, connection, configuration):
++    def get_vlans_data(self, connection):
+         """Checks device is L2/L3 and returns
+         facts gracefully. Does not fail module.
+         """
+-        if configuration:
+-            cmd = "show running-config | sec ^vlan configuration .+"
+-        else:
+-            cmd = "show vlan"
+         check_os_type = connection.get_device_info()
+         if check_os_type.get("network_os_type") == "L3":
+             return ""
+-        return connection.get(cmd)
++        return connection.get("show vlan")
++
++    def get_vlan_conf_data(self, connection):
++        return connection.get("show running-config | section ^vlan configuration .+")
++
++    def populate_vlans_config_facts(self, connection, data=None):
++        """Process config for Vlans Configurations
+ 
+-    def populate_facts(self, connection, ansible_facts, data=None):
+-        """Populate the facts for vlans
+         :param connection: the device connection
+         :param ansible_facts: Facts dictionary
+         :param data: previously collected conf
++
+         :rtype: dictionary
+         :returns: facts
+         """
+-        configuration = self._module.params["configuration"]
+-        objs = []
+ 
+         if not data:
+-            data = self.get_vlans_data(connection, configuration)
+-        if not configuration:
+-            objs = self.parse_vlan(data)
+-        else:
+-            objs = self.parse_vlan_config(data)
++            data = self.get_vlan_conf_data(connection)
+ 
+-        facts = {}
+-        if objs:
+-            facts["vlans"] = []
+-            params = utils.validate_config(self.argument_spec, {"config": objs})
+-
+-            for cfg in params["config"]:
+-                facts["vlans"].append(utils.remove_empties(cfg))
+-        ansible_facts["ansible_network_resources"].update(facts)
+-        return ansible_facts
++        # parse native config using the Vlan_configurations template
++        vlan_configurations_parser = VlansTemplate(
++            lines=data.splitlines(),
++            module=self._module,
++        )
++        return vlan_configurations_parser.parse()
+ 
+-    def render_config(self, spec, conf, vlan_info):
+-        """
+-        Render config as dictionary structure and delete keys
+-          from spec for null values
+-
+-        :param spec: The facts tree, generated from the argspec
+-        :param conf: The configuration
++    def populate_facts(self, connection, ansible_facts, data=None):
++        """Populate the facts for vlans
++        :param connection: the device connection
++        :param ansible_facts: Facts dictionary
++        :param data: previously collected conf
+         :rtype: dictionary
+-        :returns: The generated config
++        :returns: facts
+         """
+-        config = deepcopy(spec)
+-
+-        if vlan_info == "Name" and "VLAN Name" not in conf:
+-            conf = list(filter(None, conf.split(" ")))
+-            config["vlan_id"] = int(conf[0])
+-            config["name"] = conf[1]
+-            state_idx = 2
+-            for i in range(2, len(conf)):  # check for index where state starts
+-                if conf[i] in ["suspended", "active"]:
+-                    state_idx = i
+-                    break
+-                elif conf[i].split("/")[0] in ["sus", "act"]:
+-                    state_idx = i
+-                    break
+-                config["name"] += " " + conf[i]
+-            try:
+-                if len(conf[state_idx].split("/")) > 1:
+-                    _state = conf[state_idx].split("/")[0]
+-                    if _state == "sus":
+-                        config["state"] = "suspend"
+-                    elif _state == "act":
+-                        config["state"] = "active"
+-                    config["shutdown"] = "enabled"
+-                else:
+-                    if conf[state_idx] == "suspended":
+-                        config["state"] = "suspend"
+-                    elif conf[state_idx] == "active":
+-                        config["state"] = "active"
+-                    config["shutdown"] = "disabled"
+-            except IndexError:
+-                pass
+-        elif vlan_info == "Type" and "VLAN Type" not in conf:
+-            conf = list(filter(None, conf.split(" ")))
+-            config["mtu"] = int(conf[3])
+-        elif vlan_info == "Remote":
+-            if len(conf.split(",")) > 1 or conf.isdigit():
+-                remote_span_vlan = []
+-                if len(conf.split(",")) > 1:
+-                    remote_span_vlan = conf.split(",")
+-                else:
+-                    remote_span_vlan.append(conf)
+-                remote_span = []
+-                for each in remote_span_vlan:
+-                    split_sp_list = each.split("-")
+-                    if len(split_sp_list) > 1:  # break range
+-                        for r_sp in range(int(split_sp_list[0]), int(split_sp_list[1]) + 1):
+-                            remote_span.append(r_sp)
+-                    else:
+-                        remote_span.append(int(each))
+-                config["remote_span"] = remote_span
+-
+-        elif vlan_info == "Private" and "Primary Secondary" not in conf:
+-            conf = list(filter(None, conf.split(" ")))
+-
+-            pri_idx = 0
+-            sec_idx = 1
+-            priv_type_idx = 2
+-
+-            config["tmp_pvlans"] = {
+-                "primary": conf[pri_idx],
+-                "secondary": conf[sec_idx],
+-                "sec_type": conf[priv_type_idx],
+-            }
+-        return utils.remove_empties(config)
+-
+-    def parse_vlan_config(self, vlan_conf):
+-        vlan_list = list()
+-
+-        re1 = re.compile(r"^vlan configuration +(?P<vlan>\d+)$")
+-        re2 = re.compile(r"^member +(evpn\-instance +(?P<evi>\d+) )?vni (?P<vni>[\d\-]+)$")
+-
+-        for line in vlan_conf.splitlines():
+-            line = line.strip()
+ 
+-            m = re1.match(line)
+-            if m:
+-                vlan = m.groupdict()["vlan"]
+-                vlan_dict = {"vlan_id": vlan}
+-                continue
+-
+-            m = re2.match(line)
+-            if m:
+-                group = m.groupdict()
+-                vlan_dict.update({"member": {}})
+-                vlan_dict["member"].update({"vni": group["vni"]})
+-                if group["evi"]:
+-                    vlan_dict["member"].update({"evi": group["evi"]})
+-                vlan_list.append(vlan_dict)
+-
+-        return vlan_list
+-
+-    def parse_vlan(self, data):
+         objs = []
+         mtu_objs = []
+         remote_objs = []
+         final_objs = []
+         pvlan_objs = []
++        conf_data = {}
++
++        if not data:
++            data = self.get_vlans_data(connection)
++
++        # deals with vlan configuration config only
++        conf_data = self.populate_vlans_config_facts(connection, data)
+ 
+         # operate on a collection of resource x
+         config = data.split("\n")
+@@ -199,6 +106,7 @@ class VlansFacts(object):
+         vlan_info = ""
+         temp = ""
+         vlan_name = True
++
+         for conf in config:
+             if len(list(filter(None, conf.split(" ")))) <= 2 and vlan_name:
+                 temp = temp + conf
+@@ -231,6 +139,7 @@ class VlansFacts(object):
+                     pvlan_objs.append(obj)
+                 elif obj:
+                     objs.append(obj)
++
+         # Appending MTU value to the retrieved dictionary
+         for o, m in zip(objs, mtu_objs):
+             o.update(m)
+@@ -250,7 +159,6 @@ class VlansFacts(object):
+             pvlan_final = {}
+             if len(pvlan_objs) > 0:
+                 # Sanitize and structure everything
+-
+                 for data in pvlan_objs:
+                     pvdata = data.get("tmp_pvlans")
+                     privlan = pvdata.get("primary")
+@@ -270,7 +178,9 @@ class VlansFacts(object):
+                                 "private_vlan": {"type": "primary", "associated": []},
+                             }
+                         if secvlan and (isinstance(secvlan, int) or secvlan.isnumeric()):
+-                            pvlan_final[privlan]["private_vlan"]["associated"].append(int(secvlan))
++                            pvlan_final[privlan]["private_vlan"]["associated"].append(
++                                int(secvlan),
++                            )
+ 
+                 # Associate with the proper VLAN in final_objs
+                 for vlan_id, data in pvlan_final.items():
+@@ -278,7 +188,103 @@ class VlansFacts(object):
+                         if vlan_id == every.get("vlan_id"):
+                             every.update(data)
+ 
+-        if final_objs:
+-            return objs
+-        else:
+-            return {}
++        facts = {}
++
++        if conf_data:
++            for vlan in objs:
++                if conf_data.get(vlan.get("vlan_id")):
++                    member_data = conf_data.pop(vlan.get("vlan_id"))
++                    vlan.update(member_data)
++
++            if conf_data:  # if any vlan configuration data is pending add it to facts
++                for vlanid, conf in conf_data.items():
++                    objs.append(conf)
++
++        if objs:
++            facts["vlans"] = []
++            params = utils.validate_config(self.argument_spec, {"config": objs})
++
++            for cfg in params["config"]:
++                facts["vlans"].append(utils.remove_empties(cfg))
++        ansible_facts["ansible_network_resources"].update(facts)
++
++        return ansible_facts
++
++    def render_config(self, spec, conf, vlan_info):
++        """
++        Render config as dictionary structure and delete keys
++          from spec for null values
++
++        :param spec: The facts tree, generated from the argspec
++        :param conf: The configuration
++        :rtype: dictionary
++        :returns: The generated config
++        """
++        config = deepcopy(spec)
++
++        if vlan_info == "Name" and "VLAN Name" not in conf:
++            conf = list(filter(None, conf.split(" ")))
++            config["vlan_id"] = int(conf[0])
++            config["name"] = conf[1]
++            state_idx = 2
++            for i in range(2, len(conf)):  # check for index where state starts
++                if conf[i] in ["suspended", "active"]:
++                    state_idx = i
++                    break
++                elif conf[i].split("/")[0] in ["sus", "act"]:
++                    state_idx = i
++                    break
++                config["name"] += " " + conf[i]
++            try:
++                if len(conf[state_idx].split("/")) > 1:
++                    _state = conf[state_idx].split("/")[0]
++                    if _state == "sus":
++                        config["state"] = "suspend"
++                    elif _state == "act":
++                        config["state"] = "active"
++                    config["shutdown"] = "enabled"
++                else:
++                    if conf[state_idx] == "suspended":
++                        config["state"] = "suspend"
++                    elif conf[state_idx] == "active":
++                        config["state"] = "active"
++                    config["shutdown"] = "disabled"
++            except IndexError:
++                pass
++        elif vlan_info == "Type" and "VLAN Type" not in conf:
++            conf = list(filter(None, conf.split(" ")))
++            config["mtu"] = int(conf[3])
++        elif vlan_info == "Remote":
++            if len(conf.split(",")) > 1 or conf.isdigit():
++                remote_span_vlan = []
++                if len(conf.split(",")) > 1:
++                    remote_span_vlan = conf.split(",")
++                else:
++                    remote_span_vlan.append(conf)
++                remote_span = []
++                for each in remote_span_vlan:
++                    split_sp_list = each.split("-")
++                    if len(split_sp_list) > 1:  # break range
++                        for r_sp in range(
++                            int(split_sp_list[0]),
++                            int(split_sp_list[1]) + 1,
++                        ):
++                            remote_span.append(r_sp)
++                    else:
++                        remote_span.append(int(each))
++                config["remote_span"] = remote_span
++
++        elif vlan_info == "Private" and "Primary Secondary" not in conf:
++            conf = list(filter(None, conf.split(" ")))
++
++            pri_idx = 0
++            sec_idx = 1
++            priv_type_idx = 2
++
++            config["tmp_pvlans"] = {
++                "primary": conf[pri_idx],
++                "secondary": conf[sec_idx],
++                "sec_type": conf[priv_type_idx],
++            }
++
++        return utils.remove_empties(config)
+diff --git a/plugins/module_utils/network/ios/providers/cli/config/base.py b/plugins/module_utils/network/ios/providers/cli/config/base.py
+deleted file mode 100644
+index f1b9cdb..0000000
+--- a/plugins/module_utils/network/ios/providers/cli/config/base.py
++++ /dev/null
+@@ -1,82 +0,0 @@
+-#
+-# (c) 2019, Ansible by Red Hat, inc
+-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+-#
+-from __future__ import absolute_import, division, print_function
+-
+-
+-__metaclass__ = type
+-from ansible.module_utils.six import iteritems
+-from ansible_collections.ansible.netcommon.plugins.module_utils.network.common.config import (
+-    NetworkConfig,
+-)
+-from ansible_collections.ansible.netcommon.plugins.module_utils.network.common.utils import to_list
+-
+-
+-class ConfigBase(object):
+-    argument_spec = {}
+-
+-    mutually_exclusive = []
+-
+-    identifier = ()
+-
+-    def __init__(self, **kwargs):
+-        self.values = {}
+-        self._rendered_configuration = {}
+-        self.active_configuration = None
+-
+-        for item in self.identifier:
+-            self.values[item] = kwargs.pop(item)
+-
+-        for key, value in iteritems(kwargs):
+-            if key in self.argument_spec:
+-                setattr(self, key, value)
+-
+-        for key, value in iteritems(self.argument_spec):
+-            if value.get("default"):
+-                if not getattr(self, key, None):
+-                    setattr(self, key, value.get("default"))
+-
+-    def __getattr__(self, key):
+-        if key in self.argument_spec:
+-            return self.values.get(key)
+-
+-    def __setattr__(self, key, value):
+-        if key in self.argument_spec:
+-            if key in self.identifier:
+-                raise TypeError("cannot set value")
+-            elif value is not None:
+-                self.values[key] = value
+-        else:
+-            super(ConfigBase, self).__setattr__(key, value)
+-
+-    def context_config(self, cmd):
+-        if "context" not in self._rendered_configuration:
+-            self._rendered_configuration["context"] = list()
+-        self._rendered_configuration["context"].extend(to_list(cmd))
+-
+-    def global_config(self, cmd):
+-        if "global" not in self._rendered_configuration:
+-            self._rendered_configuration["global"] = list()
+-        self._rendered_configuration["global"].extend(to_list(cmd))
+-
+-    def get_rendered_configuration(self):
+-        config = list()
+-        for section in ("context", "global"):
+-            config.extend(self._rendered_configuration.get(section, []))
+-        return config
+-
+-    def set_active_configuration(self, config):
+-        self.active_configuration = config
+-
+-    def render(self, config=None):
+-        raise NotImplementedError
+-
+-    def get_section(self, config, section):
+-        if config is not None:
+-            netcfg = NetworkConfig(indent=1, contents=config)
+-            try:
+-                config = netcfg.get_block_config(to_list(section))
+-            except ValueError:
+-                config = None
+-            return config
+diff --git a/plugins/module_utils/network/ios/providers/cli/config/bgp/address_family.py b/plugins/module_utils/network/ios/providers/cli/config/bgp/address_family.py
+deleted file mode 100644
+index e4c2bd8..0000000
+--- a/plugins/module_utils/network/ios/providers/cli/config/bgp/address_family.py
++++ /dev/null
+@@ -1,147 +0,0 @@
+-#
+-# (c) 2019, Ansible by Red Hat, inc
+-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+-#
+-from __future__ import absolute_import, division, print_function
+-
+-
+-__metaclass__ = type
+-import re
+-
+-from ansible.module_utils.common.network import to_netmask
+-from ansible.module_utils.six import iteritems
+-from ansible_collections.ansible.netcommon.plugins.module_utils.network.common.utils import to_list
+-
+-from ansible_collections.cisco.ios.plugins.module_utils.network.ios.providers.cli.config.bgp.neighbors import (
+-    AFNeighbors,
+-)
+-from ansible_collections.cisco.ios.plugins.module_utils.network.ios.providers.providers import (
+-    CliProvider,
+-)
+-
+-
+-class AddressFamily(CliProvider):
+-    def render(self, config=None):
+-        commands = list()
+-        safe_list = list()
+-
+-        router_context = "router bgp %s" % self.get_value("config.bgp_as")
+-        context_config = None
+-
+-        for item in self.get_value("config.address_family"):
+-            context = "address-family %s" % item["afi"]
+-            if item["safi"] != "unicast":
+-                context += " %s" % item["safi"]
+-            context_commands = list()
+-
+-            if config:
+-                context_path = [router_context, context]
+-                context_config = self.get_config_context(config, context_path, indent=1)
+-
+-            for key, value in iteritems(item):
+-                if value is not None:
+-                    meth = getattr(self, "_render_%s" % key, None)
+-                    if meth:
+-                        resp = meth(item, context_config)
+-                        if resp:
+-                            context_commands.extend(to_list(resp))
+-
+-            if context_commands:
+-                commands.append(context)
+-                commands.extend(context_commands)
+-                commands.append("exit-address-family")
+-
+-            safe_list.append(context)
+-
+-        if self.params["operation"] == "replace":
+-            if config:
+-                resp = self._negate_config(config, safe_list)
+-                commands.extend(resp)
+-
+-        return commands
+-
+-    def _negate_config(self, config, safe_list=None):
+-        commands = list()
+-        matches = re.findall(r"(address-family .+)$", config, re.M)
+-        for item in set(matches).difference(safe_list):
+-            commands.append("no %s" % item)
+-        return commands
+-
+-    def _render_auto_summary(self, item, config=None):
+-        cmd = "auto-summary"
+-        if item["auto_summary"] is False:
+-            cmd = "no %s" % cmd
+-        if not config or cmd not in config:
+-            return cmd
+-
+-    def _render_synchronization(self, item, config=None):
+-        cmd = "synchronization"
+-        if item["synchronization"] is False:
+-            cmd = "no %s" % cmd
+-        if not config or cmd not in config:
+-            return cmd
+-
+-    def _render_networks(self, item, config=None):
+-        commands = list()
+-        safe_list = list()
+-
+-        for entry in item["networks"]:
+-            network = entry["prefix"]
+-            cmd = "network %s" % network
+-            if entry["masklen"]:
+-                cmd += " mask %s" % to_netmask(entry["masklen"])
+-                network += " mask %s" % to_netmask(entry["masklen"])
+-            if entry["route_map"]:
+-                cmd += " route-map %s" % entry["route_map"]
+-                network += " route-map %s" % entry["route_map"]
+-
+-            safe_list.append(network)
+-
+-            if not config or cmd not in config:
+-                commands.append(cmd)
+-
+-        if self.params["operation"] == "replace":
+-            if config:
+-                matches = re.findall(r"network (.*)", config, re.M)
+-                for entry in set(matches).difference(safe_list):
+-                    commands.append("no network %s" % entry)
+-
+-        return commands
+-
+-    def _render_redistribute(self, item, config=None):
+-        commands = list()
+-        safe_list = list()
+-
+-        for entry in item["redistribute"]:
+-            option = entry["protocol"]
+-
+-            cmd = "redistribute %s" % entry["protocol"]
+-
+-            if entry["id"] and entry["protocol"] in ("ospf", "ospfv3", "eigrp"):
+-                cmd += " %s" % entry["id"]
+-                option += " %s" % entry["id"]
+-
+-            if entry["metric"]:
+-                cmd += " metric %s" % entry["metric"]
+-
+-            if entry["route_map"]:
+-                cmd += " route-map %s" % entry["route_map"]
+-
+-            if not config or cmd not in config:
+-                commands.append(cmd)
+-
+-            safe_list.append(option)
+-
+-        if self.params["operation"] == "replace":
+-            if config:
+-                matches = re.findall(r"redistribute (\S+)(?:\s*)(\d*)", config, re.M)
+-                for i in range(0, len(matches)):
+-                    matches[i] = " ".join(matches[i]).strip()
+-                for entry in set(matches).difference(safe_list):
+-                    commands.append("no redistribute %s" % entry)
+-
+-        return commands
+-
+-    def _render_neighbors(self, item, config):
+-        """generate bgp neighbor configuration"""
+-        return AFNeighbors(self.params).render(config, nbr_list=item["neighbors"])
+diff --git a/plugins/module_utils/network/ios/providers/cli/config/bgp/neighbors.py b/plugins/module_utils/network/ios/providers/cli/config/bgp/neighbors.py
+deleted file mode 100644
+index 4ee337b..0000000
+--- a/plugins/module_utils/network/ios/providers/cli/config/bgp/neighbors.py
++++ /dev/null
+@@ -1,203 +0,0 @@
+-#
+-# (c) 2019, Ansible by Red Hat, inc
+-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+-#
+-from __future__ import absolute_import, division, print_function
+-
+-
+-__metaclass__ = type
+-import re
+-
+-from ansible.module_utils.six import iteritems
+-from ansible_collections.ansible.netcommon.plugins.module_utils.network.common.utils import to_list
+-
+-from ansible_collections.cisco.ios.plugins.module_utils.network.ios.providers.providers import (
+-    CliProvider,
+-)
+-
+-
+-class Neighbors(CliProvider):
+-    def render(self, config=None, nbr_list=None):
+-        commands = list()
+-        safe_list = list()
+-        if not nbr_list:
+-            nbr_list = self.get_value("config.neighbors")
+-
+-        for item in nbr_list:
+-            neighbor_commands = list()
+-            context = "neighbor %s" % item["neighbor"]
+-            cmd = "%s remote-as %s" % (context, item["remote_as"])
+-
+-            if not config or cmd not in config:
+-                neighbor_commands.append(cmd)
+-
+-            for key, value in iteritems(item):
+-                if value is not None:
+-                    meth = getattr(self, "_render_%s" % key, None)
+-                    if meth:
+-                        resp = meth(item, config)
+-                        if resp:
+-                            neighbor_commands.extend(to_list(resp))
+-
+-            commands.extend(neighbor_commands)
+-            safe_list.append(context)
+-
+-        if self.params["operation"] == "replace":
+-            if config and safe_list:
+-                commands.extend(self._negate_config(config, safe_list))
+-
+-        return commands
+-
+-    def _negate_config(self, config, safe_list=None):
+-        commands = list()
+-        matches = re.findall(r"(neighbor \S+)", config, re.M)
+-        for item in set(matches).difference(safe_list):
+-            commands.append("no %s" % item)
+-        return commands
+-
+-    def _render_local_as(self, item, config=None):
+-        cmd = "neighbor %s local-as %s" % (item["neighbor"], item["local_as"])
+-        if not config or cmd not in config:
+-            return cmd
+-
+-    def _render_port(self, item, config=None):
+-        cmd = "neighbor %s port %s" % (item["neighbor"], item["port"])
+-        if not config or cmd not in config:
+-            return cmd
+-
+-    def _render_description(self, item, config=None):
+-        cmd = "neighbor %s description %s" % (item["neighbor"], item["description"])
+-        if not config or cmd not in config:
+-            return cmd
+-
+-    def _render_enabled(self, item, config=None):
+-        cmd = "neighbor %s shutdown" % item["neighbor"]
+-        if item["enabled"] is True:
+-            if not config or cmd in config:
+-                cmd = "no %s" % cmd
+-                return cmd
+-        elif not config or cmd not in config:
+-            return cmd
+-
+-    def _render_update_source(self, item, config=None):
+-        cmd = "neighbor %s update-source %s" % (item["neighbor"], item["update_source"])
+-        if not config or cmd not in config:
+-            return cmd
+-
+-    def _render_password(self, item, config=None):
+-        cmd = "neighbor %s password %s" % (item["neighbor"], item["password"])
+-        if not config or cmd not in config:
+-            return cmd
+-
+-    def _render_ebgp_multihop(self, item, config=None):
+-        cmd = "neighbor %s ebgp-multihop %s" % (item["neighbor"], item["ebgp_multihop"])
+-        if not config or cmd not in config:
+-            return cmd
+-
+-    def _render_peer_group(self, item, config=None):
+-        cmd = "neighbor %s peer-group %s" % (item["neighbor"], item["peer_group"])
+-        if not config or cmd not in config:
+-            return cmd
+-
+-    def _render_timers(self, item, config):
+-        """generate bgp timer related configuration"""
+-        keepalive = item["timers"]["keepalive"]
+-        holdtime = item["timers"]["holdtime"]
+-        min_neighbor_holdtime = item["timers"]["min_neighbor_holdtime"]
+-        neighbor = item["neighbor"]
+-
+-        if keepalive and holdtime:
+-            cmd = "neighbor %s timers %s %s" % (neighbor, keepalive, holdtime)
+-            if min_neighbor_holdtime:
+-                cmd += " %s" % min_neighbor_holdtime
+-            if not config or cmd not in config:
+-                return cmd
+-
+-
+-class AFNeighbors(CliProvider):
+-    def render(self, config=None, nbr_list=None):
+-        commands = list()
+-        if not nbr_list:
+-            return
+-
+-        for item in nbr_list:
+-            neighbor_commands = list()
+-            for key, value in iteritems(item):
+-                if value is not None:
+-                    meth = getattr(self, "_render_%s" % key, None)
+-                    if meth:
+-                        resp = meth(item, config)
+-                        if resp:
+-                            neighbor_commands.extend(to_list(resp))
+-
+-            commands.extend(neighbor_commands)
+-
+-        return commands
+-
+-    def _render_advertisement_interval(self, item, config=None):
+-        cmd = "neighbor %s advertisement-interval %s" % (
+-            item["neighbor"],
+-            item["advertisement_interval"],
+-        )
+-        if not config or cmd not in config:
+-            return cmd
+-
+-    def _render_route_reflector_client(self, item, config=None):
+-        cmd = "neighbor %s route-reflector-client" % item["neighbor"]
+-        if item["route_reflector_client"] is False:
+-            if not config or cmd in config:
+-                cmd = "no %s" % cmd
+-                return cmd
+-        elif not config or cmd not in config:
+-            return cmd
+-
+-    def _render_route_server_client(self, item, config=None):
+-        cmd = "neighbor %s route-server-client" % item["neighbor"]
+-        if item["route_server_client"] is False:
+-            if not config or cmd in config:
+-                cmd = "no %s" % cmd
+-                return cmd
+-        elif not config or cmd not in config:
+-            return cmd
+-
+-    def _render_remove_private_as(self, item, config=None):
+-        cmd = "neighbor %s remove-private-as" % item["neighbor"]
+-        if item["remove_private_as"] is False:
+-            if not config or cmd in config:
+-                cmd = "no %s" % cmd
+-                return cmd
+-        elif not config or cmd not in config:
+-            return cmd
+-
+-    def _render_next_hop_self(self, item, config=None):
+-        cmd = "neighbor %s next-hop-self" % item["neighbor"]
+-        if item["next_hop_self"] is False:
+-            if not config or cmd in config:
+-                cmd = "no %s" % cmd
+-                return cmd
+-        elif not config or cmd not in config:
+-            return cmd
+-
+-    def _render_activate(self, item, config=None):
+-        cmd = "neighbor %s activate" % item["neighbor"]
+-        if item["activate"] is False:
+-            if not config or cmd in config:
+-                cmd = "no %s" % cmd
+-                return cmd
+-        elif not config or cmd not in config:
+-            return cmd
+-
+-    def _render_maximum_prefix(self, item, config=None):
+-        cmd = "neighbor %s maximum-prefix %s" % (item["neighbor"], item["maximum_prefix"])
+-        if not config or cmd not in config:
+-            return cmd
+-
+-    def _render_prefix_list_in(self, item, config=None):
+-        cmd = "neighbor %s prefix-list %s in" % (item["neighbor"], item["prefix_list_in"])
+-        if not config or cmd not in config:
+-            return cmd
+-
+-    def _render_prefix_list_out(self, item, config=None):
+-        cmd = "neighbor %s prefix-list %s out" % (item["neighbor"], item["prefix_list_out"])
+-        if not config or cmd not in config:
+-            return cmd
+diff --git a/plugins/module_utils/network/ios/providers/cli/config/bgp/process.py b/plugins/module_utils/network/ios/providers/cli/config/bgp/process.py
+deleted file mode 100644
+index 2b54daa..0000000
+--- a/plugins/module_utils/network/ios/providers/cli/config/bgp/process.py
++++ /dev/null
+@@ -1,163 +0,0 @@
+-#
+-# (c) 2019, Ansible by Red Hat, inc
+-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+-#
+-from __future__ import absolute_import, division, print_function
+-
+-
+-__metaclass__ = type
+-import re
+-
+-from ansible.module_utils.common.network import to_netmask
+-from ansible.module_utils.six import iteritems
+-from ansible_collections.ansible.netcommon.plugins.module_utils.network.common.utils import to_list
+-
+-from ansible_collections.cisco.ios.plugins.module_utils.network.ios.providers.cli.config.bgp.address_family import (
+-    AddressFamily,
+-)
+-from ansible_collections.cisco.ios.plugins.module_utils.network.ios.providers.cli.config.bgp.neighbors import (
+-    Neighbors,
+-)
+-from ansible_collections.cisco.ios.plugins.module_utils.network.ios.providers.providers import (
+-    CliProvider,
+-    register_provider,
+-)
+-
+-
+-REDISTRIBUTE_PROTOCOLS = [
+-    "ospf",
+-    "ospfv3",
+-    "eigrp",
+-    "isis",
+-    "static",
+-    "connected",
+-    "odr",
+-    "lisp",
+-    "mobile",
+-    "rip",
+-]
+-
+-
+-@register_provider("ios", "ios_bgp")
+-class Provider(CliProvider):
+-    def render(self, config=None):
+-        commands = list()
+-
+-        existing_as = None
+-        if config:
+-            match = re.search(r"router bgp (\d+)", config, re.M)
+-            if match:
+-                existing_as = match.group(1)
+-
+-        operation = self.params["operation"]
+-
+-        context = None
+-        if self.params["config"]:
+-            context = "router bgp %s" % self.get_value("config.bgp_as")
+-
+-        if operation == "delete":
+-            if existing_as:
+-                commands.append("no router bgp %s" % existing_as)
+-            elif context:
+-                commands.append("no %s" % context)
+-
+-        else:
+-            self._validate_input(config)
+-            if operation == "replace":
+-                if existing_as and int(existing_as) != self.get_value("config.bgp_as"):
+-                    commands.append("no router bgp %s" % existing_as)
+-                    config = None
+-
+-            elif operation == "override":
+-                if existing_as:
+-                    commands.append("no router bgp %s" % existing_as)
+-                config = None
+-
+-            context_commands = list()
+-
+-            for key, value in iteritems(self.get_value("config")):
+-                if value is not None:
+-                    meth = getattr(self, "_render_%s" % key, None)
+-                    if meth:
+-                        resp = meth(config)
+-                        if resp:
+-                            context_commands.extend(to_list(resp))
+-
+-            if context and context_commands:
+-                commands.append(context)
+-                commands.extend(context_commands)
+-                commands.append("exit")
+-        return commands
+-
+-    def _render_router_id(self, config=None):
+-        cmd = "bgp router-id %s" % self.get_value("config.router_id")
+-        if not config or cmd not in config:
+-            return cmd
+-
+-    def _render_log_neighbor_changes(self, config=None):
+-        cmd = "bgp log-neighbor-changes"
+-        log_neighbor_changes = self.get_value("config.log_neighbor_changes")
+-        if log_neighbor_changes is True:
+-            if not config or cmd not in config:
+-                return cmd
+-        elif log_neighbor_changes is False:
+-            if config and cmd in config:
+-                return "no %s" % cmd
+-
+-    def _render_networks(self, config=None):
+-        commands = list()
+-        safe_list = list()
+-
+-        for entry in self.get_value("config.networks"):
+-            network = entry["prefix"]
+-            cmd = "network %s" % network
+-            if entry["masklen"] and entry["masklen"] not in (24, 16, 8):
+-                cmd += " mask %s" % to_netmask(entry["masklen"])
+-                network += " mask %s" % to_netmask(entry["masklen"])
+-
+-            if entry["route_map"]:
+-                cmd += " route-map %s" % entry["route_map"]
+-                network += " route-map %s" % entry["route_map"]
+-
+-            safe_list.append(network)
+-
+-            if not config or cmd not in config:
+-                commands.append(cmd)
+-
+-        if self.params["operation"] == "replace":
+-            if config:
+-                matches = re.findall(r"network (.*)", config, re.M)
+-                for entry in set(matches).difference(safe_list):
+-                    commands.append("no network %s" % entry)
+-
+-        return commands
+-
+-    def _render_neighbors(self, config):
+-        """generate bgp neighbor configuration"""
+-        return Neighbors(self.params).render(config)
+-
+-    def _render_address_family(self, config):
+-        """generate address-family configuration"""
+-        return AddressFamily(self.params).render(config)
+-
+-    def _validate_input(self, config=None):
+-        def device_has_AF(config):
+-            return re.search(r"address-family (?:.*)", config)
+-
+-        address_family = self.get_value("config.address_family")
+-        root_networks = self.get_value("config.networks")
+-        operation = self.params["operation"]
+-
+-        if operation == "replace":
+-            if address_family and root_networks:
+-                for item in address_family:
+-                    if item["networks"]:
+-                        raise ValueError(
+-                            "operation is replace but provided both root level network(s) and network(s) under %s %s address family"
+-                            % (item["afi"], item["safi"]),
+-                        )
+-
+-            if root_networks and config and device_has_AF(config):
+-                raise ValueError(
+-                    "operation is replace and device has one or more address family activated but root level network(s) provided",
+-                )
+diff --git a/plugins/module_utils/network/ios/providers/module.py b/plugins/module_utils/network/ios/providers/module.py
+deleted file mode 100644
+index 4de4647..0000000
+--- a/plugins/module_utils/network/ios/providers/module.py
++++ /dev/null
+@@ -1,66 +0,0 @@
+-#
+-# (c) 2019, Ansible by Red Hat, inc
+-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+-#
+-from __future__ import absolute_import, division, print_function
+-
+-
+-__metaclass__ = type
+-from ansible.module_utils._text import to_text
+-from ansible.module_utils.basic import AnsibleModule
+-from ansible.module_utils.connection import Connection
+-
+-from ansible_collections.cisco.ios.plugins.module_utils.network.ios.providers import providers
+-
+-
+-class NetworkModule(AnsibleModule):
+-    fail_on_missing_provider = True
+-
+-    def __init__(self, connection=None, *args, **kwargs):
+-        super(NetworkModule, self).__init__(*args, **kwargs)
+-
+-        if connection is None:
+-            connection = Connection(self._socket_path)
+-
+-        self.connection = connection
+-
+-    @property
+-    def provider(self):
+-        if not hasattr(self, "_provider"):
+-            capabilities = self.from_json(self.connection.get_capabilities())
+-
+-            network_os = capabilities["device_info"]["network_os"]
+-            network_api = capabilities["network_api"]
+-
+-            if network_api == "cliconf":
+-                connection_type = "network_cli"
+-
+-            cls = providers.get(network_os, self._name.split(".")[-1], connection_type)
+-
+-            if not cls:
+-                msg = "unable to find suitable provider for network os %s" % network_os
+-                if self.fail_on_missing_provider:
+-                    self.fail_json(msg=msg)
+-                else:
+-                    self.warn(msg)
+-
+-            obj = cls(self.params, self.connection, self.check_mode)
+-
+-            setattr(self, "_provider", obj)
+-
+-        return getattr(self, "_provider")
+-
+-    def get_facts(self, subset=None):
+-        try:
+-            self.provider.get_facts(subset)
+-        except Exception as exc:
+-            self.fail_json(msg=to_text(exc))
+-
+-    def edit_config(self, config_filter=None):
+-        current_config = self.connection.get_config(flags=config_filter)
+-        try:
+-            commands = self.provider.edit_config(current_config)
+-            changed = bool(commands)
+-            return {"commands": commands, "changed": changed}
+-        except Exception as exc:
+-            self.fail_json(msg=to_text(exc))
+diff --git a/plugins/module_utils/network/ios/rm_templates/acls.py b/plugins/module_utils/network/ios/rm_templates/acls.py
+index b3afd65..819961e 100644
+--- a/plugins/module_utils/network/ios/rm_templates/acls.py
++++ b/plugins/module_utils/network/ios/rm_templates/acls.py
+@@ -248,7 +248,7 @@ class AclsTemplate(NetworkTemplate):
+         {
+             "name": "aces_ipv4_standard",
+             "getval": re.compile(
+-                r"""(\s*(?P<sequence>\d+))?
++                r"""^\s*((?P<sequence>\d+))?
+                         (\s(?P<grant>deny|permit))
+                         (\s+(?P<address>((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)))?
+                         (\s(?P<wildcard>((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)))?
+@@ -281,17 +281,17 @@ class AclsTemplate(NetworkTemplate):
+         {
+             "name": "aces",
+             "getval": re.compile(
+-                r"""(\s*(?P<sequence>\d+))?
+-                        (\s*sequence\s(?P<sequence_ipv6>\d+))?
+-                        (\s*(?P<grant>deny|permit))
++                r"""^\s*((?P<sequence>\d+))?
++                        (\ssequence\s(?P<sequence_ipv6>\d+))?
++                        (\s(?P<grant>deny|permit))
+                         (\sevaluate\s(?P<evaluate>\S+))?
+-                        (\s(?P<protocol_num>\d+))?
++                        (\s(?P<protocol_num>\d+)\s)?
+                         (\s*(?P<protocol>ahp|eigrp|esp|gre|icmp|igmp|ipinip|ipv6|ip|nos|ospf|pcp|pim|sctp|tcp|ip|udp))?
+-                        ((\s(?P<source_any>any))|
+-                        (\sobject-group\s(?P<source_obj_grp>\S+))|
+-                        (\shost\s(?P<source_host>\S+))|
+-                        (\s(?P<ipv6_source_address>\S+/\d+))|
+-                        (\s(?P<source_address>(\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3})\s\S+)))?
++                        ((\s*(?P<source_any>any))|
++                        (\s*object-group\s(?P<source_obj_grp>\S+))|
++                        (\s*host\s(?P<source_host>\S+))|
++                        (\s*(?P<ipv6_source_address>\S+/\d+))|
++                        (\s*(?P<source_address>(\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3})\s\S+)))?
+                         (\seq\s(?P<seq>(\S+|\d+)))?
+                         (\sgt\s(?P<sgt>(\S+|\d+)))?
+                         (\slt\s(?P<slt>(\S+|\d+)))?
+diff --git a/plugins/module_utils/network/ios/rm_templates/bgp_global.py b/plugins/module_utils/network/ios/rm_templates/bgp_global.py
+index 39fd548..5c8c697 100644
+--- a/plugins/module_utils/network/ios/rm_templates/bgp_global.py
++++ b/plugins/module_utils/network/ios/rm_templates/bgp_global.py
+@@ -475,6 +475,36 @@ class Bgp_globalTemplate(NetworkTemplate):
+                 "table_map": {"name": "{{ name }}", "filter": "{{ not not filter }}"},
+             },
+         },
++        {
++            "name": "template.peer_policy",
++            "getval": re.compile(
++                r"""
++                \stemplate\speer-policy
++                (\s(?P<peer_policy>\S+))
++                $""",
++                re.VERBOSE,
++            ),
++            "setval": "template peer-policy"
++            "{{ (' ' + template.peer_policy) if template.peer_policy is defined else '' }}",
++            "result": {
++                "template": {"peer_policy": "{{ peer_policy }}"},
++            },
++        },
++        {
++            "name": "template.peer_session",
++            "getval": re.compile(
++                r"""
++                \stemplate\speer-session
++                (\s(?P<peer_session>\S+))
++                $""",
++                re.VERBOSE,
++            ),
++            "setval": "template peer-session"
++            "{{ (' ' + template.peer_session) if template.peer_session is defined else '' }}",
++            "result": {
++                "template": {"peer_session": "{{ peer_session }}"},
++            },
++        },
+         {
+             "name": "timers",
+             "getval": re.compile(
+@@ -744,6 +774,21 @@ class Bgp_globalTemplate(NetworkTemplate):
+                 },
+             },
+         },
++        {
++            "name": "bgp.default.ipv4_unicast",
++            "getval": re.compile(r"""\sno\sbgp\sdefault\sipv4\-unicast""", re.VERBOSE),
++            "setval": "bgp default ipv4-unicast",
++            "result": {"bgp": {"default": {"ipv4_unicast": False}}},
++        },
++        {
++            "name": "bgp.default.route_target.filter",
++            "getval": re.compile(
++                r"""\sno\sbgp\sdefault\sroute\-target\sfilter""",
++                re.VERBOSE,
++            ),
++            "setval": "bgp default route-target filter",
++            "result": {"bgp": {"default": {"route_target": {"filter": False}}}},
++        },
+         {
+             "name": "bgp.deterministic_med",
+             "getval": re.compile(r"""\s(bgp\sdeterministic-med)""", re.VERBOSE),
+@@ -1064,7 +1109,9 @@ class Bgp_globalTemplate(NetworkTemplate):
+             "setval": "bgp nopeerup-delay nsf-switchover {{ bgp.nopeerup_delay_options.nsf_switchover|string }}",
+             "result": {
+                 "bgp": {
+-                    "nopeerup_delay_options": {"nsf_switchover": "{{ nsf_switchover }}"},
++                    "nopeerup_delay_options": {
++                        "nsf_switchover": "{{ nsf_switchover }}",
++                    },
+                 },
+             },
+         },
+@@ -1080,7 +1127,9 @@ class Bgp_globalTemplate(NetworkTemplate):
+             "setval": "bgp nopeerup-delay user-initiated {{ bgp.nopeerup_delay_options.user_initiated|string }}",
+             "result": {
+                 "bgp": {
+-                    "nopeerup_delay_options": {"user_initiated": "{{ user_initiated }}"},
++                    "nopeerup_delay_options": {
++                        "user_initiated": "{{ user_initiated }}",
++                    },
+                 },
+             },
+         },
+diff --git a/plugins/module_utils/network/ios/rm_templates/l3_interfaces.py b/plugins/module_utils/network/ios/rm_templates/l3_interfaces.py
+index d57a8de..bd337be 100644
+--- a/plugins/module_utils/network/ios/rm_templates/l3_interfaces.py
++++ b/plugins/module_utils/network/ios/rm_templates/l3_interfaces.py
+@@ -65,6 +65,23 @@ class L3_interfacesTemplate(NetworkTemplate):
+ 
+     # fmt: off
+     PARSERS = [
++        {
++            "name": "autostate",
++            "getval": re.compile(r"""\s+no\s+autostate$""", re.VERBOSE),
++            "setval": "autostate",
++            "result": {"{{ name }}": {"autostate": False}},
++        },
++        {
++            "name": "mac_address",
++            "getval": re.compile(
++                r"""^mac-address
++                    (\s(?P<mac_address>\S+))
++                    $""",
++                re.VERBOSE,
++            ),
++            "setval": "mac-address {{ mac_address }}",
++            "result": {"{{ name }}": {"mac_address": "{{ mac_address }}"}},
++        },
+         {
+             "name": "name",
+             "getval": re.compile(
+@@ -145,6 +162,33 @@ class L3_interfacesTemplate(NetworkTemplate):
+                 },
+             },
+         },
++        {
++            "name": "ipv4.source_interface",
++            "getval": re.compile(
++                r"""\s+ip\sunnumbered
++                    (\s(?P<name>\S+))
++                    (\s(?P<poll>poll))?
++                    (\s(?P<point_to_point>point-to-point))?
++                    $""",
++                re.VERBOSE,
++            ),
++            "setval": "ip unnumbered {{ ipv4.source_interface.name }}"
++            "{{ ' poll' if ipv4.source_interface.poll|d(False) else ''}}"
++            "{{ ' point-to-point' if ipv4.source_interface.point_to_point|d(False) else ''}}",
++            "result": {
++                "{{ name }}": {
++                    "ipv4": [
++                        {
++                            "source_interface": {
++                                "name": "{{ True if name is defined }}",
++                                "poll": "{{ True if poll is defined }}",
++                                "point_to_point": "{{ True if point_to_point is defined }}",
++                            },
++                        },
++                    ],
++                },
++            },
++        },
+         {
+             "name": "ipv6.address",
+             "getval": re.compile(
+@@ -227,5 +271,17 @@ class L3_interfacesTemplate(NetworkTemplate):
+                 },
+             },
+         },
++        {
++            "name": "ipv6.enable",
++            "getval": re.compile(r"""\s+ipv6\s+enable$""", re.VERBOSE),
++            "setval": "ipv6 enable",
++            "result": {
++                "{{ name }}": {
++                    "ipv6": [
++                        {"enable": True},
++                    ],
++                },
++            },
++        },
+     ]
+     # fmt: on
+diff --git a/plugins/module_utils/network/ios/rm_templates/ospfv2.py b/plugins/module_utils/network/ios/rm_templates/ospfv2.py
+index 74b380c..8054825 100644
+--- a/plugins/module_utils/network/ios/rm_templates/ospfv2.py
++++ b/plugins/module_utils/network/ios/rm_templates/ospfv2.py
+@@ -721,9 +721,9 @@ class Ospfv2Template(NetworkTemplate):
+                 $""",
+                 re.VERBOSE,
+             ),
+-            "setval": "distance {{ admin_distance.distance }} "
+-            "{{ ( admin_distance.address + ' ' + admin_distance.wildcard_bits ) if admin_distance.address is defined else '' }}"
+-            "{{ ' ' + admin_distance.acl if admin_distance.acl is defined else '' }}",
++            "setval": "distance {{ distance.admin_distance.distance }} "
++            "{{ ( distance.admin_distance.address + ' ' + distance.admin_distance.wildcard_bits ) if distance.admin_distance.address is defined else '' }}"
++            "{{ ' ' + distance.admin_distance.acl if distance.admin_distance.acl is defined else '' }}",
+             "result": {
+                 "processes": {
+                     "{{ pid }}": {
+diff --git a/plugins/module_utils/network/ios/rm_templates/snmp_server.py b/plugins/module_utils/network/ios/rm_templates/snmp_server.py
+index 5107612..45cabaa 100644
+--- a/plugins/module_utils/network/ios/rm_templates/snmp_server.py
++++ b/plugins/module_utils/network/ios/rm_templates/snmp_server.py
+@@ -283,8 +283,7 @@ class Snmp_serverTemplate(NetworkTemplate):
+                 (\sread\s(?P<read>\S+))?
+                 (\swrite\s(?P<write>\S+))?
+                 (\snotify\s(?P<notify>\S+))?
+-                (\saccess\s(?P<acl_v4>\S+))?
+-                (\saccess\sipv6\s(?P<acl_v6>\S+))?
++                (\saccess(\sipv6\s(?P<acl_v6>\S+))?(\s(?P<acl_v4>\S+|\d+))?)?
+                 """, re.VERBOSE,
+             ),
+             "setval": "snmp-server group "
+@@ -296,8 +295,9 @@ class Snmp_serverTemplate(NetworkTemplate):
+                       "{{ (' read ' + read) if read is defined else '' }}"
+                       "{{ (' write ' + write) if write is defined else '' }}"
+                       "{{ (' notify ' + notify) if notify is defined else '' }}"
+-                      "{{ (' access ' + acl_v4) if acl_v4 is defined else '' }}"
+-                      "{{ (' access ipv6 ' + acl_v6) if acl_v6 is defined else '' }}",
++                      "{{ (' access') if acl_v6 is defined or acl_v4 is defined else '' }}"
++                      "{{ (' ipv6 ' + acl_v6) if acl_v6 is defined else '' }}"
++                      "{{ (' ' + acl_v4|string) if acl_v4 is defined else '' }}",
+             "result": {
+                 "groups": [
+                     {
+@@ -398,8 +398,7 @@ class Snmp_serverTemplate(NetworkTemplate):
+                 (\sudp-port\s(?P<udp_port>\d+))?
+                 (\s(?P<version>v1|v3|v2c))?
+                 (\s(?P<version_option>encrypted))?
+-                (\saccess\sipv6\s(?P<acl_v6>\S+))?
+-                (\saccess\s(?P<acl_v4>\S+|\d+))?
++                (\saccess(\sipv6\s(?P<acl_v6>\S+))?(\s(?P<acl_v4>\S+|\d+))?)?
+                 (\svrf\s(?P<vrf>\S+))?
+                 """, re.VERBOSE,
+             ),
+diff --git a/plugins/module_utils/network/ios/utils/utils.py b/plugins/module_utils/network/ios/utils/utils.py
+index f3038f7..1deea53 100644
+--- a/plugins/module_utils/network/ios/utils/utils.py
++++ b/plugins/module_utils/network/ios/utils/utils.py
+@@ -219,31 +219,19 @@ def validate_ipv4(value, module):
+         address = value.split("/")
+         if len(address) != 2:
+             module.fail_json(
+-                msg="address format is <ipv4 address>/<mask>, got invalid format {0}".format(value),
++                msg="address format is <ipv4 address>/<mask>, got invalid format {0}".format(
++                    value,
++                ),
+             )
+ 
+         if not is_masklen(address[1]):
+             module.fail_json(
+-                msg="invalid value for mask: {0}, mask should be in range 0-32".format(address[1]),
++                msg="invalid value for mask: {0}, mask should be in range 0-32".format(
++                    address[1],
++                ),
+             )
+ 
+ 
+-def validate_ipv6(value, module):
+-    if value:
+-        address = value.split("/")
+-        if len(address) != 2:
+-            module.fail_json(
+-                msg="address format is <ipv6 address>/<mask>, got invalid format {0}".format(value),
+-            )
+-        else:
+-            if not 0 <= int(address[1]) <= 128:
+-                module.fail_json(
+-                    msg="invalid value for mask: {0}, mask should be in range 0-128".format(
+-                        address[1],
+-                    ),
+-                )
+-
+-
+ def validate_n_expand_ipv4(module, want):
+     # Check if input IPV4 is valid IP and expand IPV4 with its subnet mask
+     ip_addr_want = want.get("address")
+diff --git a/plugins/modules/ios_bgp.py b/plugins/modules/ios_bgp.py
+deleted file mode 100644
+index b01f994..0000000
+--- a/plugins/modules/ios_bgp.py
++++ /dev/null
+@@ -1,504 +0,0 @@
+-#!/usr/bin/python
+-#
+-# This file is part of Ansible
+-#
+-# Ansible is free software: you can redistribute it and/or modify
+-# it under the terms of the GNU General Public License as published by
+-# the Free Software Foundation, either version 3 of the License, or
+-# (at your option) any later version.
+-#
+-# Ansible is distributed in the hope that it will be useful,
+-# but WITHOUT ANY WARRANTY; without even the implied warranty of
+-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-# GNU General Public License for more details.
+-#
+-# You should have received a copy of the GNU General Public License
+-# along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
+-#
+-from __future__ import absolute_import, division, print_function
+-
+-
+-__metaclass__ = type
+-
+-DOCUMENTATION = """
+-module: ios_bgp
+-author: Nilashish Chakraborty (@NilashishC)
+-short_description: Module to configure BGP protocol settings.
+-description:
+-  - This module provides configuration management of global BGP parameters on devices
+-    running Cisco IOS
+-version_added: 1.0.0
+-deprecated:
+-  alternative: ios_bgp_global
+-  why: Newer and updated modules released with more functionality
+-  removed_at_date: "2023-08-24"
+-notes:
+-  - Tested against Cisco IOS Version 15.6(3)M2
+-options:
+-  config:
+-    description:
+-      - Specifies the BGP related configuration.
+-    type: dict
+-    suboptions:
+-      bgp_as:
+-        description:
+-          - Specifies the BGP Autonomous System (AS) number to configure on the device.
+-        type: int
+-        required: true
+-      router_id:
+-        description:
+-          - Configures the BGP routing process router-id value.
+-        type: str
+-        default:
+-      log_neighbor_changes:
+-        description:
+-          - Enable/disable logging neighbor up/down and reset reason.
+-        type: bool
+-      neighbors:
+-        description:
+-          - Specifies BGP neighbor related configurations.
+-        type: list
+-        elements: dict
+-        suboptions:
+-          neighbor:
+-            description:
+-              - Neighbor router address.
+-            required: true
+-            type: str
+-          remote_as:
+-            description:
+-              - Remote AS of the BGP neighbor to configure.
+-            type: int
+-            required: true
+-          update_source:
+-            description:
+-              - Source of the routing updates.
+-            type: str
+-          password:
+-            description:
+-              - Password to authenticate the BGP peer connection.
+-            type: str
+-          enabled:
+-            description:
+-              - Administratively shutdown or enable a neighbor.
+-            type: bool
+-          description:
+-            description:
+-              - Neighbor specific description.
+-            type: str
+-          ebgp_multihop:
+-            description:
+-              - Specifies the maximum hop count for EBGP neighbors not on directly connected
+-                networks.
+-              - The range is from 1 to 255.
+-            type: int
+-          peer_group:
+-            description:
+-              - Name of the peer group that the neighbor is a member of.
+-            type: str
+-          timers:
+-            description:
+-              - Specifies BGP neighbor timer related configurations.
+-            type: dict
+-            suboptions:
+-              keepalive:
+-                description:
+-                  - Frequency (in seconds) with which the device sends keepalive messages
+-                    to its peer.
+-                  - The range is from 0 to 65535.
+-                type: int
+-                required: true
+-              holdtime:
+-                description:
+-                  - Interval (in seconds) after not receiving a keepalive message that
+-                    IOS declares a peer dead.
+-                  - The range is from 0 to 65535.
+-                type: int
+-                required: true
+-              min_neighbor_holdtime:
+-                description:
+-                  - Interval (in seconds) specifying the minimum acceptable hold-time
+-                    from a BGP neighbor.
+-                  - The minimum acceptable hold-time must be less than, or equal to,
+-                    the interval specified in the holdtime argument.
+-                  - The range is from 0 to 65535.
+-                type: int
+-          local_as:
+-            description:
+-              - The local AS number for the neighbor.
+-            type: int
+-      networks:
+-        description:
+-          - Specify Networks to announce via BGP.
+-          - For operation replace, this option is mutually exclusive with networks option
+-            under address_family.
+-          - For operation replace, if the device already has an address family activated,
+-            this option is not allowed.
+-        type: list
+-        elements: dict
+-        suboptions:
+-          prefix:
+-            description:
+-              - Network ID to announce via BGP.
+-            required: true
+-            type: str
+-          masklen:
+-            description:
+-              - Subnet mask length for the Network to announce(e.g, 8, 16, 24, etc.).
+-            type: int
+-          route_map:
+-            description:
+-              - Route map to modify the attributes.
+-            type: str
+-      address_family:
+-        description:
+-          - Specifies BGP address family related configurations.
+-        type: list
+-        elements: dict
+-        suboptions:
+-          afi:
+-            description:
+-              - Type of address family to configure.
+-            choices:
+-              - ipv4
+-              - ipv6
+-            required: true
+-            type: str
+-          safi:
+-            description:
+-              - Specifies the type of cast for the address family.
+-            choices:
+-              - flowspec
+-              - unicast
+-              - multicast
+-              - labeled-unicast
+-            default: unicast
+-            type: str
+-          synchronization:
+-            description:
+-              - Enable/disable IGP synchronization.
+-            type: bool
+-          auto_summary:
+-            description:
+-              - Enable/disable automatic network number summarization.
+-            type: bool
+-          redistribute:
+-            description:
+-              - Specifies the redistribute information from another routing protocol.
+-            type: list
+-            elements: dict
+-            suboptions:
+-              protocol:
+-                description:
+-                  - Specifies the protocol for configuring redistribute information.
+-                choices:
+-                  - ospf
+-                  - ospfv3
+-                  - eigrp
+-                  - isis
+-                  - static
+-                  - connected
+-                  - odr
+-                  - lisp
+-                  - mobile
+-                  - rip
+-                required: true
+-                type: str
+-              id:
+-                description:
+-                  - Identifier for the routing protocol for configuring redistribute
+-                    information.
+-                  - Valid for protocols 'ospf', 'ospfv3' and 'eigrp'.
+-                type: str
+-              metric:
+-                description:
+-                  - Specifies the metric for redistributed routes.
+-                type: int
+-              route_map:
+-                description:
+-                  - Specifies the route map reference.
+-                type: str
+-          networks:
+-            description:
+-              - Specify Networks to announce via BGP.
+-              - For operation replace, this option is mutually exclusive with root level
+-                networks option.
+-            type: list
+-            elements: dict
+-            suboptions:
+-              prefix:
+-                description:
+-                  - Network ID to announce via BGP.
+-                required: true
+-                type: str
+-              masklen:
+-                description:
+-                  - Subnet mask length for the Network to announce(e.g, 8, 16, 24, etc.).
+-                type: int
+-              route_map:
+-                description:
+-                  - Route map to modify the attributes.
+-                type: str
+-          neighbors:
+-            description:
+-              - Specifies BGP neighbor related configurations in Address Family configuration
+-                mode.
+-            type: list
+-            elements: dict
+-            suboptions:
+-              neighbor:
+-                description:
+-                  - Neighbor router address.
+-                required: true
+-                type: str
+-              advertisement_interval:
+-                description:
+-                  - Minimum interval between sending BGP routing updates for this neighbor.
+-                type: int
+-              route_reflector_client:
+-                description:
+-                  - Specify a neighbor as a route reflector client.
+-                type: bool
+-              route_server_client:
+-                description:
+-                  - Specify a neighbor as a route server client.
+-                type: bool
+-              activate:
+-                description:
+-                  - Enable the Address Family for this Neighbor.
+-                type: bool
+-              remove_private_as:
+-                description:
+-                  - Remove the private AS number from outbound updates.
+-                type: bool
+-              next_hop_self:
+-                description:
+-                  - Enable/disable the next hop calculation for this neighbor.
+-                type: bool
+-              next_hop_unchanged:
+-                description:
+-                  - Propagate next hop unchanged for iBGP paths to this neighbor.
+-                type: bool
+-              maximum_prefix:
+-                description:
+-                  - Maximum number of prefixes to accept from this peer.
+-                  - The range is from 1 to 2147483647.
+-                type: int
+-              prefix_list_in:
+-                description:
+-                  - Name of ip prefix-list to apply to incoming prefixes.
+-                type: str
+-              prefix_list_out:
+-                description:
+-                  - Name of ip prefix-list to apply to outgoing prefixes.
+-                type: str
+-  operation:
+-    description:
+-      - Specifies the operation to be performed on the BGP process configured on the
+-        device.
+-      - In case of merge, the input configuration will be merged with the existing BGP
+-        configuration on the device.
+-      - In case of replace, if there is a diff between the existing configuration and
+-        the input configuration, the existing configuration will be replaced by the
+-        input configuration for every option that has the diff.
+-      - In case of override, all the existing BGP configuration will be removed from
+-        the device and replaced with the input configuration.
+-      - In case of delete the existing BGP configuration will be removed from the device.
+-    default: merge
+-    type: str
+-    choices:
+-      - merge
+-      - replace
+-      - override
+-      - delete
+-
+-"""
+-
+-EXAMPLES = """
+-- name: Configure global bgp as 64496
+-  cisco.ios.ios_bgp:
+-    config:
+-      bgp_as: 64496
+-      router_id: 192.0.2.1
+-      log_neighbor_changes: true
+-      neighbors:
+-        - neighbor: 203.0.113.5
+-          remote_as: 64511
+-          timers:
+-            keepalive: 300
+-            holdtime: 360
+-            min_neighbor_holdtime: 360
+-        - neighbor: 198.51.100.2
+-          remote_as: 64498
+-      networks:
+-        - prefix: 198.51.100.0
+-          route_map: RMAP_1
+-        - prefix: 192.0.2.0
+-          masklen: 23
+-      address_family:
+-        - afi: ipv4
+-          safi: unicast
+-          redistribute:
+-            - protocol: ospf
+-              id: 223
+-              metric: 10
+-    operation: merge
+-
+-- name: Configure BGP neighbors
+-  cisco.ios.ios_bgp:
+-    config:
+-      bgp_as: 64496
+-      neighbors:
+-        - neighbor: 192.0.2.10
+-          remote_as: 64496
+-          password: ansible
+-          description: IBGP_NBR_1
+-          ebgp_multihop: 100
+-          timers:
+-            keepalive: 300
+-            holdtime: 360
+-            min_neighbor_holdtime: 360
+-        - neighbor: 192.0.2.15
+-          remote_as: 64496
+-          description: IBGP_NBR_2
+-          ebgp_multihop: 150
+-    operation: merge
+-
+-- name: Configure root-level networks for BGP
+-  cisco.ios.ios_bgp:
+-    config:
+-      bgp_as: 64496
+-      networks:
+-        - prefix: 203.0.113.0
+-          masklen: 27
+-          route_map: RMAP_1
+-        - prefix: 203.0.113.32
+-          masklen: 27
+-          route_map: RMAP_2
+-    operation: merge
+-
+-- name: Configure BGP neighbors under address family mode
+-  cisco.ios.ios_bgp:
+-    config:
+-      bgp_as: 64496
+-      address_family:
+-        - afi: ipv4
+-          safi: unicast
+-          neighbors:
+-            - neighbor: 203.0.113.10
+-              activate: true
+-              maximum_prefix: 250
+-              advertisement_interval: 120
+-            - neighbor: 192.0.2.15
+-              activate: true
+-              route_reflector_client: true
+-    operation: merge
+-
+-- name: Remove bgp as 64496 from config
+-  cisco.ios.ios_bgp:
+-    config:
+-      bgp_as: 64496
+-    operation: delete
+-"""
+-
+-RETURN = """
+-commands:
+-  description: The list of configuration mode commands to send to the device
+-  returned: always
+-  type: list
+-  sample:
+-    - router bgp 64496
+-    - bgp router-id 192.0.2.1
+-    - bgp log-neighbor-changes
+-    - neighbor 203.0.113.5 remote-as 64511
+-    - neighbor 203.0.113.5 timers 300 360 360
+-    - neighbor 198.51.100.2 remote-as 64498
+-    - network 198.51.100.0 route-map RMAP_1
+-    - network 192.0.2.0 mask 255.255.254.0
+-    - address-family ipv4
+-    - redistribute ospf 223 metric 70
+-    - exit-address-family
+-"""
+-from ansible.module_utils._text import to_text
+-
+-from ansible_collections.cisco.ios.plugins.module_utils.network.ios.providers.cli.config.bgp.process import (
+-    REDISTRIBUTE_PROTOCOLS,
+-)
+-from ansible_collections.cisco.ios.plugins.module_utils.network.ios.providers.module import (
+-    NetworkModule,
+-)
+-
+-
+-def main():
+-    """main entry point for module execution"""
+-    network_spec = {"prefix": dict(required=True), "masklen": dict(type="int"), "route_map": dict()}
+-    redistribute_spec = {
+-        "protocol": dict(choices=REDISTRIBUTE_PROTOCOLS, required=True),
+-        "id": dict(),
+-        "metric": dict(type="int"),
+-        "route_map": dict(),
+-    }
+-    timer_spec = {
+-        "keepalive": dict(type="int", required=True),
+-        "holdtime": dict(type="int", required=True),
+-        "min_neighbor_holdtime": dict(type="int"),
+-    }
+-    neighbor_spec = {
+-        "neighbor": dict(required=True),
+-        "remote_as": dict(type="int", required=True),
+-        "local_as": dict(type="int"),
+-        "update_source": dict(),
+-        "password": dict(no_log=True),
+-        "enabled": dict(type="bool"),
+-        "description": dict(),
+-        "ebgp_multihop": dict(type="int"),
+-        "timers": dict(type="dict", options=timer_spec),
+-        "peer_group": dict(),
+-    }
+-    af_neighbor_spec = {
+-        "neighbor": dict(required=True),
+-        "activate": dict(type="bool"),
+-        "advertisement_interval": dict(type="int"),
+-        "remove_private_as": dict(type="bool"),
+-        "next_hop_self": dict(type="bool"),
+-        "next_hop_unchanged": dict(type="bool"),
+-        "route_reflector_client": dict(type="bool"),
+-        "route_server_client": dict(type="bool"),
+-        "maximum_prefix": dict(type="int"),
+-        "prefix_list_in": dict(),
+-        "prefix_list_out": dict(),
+-    }
+-    address_family_spec = {
+-        "afi": dict(choices=["ipv4", "ipv6"], required=True),
+-        "safi": dict(
+-            choices=["flowspec", "labeled-unicast", "multicast", "unicast"],
+-            default="unicast",
+-        ),
+-        "auto_summary": dict(type="bool"),
+-        "synchronization": dict(type="bool"),
+-        "networks": dict(type="list", elements="dict", options=network_spec),
+-        "redistribute": dict(type="list", elements="dict", options=redistribute_spec),
+-        "neighbors": dict(type="list", elements="dict", options=af_neighbor_spec),
+-    }
+-    config_spec = {
+-        "bgp_as": dict(type="int", required=True),
+-        "router_id": dict(),
+-        "log_neighbor_changes": dict(type="bool"),
+-        "neighbors": dict(type="list", elements="dict", options=neighbor_spec),
+-        "address_family": dict(type="list", elements="dict", options=address_family_spec),
+-        "networks": dict(type="list", elements="dict", options=network_spec),
+-    }
+-    argument_spec = {
+-        "config": dict(type="dict", options=config_spec),
+-        "operation": dict(default="merge", choices=["merge", "replace", "override", "delete"]),
+-    }
+-    module = NetworkModule(argument_spec=argument_spec, supports_check_mode=True)
+-    try:
+-        result = module.edit_config(config_filter="| section ^router bgp")
+-    except Exception as exc:
+-        module.fail_json(msg=to_text(exc))
+-    module.exit_json(**result)
+-
+-
+-if __name__ == "__main__":
+-    main()
+diff --git a/plugins/modules/ios_bgp_address_family.py b/plugins/modules/ios_bgp_address_family.py
+index 14589f2..e9f7706 100644
+--- a/plugins/modules/ios_bgp_address_family.py
++++ b/plugins/modules/ios_bgp_address_family.py
+@@ -22,7 +22,7 @@ author:
+   - Sagar Paul (@KB-perByte)
+   - Sumit Jaiswal (@justjais)
+ notes:
+-  - Tested against Cisco IOSXE Version 17.3 on CML.
++  - Tested against Cisco IOS-XE Version 17.3 on CML.
+   - This module works with connection C(network_cli).
+     See U(https://docs.ansible.com/ansible/latest/network/user_guide/platform_ios.html)
+   - The module examples uses callback plugin (stdout_callback = yaml) to generate task
+diff --git a/plugins/modules/ios_bgp_global.py b/plugins/modules/ios_bgp_global.py
+index 9aa33c8..55ab213 100644
+--- a/plugins/modules/ios_bgp_global.py
++++ b/plugins/modules/ios_bgp_global.py
+@@ -22,7 +22,7 @@ author:
+   - Sumit Jaiswal (@justjais)
+   - Sagar Paul (@KB-perByte)
+ notes:
+-  - Tested against Cisco IOSXE Version 17.3 on CML.
++  - Tested against Cisco IOS-XE Version 17.3 on CML.
+   - This module works with connection C(network_cli).
+     See U(https://docs.ansible.com/ansible/latest/network/user_guide/platform_ios.html)
+   - The module examples uses callback plugin (stdout_callback = yaml) to generate task
+@@ -274,6 +274,22 @@ options:
+                       - Set the bgp consistency checker
+                       - Please refer vendor documentation for valid values
+                     type: int
++          default:
++            description: Configure BGP defaults
++            type: dict
++            suboptions:
++              ipv4_unicast:
++                description: Activate ipv4-unicast for a peer by default
++                type: bool
++                default: true
++              route_target:
++                description: Control behavior based on Route-Target attributes
++                type: dict
++                suboptions:
++                  filter:
++                    description: Control automatic VPN Route-Target filtering
++                    type: bool
++                    default: true
+           dampening:
+             description: Enable route-flap dampening
+             type: dict
+@@ -1795,8 +1811,6 @@ options:
+       template:
+         description:
+           - Enter template command mode
+-          - This option is DEPRECATED as is not valid within the scope of module,
+-            this attribute will be removed after 2024-06-01.
+         type: dict
+         suboptions:
+           peer_policy:
+@@ -1883,6 +1897,10 @@ EXAMPLES = """
+           reuse_route_val: 1
+           suppress_route_val: 1
+           max_suppress: 1
++        default:
++          ipv4_unicast: false
++          route_target:
++            filter: true
+         graceful_shutdown:
+           neighbors:
+             time: 50
+@@ -1926,6 +1944,7 @@ EXAMPLES = """
+ # - timers bgp 100 200 150
+ # - bgp advertise-best-external
+ # - bgp bestpath compare-routerid
++# - no bgp default ipv4-unicast
+ # - bgp dampening 1 1 1 1
+ # - bgp graceful-shutdown all neighbors 50 local-preference 100 community 100
+ # - bgp log-neighbor-changes
+@@ -1948,6 +1967,10 @@ EXAMPLES = """
+ #       penalty_half_time: 1
+ #       reuse_route_val: 1
+ #       suppress_route_val: 1
++#     default:
++#       ipv4_unicast: false
++#       route_target:
++#         filter: true
+ #     graceful_shutdown:
+ #       community: '100'
+ #       local_preference: 100
+@@ -1987,6 +2010,7 @@ EXAMPLES = """
+ #
+ # vios#sh running-config | section ^router bgp
+ # router bgp 65000
++#  no bgp default ipv4-unicast
+ #  bgp log-neighbor-changes
+ #  bgp nopeerup-delay post-boot 10
+ #  bgp graceful-shutdown all neighbors 50 local-preference 100 community 100
+@@ -2059,6 +2083,10 @@ EXAMPLES = """
+ #       penalty_half_time: 1
+ #       reuse_route_val: 1
+ #       suppress_route_val: 1
++#     default:
++#       ipv4_unicast: true
++#       route_target:
++#         filter: true
+ #     graceful_shutdown:
+ #       community: '100'
+ #       local_preference: 100
+@@ -2106,6 +2134,10 @@ EXAMPLES = """
+ #     bestpath_options:
+ #       med:
+ #         confed: true
++#     default:
++#       ipv4_unicast: true
++#       route_target:
++#         filter: true
+ #     log_neighbor_changes: true
+ #     nopeerup_delay_options:
+ #       cold_boot: 20
+@@ -2172,6 +2204,10 @@ EXAMPLES = """
+ #       penalty_half_time: 1
+ #       reuse_route_val: 1
+ #       suppress_route_val: 1
++#     default:
++#       ipv4_unicast: true
++#       route_target:
++#         filter: true
+ #     graceful_shutdown:
+ #       community: '100'
+ #       local_preference: 100
+@@ -2247,6 +2283,10 @@ EXAMPLES = """
+ #       penalty_half_time: 1
+ #       reuse_route_val: 1
+ #       suppress_route_val: 1
++#     default:
++#       ipv4_unicast: true
++#       route_target:
++#         filter: true
+ #     graceful_shutdown:
+ #       community: '100'
+ #       local_preference: 100
+@@ -2318,6 +2358,10 @@ EXAMPLES = """
+ #     advertise_best_external: true
+ #     bestpath_options:
+ #       compare_routerid: true
++#     default:
++#       ipv4_unicast: true
++#       route_target:
++#         filter: true
+ #     dampening:
+ #       max_suppress: 1
+ #       penalty_half_time: 1
+@@ -2394,6 +2438,10 @@ EXAMPLES = """
+ #       penalty_half_time: 1
+ #       reuse_route_val: 1
+ #       suppress_route_val: 1
++#     default:
++#       ipv4_unicast: true
++#       route_target:
++#         filter: true
+ #     graceful_shutdown:
+ #       community: '100'
+ #       local_preference: 100
+diff --git a/plugins/modules/ios_evpn_evi.py b/plugins/modules/ios_evpn_evi.py
+index c2b8b33..2b232e3 100644
+--- a/plugins/modules/ios_evpn_evi.py
++++ b/plugins/modules/ios_evpn_evi.py
+@@ -21,7 +21,7 @@ description: This module provides declarative management of L2VPN EVPN EVI on Ci
+ version_added: 5.3.0
+ author: Padmini Priyadarshini Sivaraj (@PadminiSivaraj)
+ notes:
+-  - Tested against Cisco IOS device with Version 17.13.01 on Cat9k on CML.
++  - Tested against Cisco IOS-XE device with Version 17.13.01 on Cat9k on CML.
+   - This module works with connection C(network_cli).
+     See U(https://docs.ansible.com/ansible/latest/network/user_guide/platform_ios.html)
+ options:
+diff --git a/plugins/modules/ios_evpn_global.py b/plugins/modules/ios_evpn_global.py
+index 0ffe52b..9070df4 100644
+--- a/plugins/modules/ios_evpn_global.py
++++ b/plugins/modules/ios_evpn_global.py
+@@ -21,7 +21,7 @@ description: This module provides declarative management of L2VPN EVPN on Cisco
+ version_added: 5.3.0
+ author: Padmini Priyadarshini Sivaraj (@PadminiSivaraj)
+ notes:
+-  - Tested against Cisco IOS device with Version 17.13.01 on Cat9k on CML.
++  - Tested against Cisco IOS-XE device with Version 17.13.01 on Cat9k on CML.
+   - This module works with connection C(network_cli).
+     See U(https://docs.ansible.com/ansible/latest/network/user_guide/platform_ios.html)
+ options:
+diff --git a/plugins/modules/ios_l3_interfaces.py b/plugins/modules/ios_l3_interfaces.py
+index 0f69241..f8bf73f 100644
+--- a/plugins/modules/ios_l3_interfaces.py
++++ b/plugins/modules/ios_l3_interfaces.py
+@@ -40,6 +40,14 @@ options:
+           - Full name of the interface excluding any logical unit number, i.e. GigabitEthernet0/1.
+         type: str
+         required: true
++      autostate:
++        description:
++          - Enable autostate determination for VLAN.
++        type: bool
++      mac_address:
++        description:
++          - Manually set interface MAC address.
++        type: str
+       ipv4:
+         description:
+           - IPv4 address to be set for the Layer-3 interface mentioned in I(name) option.
+@@ -87,6 +95,19 @@ options:
+           pool:
+             description: IP Address auto-configured from a local DHCP pool.
+             type: str
++          source_interface:
++            description: Enable IP processing without an explicit address
++            type: dict
++            suboptions:
++              name:
++                description: Interface name
++                type: str
++              poll:
++                description: Enable IP connected host polling
++                type: bool
++              point_to_point:
++                description: Enable point-to-point connection
++                type: bool
+       ipv6:
+         description:
+           - IPv6 address to be set for the Layer-3 interface mentioned in I(name) option.
+@@ -119,6 +140,9 @@ options:
+               rapid_commit:
+                 description: Enable Rapid-Commit.
+                 type: bool
++          enable:
++            description: Enable IPv6 on interface
++            type: bool
+           anycast:
+             description: Configure as an anycast
+             type: bool
+@@ -229,6 +253,13 @@ EXAMPLES = """
+       - name: GigabitEthernet3.100
+         ipv4:
+           - address: 192.168.0.3/24
++      - name: Vlan901
++        autostate: false
++        ipv4:
++          - source_interface:
++              name: Loopback1
++        ipv6:
++          - enable: true
+     state: merged
+ 
+ # Task Output
+@@ -253,6 +284,10 @@ EXAMPLES = """
+ # - ipv6 address fd5d:12c9:2201:1::1/64
+ # - interface GigabitEthernet3.100
+ # - ip address 192.168.0.3 255.255.255.0
++# - interface Vlan901
++# - ip unnumbered Loopback1
++# - ipv6 enable
++# - no autostate
+ # after:
+ # - ipv4:
+ #   - dhcp:
+@@ -269,6 +304,13 @@ EXAMPLES = """
+ #   - address: 192.168.0.3/24
+ # - name: GigabitEthernet4
+ # - name: Loopback999
++#   ipv4:
++#   - source_interface:
++#       name: Loopback1
++#   ipv6:
++#   - enable: true
++#   autostate: false
++# - name: Vlan901
+ 
+ # After state:
+ # ------------
+@@ -299,6 +341,11 @@ EXAMPLES = """
+ #  no ip address
+ #  shutdown
+ #  negotiation auto
++# interface Vlan901
++#  ip unnumbered Loopback1
++#  ipv6 enable
++#  no autostate
++
+ 
+ # Using replaced
+ 
+diff --git a/plugins/modules/ios_user.py b/plugins/modules/ios_user.py
+index 50f2f34..931ed0e 100644
+--- a/plugins/modules/ios_user.py
++++ b/plugins/modules/ios_user.py
+@@ -220,6 +220,17 @@ extends_documentation_fragment:
+ """
+ 
+ EXAMPLES = """
++# Using state: present
++
++# Before state:
++# -------------
++
++# router-ios#show running-config | section ^username
++# username testuser privilege 15 password 0 password
++
++# Present state create a new user play:
++# -------------------------------------
++
+ - name: Create a new user
+   cisco.ios.ios_user:
+     name: ansible
+@@ -227,6 +238,37 @@ EXAMPLES = """
+     sshkey: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+     state: present
+ 
++# Task Output
++# -----------
++
++# commands:
++# - ip ssh pubkey-chain
++# - username ansible
++# - key-hash ssh-rsa 2ABB27BBC33ED53EF7D55037952ABB27 test@fedora
++# - exit
++# - exit
++# - username ansible nopassword
++
++# After state:
++# ------------
++
++# router-ios#show running-config | section username
++# username testuser privilege 15 password 0 password
++# username ansible nopassword
++#   username ansible
++#    key-hash ssh-rsa 2ABB27BBC33ED53EF7D55037952ABB27 test@fedora
++
++# Using state: present
++
++# Before state:
++# -------------
++
++# router-ios#show running-config | section ^username
++# username testuser privilege 15 password 0 password
++
++# Present state create a new user with multiple keys play:
++# --------------------------------------------------------
++
+ - name: Create a new user with multiple keys
+   cisco.ios.ios_user:
+     name: ansible
+@@ -235,18 +277,109 @@ EXAMPLES = """
+       - "{{ lookup('file', '~/path/to/public_key') }}"
+     state: present
+ 
++# Task Output
++# -----------
++
++# commands:
++# - ip ssh pubkey-chain
++# - username ansible
++# - key-hash ssh-rsa 2ABB27BBC33ED53EF7D55037952ABB27 test@fedora
++# - key-hash ssh-rsa 1985673DCF7FA9A0F374BB97DC2ABB27 test@fedora
++# - exit
++# - exit
++
++# After state:
++# ------------
++
++# router-ios#show running-config | section username
++# username testuser privilege 15 password 0 password
++#   username ansible
++#    key-hash ssh-rsa 2ABB27BBC33ED53EF7D55037952ABB27 test@fedora
++#    key-hash ssh-rsa 1985673DCF7FA9A0F374BB97DC2ABB27 test@fedora
++
++# Using Purge: true
++
++# Before state:
++# -------------
++
++# router-ios#show running-config | section ^username
++# username admin privilege 15 password 0 password
++# username testuser privilege 15 password 0 password
++# username ansible nopassword
++#   username ansible
++#    key-hash ssh-rsa 2ABB27BBC33ED53EF7D55037952ABB27 test@fedora
++
++# Purge all users except admin play:
++# ----------------------------------
++
+ - name: Remove all users except admin
+   cisco.ios.ios_user:
+     purge: true
+ 
++# Task Output
++# -----------
++
++# commands:
++# - no username testuser
++# - no username ansible
++# - ip ssh pubkey-chain
++# - no username ansible
++# - exit
++
++# After state:
++# ------------
++
++# router-ios#show running-config | section username
++# username admin privilege 15 password 0 password
++
++# Using Purge: true
++
++# Before state:
++# -------------
++
++# router-ios#show running-config | section ^username
++# username admin privilege 15 password 0 password
++# username testuser privilege 15 password 0 password1
++# username testuser1 privilege 15 password 0 password2
++# username ansible nopassword
++
++# Purge all users except admin and these listed users play:
++# ---------------------------------------------------------
++
+ - name: Remove all users except admin and these listed users
+   cisco.ios.ios_user:
+     aggregate:
++      - name: testuser
+       - name: testuser1
+-      - name: testuser2
+-      - name: testuser3
+     purge: true
+ 
++# Task Output
++# -----------
++
++# commands:
++# - no username ansible
++
++# After state:
++# ------------
++
++# router-ios#show running-config | section username
++# username admin privilege 15 password 0 password
++# username testuser privilege 15 password 0 password1
++# username testuser1 privilege 15 password 0 password2
++
++# Using state: present
++
++# Before state:
++# -------------
++
++# router-ios#show running-config | section ^username
++# username admin privilege 15 password 0 password
++# username netop password 0 password1
++# username netend password 0 password2
++
++# Present state set multiple users to privilege level 15 play:
++# ------------------------------------------------------------
++
+ - name: Set multiple users to privilege level 15
+   cisco.ios.ios_user:
+     aggregate:
+@@ -255,38 +388,135 @@ EXAMPLES = """
+     privilege: 15
+     state: present
+ 
+-- name: Set user view/role
+-  cisco.ios.ios_user:
+-    name: netop
+-    view: network-operator
+-    state: present
++# Task Output
++# -----------
++
++# commands:
++# - username netop privilege 15
++# - username netend privilege 15
++
++# After state:
++# ------------
++
++# router-ios#show running-config | section username
++# username admin privilege 15 password 0 password
++# username netop privilege 15 password 0 password1
++# username netend privilege 15 password 0 password2
++
++# Using state: present
++
++# Before state:
++# -------------
++
++# router-ios#show running-config | section ^username
++# username admin privilege 15 password 0 password
++# username netop privilege 15 password 0 oldpassword
++
++# Present state Change Password for User netop play:
++# --------------------------------------------
+ 
+ - name: Change Password for User netop
+   cisco.ios.ios_user:
+     name: netop
+-    configured_password: "{{ new_password }}"
++    configured_password: "newpassword"
++    password_type: password
+     update_password: always
+     state: present
+ 
+-- name: Aggregate of users
++# Task Output
++# -----------
++
++# commands:
++# - username netop password newpassword
++
++# After state:
++# ------------
++
++# router-ios#show running-config | section username
++# username admin privilege 15 password 0 password
++# username netop privilege 15 password 0 newpassword
++
++# Using state: present
++
++# Before state:
++# -------------
++
++# router-ios#show running-config | section ^username
++# username admin privilege 15 password 0 password
++# username netop privilege 15 password 0 password
++# username netend privilege 15 password 0 password
++
++# Present state set user view/role for users play:
++# --------------------------------------------
++
++- name: Set user view/role for users
+   cisco.ios.ios_user:
+     aggregate:
+-      - name: ansibletest2
+-      - name: ansibletest3
++      - name: netop
++      - name: netend
+     view: network-admin
++    state: present
+ 
+-- name: Add a user specifying password type
+-  cisco.ios.ios_user:
+-    name: ansibletest4
+-    configured_password: "{{ new_password }}"
+-    password_type: password
++# Task Output
++# -----------
++
++# commands:
++# - username netop view network-admin
++# - username netend view network-admin
++
++# After state:
++# ------------
++
++# router-ios#show running-config | section username
++# username admin privilege 15 password 0 password
++# username netop privilege 15 view network-admin password 0 password
++# username netend privilege 15 view network-admin password 0 password
++
++# Using state: present
++
++# Before state:
++# -------------
++
++# router-ios#show running-config | section ^username
++# username admin privilege 15 password 0 password
++
++# Present state create a new user with hashed password play:
++# --------------------------------------------------------------
+ 
+-- name: Add a user with MD5 hashed password
++- name: Create a new user with hashed password
+   cisco.ios.ios_user:
+     name: ansibletest5
+     hashed_password:
+-      type: 5
+-      value: $3$8JcDilcYgFZi.yz4ApaqkHG2.8/
++      type: 9
++      value: "thiswillbereplacedwithhashedpassword"
++    state: present
++
++# Task Output
++# -----------
++
++# commands:
++# - username ansibletest5 secret 9 thiswillbereplacedwithhashedpassword
++
++# After state:
++# ------------
++
++# router-ios#show running-config | section username
++# username admin privilege 15 password 0 password
++# username ansibletest5 secret 9 thiswillbereplacedwithhashedpassword
++
++# Using state: absent
++
++# Before state:
++# -------------
++
++# router-ios#show running-config | section ^username
++# username admin privilege 15 password 0 password
++# username ansibletest1 password 0 password
++# username ansibletest2 secret 9 thiswillbereplacedwithhashedpassword
++# username ansibletest3 password 5 thistoowillbereplacedwithhashedpassword
++
++# Absent state remove multiple users play:
++# ----------------------------------------
+ 
+ - name: Delete users with aggregate
+   cisco.ios.ios_user:
+@@ -295,6 +525,20 @@ EXAMPLES = """
+       - name: ansibletest2
+       - name: ansibletest3
+     state: absent
++
++# Task Output
++# -----------
++
++# commands:
++# - no username ansibletest1
++# - no username ansibletest2
++# - no username ansibletest3
++
++# After state:
++# ------------
++
++# router-ios#show running-config | section username
++# username admin privilege 15 password 0 password
+ """
+ 
+ RETURN = """
+@@ -339,6 +583,18 @@ def user_del_cmd(username):
+     }
+ 
+ 
++def add_ssh(command, want, x=None):
++    command.append("ip ssh pubkey-chain")
++    if x:
++        command.append("username %s" % want["name"])
++        for item in x:
++            command.append("key-hash %s" % item)
++        command.append("exit")
++    else:
++        command.append("no username %s" % want["name"])
++    command.append("exit")
++
++
+ def sshkey_fingerprint(sshkey):
+     # IOS will accept a MD5 fingerprint of the public key
+     # and is easier to configure in a single line
+@@ -366,19 +622,10 @@ def map_obj_to_commands(updates, module):
+     def add(command, want, x):
+         command.append("username %s %s" % (want["name"], x))
+ 
+-    def add_hashed_password(command, want, x):
+-        command.append("username %s secret %s %s" % (want["name"], x.get("type"), x.get("value")))
+-
+-    def add_ssh(command, want, x=None):
+-        command.append("ip ssh pubkey-chain")
+-        if x:
+-            command.append("username %s" % want["name"])
+-            for item in x:
+-                command.append("key-hash %s" % item)
+-            command.append("exit")
+-        else:
+-            command.append("no username %s" % want["name"])
+-        command.append("exit")
++    def add_hashed_password(command, want, x, password_type):
++        command.append(
++            "username %s %s %s %s" % (want["name"], password_type, x.get("type"), x.get("value")),
++        )
+ 
+     for update in updates:
+         want, have = update
+@@ -402,7 +649,7 @@ def map_obj_to_commands(updates, module):
+                     )
+                 add(commands, want, "%s %s" % (password_type, want["configured_password"]))
+         if needs_update(want, have, "hashed_password"):
+-            add_hashed_password(commands, want, want["hashed_password"])
++            add_hashed_password(commands, want, want["hashed_password"], password_type)
+         if needs_update(want, have, "nopassword"):
+             if want["nopassword"]:
+                 add(commands, want, "nopassword")
+@@ -451,6 +698,7 @@ def map_config_to_obj(module):
+         regex = "username %s .+$" % user
+         cfg = re.findall(regex, data, re.M)
+         cfg = "\n".join(cfg)
++        ssh_key_list = parse_sshkey(data, user)
+         obj = {
+             "name": user,
+             "state": "present",
+@@ -458,7 +706,9 @@ def map_config_to_obj(module):
+             "configured_password": None,
+             "hashed_password": None,
+             "password_type": parse_password_type(cfg),
+-            "sshkey": parse_sshkey(data, user),
++            "sshkey": ssh_key_list,
++            "is_only_ssh_user": False if cfg.strip() and ssh_key_list else True,
++            "is_only_normal_user": True if cfg.strip() and ssh_key_list == [] else False,
+             "privilege": parse_privilege(cfg),
+             "view": parse_view(cfg),
+         }
+@@ -536,6 +786,14 @@ def update_objects(want, have):
+     return updates
+ 
+ 
++def find_set_difference(list1, list2, key):
++    want_users = [x[key] for x in list1]
++    have_users = [x[key] for x in list2]
++    setdifference = set(have_users).difference(want_users)
++    result = [item for item in list2 if item[key] in setdifference]
++    return result
++
++
+ def main():
+     """main entry point for module execution"""
+     hashed_password_spec = dict(
+@@ -581,13 +839,19 @@ def main():
+     result = {"changed": False, "warnings": warnings}
+     want = map_params_to_obj(module)
+     have = map_config_to_obj(module)
++
+     commands = map_obj_to_commands(update_objects(want, have), module)
+     if module.params["purge"]:
+-        want_users = [x["name"] for x in want]
+-        have_users = [x["name"] for x in have]
+-        for item in set(have_users).difference(want_users):
+-            if item != "admin":
+-                commands.append(user_del_cmd(item))
++        setdifference = find_set_difference(want, have, "name")
++        for item in setdifference:
++            if item["name"] != "admin":
++                if item["is_only_ssh_user"]:
++                    add_ssh(commands, item)
++                if item["is_only_normal_user"]:
++                    commands.append(user_del_cmd(item["name"]))
++                if item["is_only_normal_user"] is False and item["is_only_ssh_user"] is False:
++                    add_ssh(commands, item)
++                    commands.append(user_del_cmd(item["name"]))
+     result["commands"] = commands
+     if commands:
+         if not module.check_mode:
+diff --git a/plugins/modules/ios_vlans.py b/plugins/modules/ios_vlans.py
+index 1dd3228..de9a021 100644
+--- a/plugins/modules/ios_vlans.py
++++ b/plugins/modules/ios_vlans.py
+@@ -30,9 +30,12 @@ description:
+   This module provides declarative management of VLANs on Cisco IOS network
+   devices.
+ version_added: 1.0.0
+-author: Sumit Jaiswal (@justjais)
++author:
++  - Sumit Jaiswal (@justjais)
++  - Sagar Paul (@KB-perByte)
++  - Padmini Priyadarshini Sivaraj (@PadminiSivaraj)
+ notes:
+-  - Tested against Cisco IOSl2 device with Version 15.2 on VIRL.
++  - Tested against Cisco IOS-XE device with Version 17.13.01 on Cat9k on CML.
+   - Starting from v2.5.0, this module will fail when run against Cisco IOS devices that do
+     not support VLANs. The offline states (C(rendered) and C(parsed)) will work as expected.
+   - This module works with connection C(network_cli).
+@@ -118,10 +121,6 @@ options:
+         transforms it into Ansible structured data as per the resource module's argspec
+         and the value is then returned in the I(parsed) key within the result.
+     type: str
+-  configuration:
+-    description:
+-      When set to true, deals with vlan configuration CLIs
+-    type: bool
+   state:
+     description:
+       - The state the configuration should be left in
+@@ -137,8 +136,8 @@ options:
+       - The state I(parsed) reads the configuration from C(running_config) option and
+         transforms it into JSON format as per the resource module parameters and the
+         value is returned in the I(parsed) key within the result. The value of C(running_config)
+-        option should be the same format as the output of command I(show running-config
+-        | include ip route|ipv6 route) executed on device. For state I(parsed) active
++        option should be the same format as the output of commands I(show vlan) and I(show
++        running-config | sec ^vlan configuration .+) executed on device. For state I(parsed) active
+         connection to remote host is not required.
+     type: str
+     choices:
+@@ -148,6 +147,7 @@ options:
+       - deleted
+       - rendered
+       - gathered
++      - purged
+       - parsed
+     default: merged
+ """
+@@ -224,7 +224,7 @@ EXAMPLES = """
+ # ------------------------------------------------------------------------------
+ # 10
+ 
+-# Using merged (configuration: True)
++# Using merged
+ 
+ # Before state:
+ # -------------
+@@ -246,7 +246,6 @@ EXAMPLES = """
+       - vlan_id: 901
+         member:
+           vni: 50901
+-    configuration: true
+     state: merged
+ 
+ # After state:
+@@ -325,7 +324,7 @@ EXAMPLES = """
+ # 1005 trnet 101005     1500  -      -      -        ibm  -        0      0
+ 
+ 
+-# Using overridden (configuration: True)
++# Using overridden
+ 
+ # Before state:
+ # -------------
+@@ -351,7 +350,6 @@ EXAMPLES = """
+         member:
+           vni: 10101
+           evi: 101
+-    configuration: true
+     state: overridden
+ 
+ # After state:
+@@ -523,7 +521,7 @@ EXAMPLES = """
+ # 1004 fdnet 101004     1500  -      -      -        ieee -        0      0
+ # 1005 trnet 101005     1500  -      -      -        ibm  -        0      0
+ 
+-# Using deleted (configuration: True)
++# Using deleted
+ 
+ # Before state:
+ # -------------
+@@ -542,13 +540,13 @@ EXAMPLES = """
+   cisco.ios.ios_vlans:
+     config:
+       - vlan_id: 101
+-    configuration: true
+     state: deleted
+ 
+ # After state:
+ # -------------
+ #
+ # Leaf-01#show run nve | sec ^vlan configuration
++# vlan configuration 101
+ # vlan configuration 102
+ #  member evpn-instance 102 vni 10102
+ # vlan configuration 201
+@@ -613,7 +611,7 @@ EXAMPLES = """
+ # 1004 fdnet 101004     1500  -      -      -        ieee -        0      0
+ # 1005 trnet 101005     1500  -      -      -        ibm  -        0      0
+ 
+-# Using Deleted without any config passed (configuration: True)
++# Using Deleted without any config passed
+ # "(NOTE: This will delete all of configured vlans attributes)"
+ 
+ # Before state:
+@@ -633,7 +631,6 @@ EXAMPLES = """
+ 
+ - name: Delete attributes of ALL VLANs
+   cisco.ios.ios_vlans:
+-    configuration: true
+     state: deleted
+ 
+ # After state:
+@@ -647,7 +644,7 @@ EXAMPLES = """
+ # no vlan configuration 901
+ # no vlan configuration 902
+ 
+-# Using Gathered (configuration: True)
++# Using gathered, vlan configuration only
+ 
+ # Before state:
+ # -------------
+@@ -666,8 +663,6 @@ EXAMPLES = """
+ 
+ - name: Gather listed vlans with provided configurations
+   cisco.ios.ios_vlans:
+-    config:
+-    configuration: true
+     state: gathered
+ 
+ # Module Execution Result:
+@@ -757,9 +752,9 @@ EXAMPLES = """
+ #         "shutdown"
+ #     ]
+ 
+-# Using Rendered (configuration: True)
++# Using Rendered
+ 
+-- name: Render the commands for provided  configuration
++- name: Render the commands for provided configuration
+   cisco.ios.ios_vlans:
+     config:
+       - vlan_id: 101
+@@ -876,7 +871,7 @@ EXAMPLES = """
+ #         }
+ #     ]
+ 
+-# Using Parsed (configuration: True)
++# Using Parsed Vlan configuration only
+ 
+ # File: parsed.cfg
+ # ----------------
+@@ -891,7 +886,6 @@ EXAMPLES = """
+ - name: Parse the commands for provided configuration
+   cisco.ios.ios_vlans:
+     running_config: "{{ lookup('file', './parsed.cfg') }}"
+-    configuration: true
+     state: parsed
+ 
+ # Module Execution Result:
+@@ -919,29 +913,177 @@ EXAMPLES = """
+ #         "vlan_id": 901
+ #     }
+ # ]
++
++# Using Parsed, Vlan and vlan configuration
++
++# File: parsed.cfg
++# ----------------
++#
++# VLAN Name                             Status    Ports
++# ---- -------------------------------- --------- -------------------------------
++# 1    default                          active    Gi0/1, Gi0/2
++# 101  RemoteIsInMyName                 act/unsup Fa0/1, Fa0/4, Fa0/5, Fa0/6, Fa0/7, Fa0/8, Fa0/9, Fa0/10, Fa0/11, Fa0/12
++#                                                 Fa0/13, Fa0/14, Fa0/15, Fa0/16, Fa0/17, Fa0/18, Fa0/19, Fa0/20, Fa0/21
++#                                                 Fa0/22, Fa0/23, Fa0/24, Fa0/25, Fa0/26, Fa0/27, Fa0/28, Fa0/29, Fa0/30
++#                                                 Fa0/31, Fa0/32, Fa0/33, Fa0/34, Fa0/35, Fa0/36, Fa0/37, Fa0/38, Fa0/39
++#                                                 Fa0/40, Fa0/41, Fa0/42, Fa0/43, Fa0/44, Fa0/45, Fa0/46, Fa0/47, Fa0/48
++# 150  VLAN0150                         active
++# 888  a_very_long_vlan_name_a_very_long_vlan_name
++#                                     active
++# 1002 fddi-default                     act/unsup
++# 1003 trcrf-default                    act/unsup
++# 1004 fddinet-default                  act/unsup
++# 1005 trbrf-default                    act/unsup
++#
++# VLAN Type  SAID       MTU   Parent RingNo BridgeNo Stp  BrdgMode Trans1 Trans2
++# ---- ----- ---------- ----- ------ ------ -------- ---- -------- ------ ------
++# 1    enet  100001     1500  -      -      -        -    -        0      0
++# 101  enet  100101     610   -      -      -        -    -        0      0
++# 150  enet  100150     1500  -      -      -        -    -        0      0
++# 888  enet  100888     1500  -      -      -        -    -        0      0
++# 1002 fddi  101002     1500  -      -      -        -    -        0      0
++# 1003 trcrf 101003     4472  1005   3276   -        -    srb      0      0
++# 1004 fdnet 101004     1500  -      -      -        ieee -        0      0
++# 1005 trbrf 101005     4472  -      -      15       ibm  -        0      0
++#
++#
++# VLAN AREHops STEHops Backup CRF
++# ---- ------- ------- ----------
++# 1003 7       7       off
++#
++# Remote SPAN VLANs
++# ------------------------------------------------------------------------------
++# 150
++#
++# Primary Secondary Type              Ports
++# ------- --------- ----------------- ------------------------------------------
++#
++# vlan configuration 101
++#   member evpn-instance 101 vni 10101
++# vlan configuration 102
++#   member evpn-instance 102 vni 10102
++# vlan configuration 901
++#   member vni 50901
++
++- name: Parse the commands for provided configuration
++  cisco.ios.ios_vlans:
++    running_config: "{{ lookup('file', './parsed.cfg') }}"
++    state: parsed
++
++# Module Execution Result:
++# ------------------------
++#
++# "parsed": [
++#     {
++#         "name": "default",
++#         "vlan_id": 1,
++#         "state": "active",
++#         "shutdown": "disabled",
++#         "mtu": 1500,
++#     },
++#     {
++#         "name": "RemoteIsInMyName",
++#         "vlan_id": 101,
++#         "state": "active",
++#         "shutdown": "enabled",
++#         "mtu": 610,
++#         "member": {"evi": 101, "vni": 10101},
++#     },
++#     {
++#         "name": "VLAN0150",
++#         "vlan_id": 150,
++#         "state": "active",
++#         "shutdown": "disabled",
++#         "mtu": 1500,
++#         "remote_span": True,
++#     },
++#     {
++#         "name": "a_very_long_vlan_name_a_very_long_vlan_name",
++#         "vlan_id": 888,
++#         "state": "active",
++#         "shutdown": "disabled",
++#         "mtu": 1500,
++#     },
++#     {
++#         "name": "fddi-default",
++#         "vlan_id": 1002,
++#         "state": "active",
++#         "shutdown": "enabled",
++#         "mtu": 1500,
++#     },
++#     {
++#         "name": "trcrf-default",
++#         "vlan_id": 1003,
++#         "state": "active",
++#         "shutdown": "enabled",
++#         "mtu": 4472,
++#     },
++#     {
++#         "name": "fddinet-default",
++#         "vlan_id": 1004,
++#         "state": "active",
++#         "shutdown": "enabled",
++#         "mtu": 1500,
++#     },
++#     {
++#         "name": "trbrf-default",
++#         "vlan_id": 1005,
++#         "state": "active",
++#         "shutdown": "enabled",
++#         "mtu": 4472,
++#     },
++#     {"vlan_id": 102, "member": {"evi": 102, "vni": 10102}},
++#     {"vlan_id": 901, "member": {"vni": 50901}},
++# ]
+ """
+ 
+ RETURN = """
+ before:
+-  description: The configuration as structured data prior to module invocation.
+-  returned: always
+-  type: list
++  description: The configuration prior to the module execution.
++  returned: when I(state) is C(merged), C(replaced), C(overridden), C(deleted) or C(purged)
++  type: dict
+   sample: >
+-    The configuration returned will always be in the same format
+-     of the parameters above.
++    This output will always be in the same format as the
++    module argspec.
+ after:
+-  description: The configuration as structured data after module completion.
++  description: The resulting configuration after module execution.
+   returned: when changed
+-  type: list
++  type: dict
+   sample: >
+-    The configuration returned will always be in the same format
+-     of the parameters above.
++    This output will always be in the same format as the
++    module argspec.
+ commands:
+   description: The set of commands pushed to the remote device.
+-  returned: always
++  returned: when I(state) is C(merged), C(replaced), C(overridden), C(deleted) or C(purged)
++  type: list
++  sample:
++    - vlan configuration 202
++    - state active
++    - remote-span
++rendered:
++  description: The provided configuration in the task rendered in device-native format (offline).
++  returned: when I(state) is C(rendered)
+   type: list
+-  sample: ['vlan 20', 'name vlan_20', 'mtu 600', 'remote-span']
++  sample:
++    - vlan configuration 202
++    - member evpn-instance 202 vni 10202
++    - vlan 200
++gathered:
++  description: Facts about the network resource gathered from the remote device as structured data.
++  returned: when I(state) is C(gathered)
++  type: list
++  sample: >
++    This output will always be in the same format as the
++    module argspec.
++parsed:
++  description: The device native config provided in I(running_config) option parsed into structured data as per module argspec.
++  returned: when I(state) is C(parsed)
++  type: list
++  sample: >
++    This output will always be in the same format as the
++    module argspec.
+ """
++
+ from ansible.module_utils.basic import AnsibleModule
+ 
+ from ansible_collections.cisco.ios.plugins.module_utils.network.ios.argspec.vlans.vlans import (
+@@ -966,19 +1108,17 @@ def main():
+ 
+     :returns: the result form module invocation
+     """
+-    required_if = [
+-        ("state", "merged", ("config",)),
+-        ("state", "replaced", ("config",)),
+-        ("state", "overridden", ("config",)),
+-        ("state", "rendered", ("config",)),
+-        ("state", "parsed", ("running_config",)),
+-    ]
+-    mutually_exclusive = [("config", "running_config")]
+-
+     module = AnsibleModule(
+         argument_spec=VlansArgs.argument_spec,
+-        required_if=required_if,
+-        mutually_exclusive=mutually_exclusive,
++        mutually_exclusive=[["config", "running_config"]],
++        required_if=[
++            ["state", "merged", ["config"]],
++            ["state", "replaced", ["config"]],
++            ["state", "overridden", ["config"]],
++            ["state", "rendered", ["config"]],
++            ["state", "purged", ["config"]],
++            ["state", "parsed", ["running_config"]],
++        ],
+         supports_check_mode=True,
+     )
+ 
+diff --git a/plugins/modules/ios_vrf.py b/plugins/modules/ios_vrf.py
+index 27c6641..ff6814b 100644
+--- a/plugins/modules/ios_vrf.py
++++ b/plugins/modules/ios_vrf.py
+@@ -58,6 +58,61 @@ options:
+     description:
+       - The list of address families with MDT parameters to be configured on the remote IOS device.
+     type: list
++    suboptions:
++      afi:
++        description: Address family identifier.
++        type: str
++        choices:
++          ["ipv4", "ipv6"]
++      mdt:
++        description: MDT parameters.
++        type: dict
++        suboptions:
++          auto_discovery:
++            description: Auto-discovery parameters.
++            type: dict
++            suboptions:
++              vxlan:
++                description: Vxlan parameters.
++                type: dict
++                suboptions:
++                  enable:
++                    description: Enable VXLAN.
++                    type: bool
++                  inter_as:
++                    description: Enable inter-as.
++                    type: bool
++          default:
++            description: Parameters for default option.
++            type: dict
++            suboptions:
++              vxlan_mcast_group:
++                description: VXLAN multicast group value.
++                type: str
++          data:
++            description: Parameters for data option.
++            type: dict
++            suboptions:
++              vxlan_mcast_group:
++                description: VXLAN multicast group value.
++                type: str
++              threshold:
++                description: Threshold value.
++                type: int
++          overlay:
++            description: Parameters for overlay option.
++            type: dict
++            suboptions:
++              use_bgp:
++                description: parameters for BGP option.
++                type: dict
++                suboptions:
++                  enable:
++                    description: Enable use BGP.
++                    type: bool
++                  spt_only:
++                    description: Enable SPT only.
++                    type: bool
+     elements: dict
+   rd:
+     description:
+@@ -832,12 +887,58 @@ def check_declarative_intent_params(want, module, result):
+ 
+ def main():
+     """main entry point for module execution"""
++    address_family_spec = dict(
++        afi=dict(type="str", choices=["ipv4", "ipv6"]),
++        mdt=dict(
++            type="dict",
++            options=dict(
++                overlay=dict(
++                    type="dict",
++                    options=dict(
++                        use_bgp=dict(
++                            type="dict",
++                            options=dict(
++                                enable=dict(type="bool"),
++                                spt_only=dict(type="bool"),
++                            ),
++                        ),
++                    ),
++                ),
++                auto_discovery=dict(
++                    type="dict",
++                    options=dict(
++                        vxlan=dict(
++                            type="dict",
++                            options=dict(
++                                enable=dict(type="bool"),
++                                inter_as=dict(type="bool"),
++                            ),
++                        ),
++                    ),
++                ),
++                default=dict(
++                    type="dict",
++                    options=dict(
++                        vxlan_mcast_group=dict(type="str"),
++                    ),
++                ),
++                data=dict(
++                    type="dict",
++                    options=dict(
++                        vxlan_mcast_group=dict(type="str"),
++                        threshold=dict(type="int"),
++                    ),
++                ),
++            ),
++        ),
++    )
++
+     argument_spec = dict(
+         vrfs=dict(type="list", elements="raw"),
+-        name=dict(),
+-        description=dict(),
+-        address_family=dict(type="list", elements="dict"),
+-        rd=dict(),
++        name=dict(type="str"),
++        description=dict(type="str"),
++        address_family=dict(type="list", elements="dict", options=address_family_spec),
++        rd=dict(type="str"),
+         route_export=dict(type="list", elements="str"),
+         route_import=dict(type="list", elements="str"),
+         route_both=dict(type="list", elements="str"),
+diff --git a/plugins/modules/ios_vxlan_vtep.py b/plugins/modules/ios_vxlan_vtep.py
+index b2c5933..3cf933b 100644
+--- a/plugins/modules/ios_vxlan_vtep.py
++++ b/plugins/modules/ios_vxlan_vtep.py
+@@ -21,7 +21,7 @@ description: This module provides declarative management of VXLAN VTEP interface
+ version_added: 5.3.0
+ author: Padmini Priyadarshini Sivaraj (@PadminiSivaraj)
+ notes:
+-  - Tested against Cisco IOS device with Version 17.13.01 on Cat9k on CML.
++  - Tested against Cisco IOS-XE device with Version 17.13.01 on Cat9k on CML.
+   - This module works with connection C(network_cli).
+     See U(https://docs.ansible.com/ansible/latest/network/user_guide/platform_ios.html)
+ options:
+diff --git a/plugins/terminal/ios.py b/plugins/terminal/ios.py
+index 3be46eb..2ef4f2d 100644
+--- a/plugins/terminal/ios.py
++++ b/plugins/terminal/ios.py
+@@ -41,6 +41,7 @@ class TerminalModule(TerminalBase):
+     terminal_stderr_re = [
+         re.compile(rb"% ?Error"),
+         # re.compile(rb"^% \w+", re.M),
++        re.compile(rb"ERROR:", re.IGNORECASE),
+         re.compile(rb"% ?Bad secret"),
+         re.compile(rb"[\r\n%] Bad passwords"),
+         re.compile(rb"invalid input", re.I),
