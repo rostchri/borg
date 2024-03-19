@@ -1,0 +1,299 @@
+diff --git a/plugins/module_utils/network/ios/argspec/l3_interfaces/l3_interfaces.py b/plugins/module_utils/network/ios/argspec/l3_interfaces/l3_interfaces.py
+index 82ae98e..594a3ee 100644
+--- a/plugins/module_utils/network/ios/argspec/l3_interfaces/l3_interfaces.py
++++ b/plugins/module_utils/network/ios/argspec/l3_interfaces/l3_interfaces.py
+@@ -39,10 +39,12 @@ class L3_interfacesArgs(object):  # pylint: disable=R0903
+                 "autostate": {"type": "bool"},
+                 "mac_address": {"type": "str"},
+                 "name": {"type": "str", "required": True},
++                "vrf": {"type": "str"},
+                 "ipv4": {
+                     "type": "list",
+                     "elements": "dict",
+                     "options": {
++                        "vrf": {"type": "str"},
+                         "address": {"type": "str"},
+                         "secondary": {"type": "bool"},
+                         "dhcp_client": {"type": "str"},
+@@ -100,6 +102,7 @@ class L3_interfacesArgs(object):  # pylint: disable=R0903
+             },
+         },
+         "running_config": {"type": "str"},
++        "restore_commands": {"type": "bool", "default": "False"},
+         "state": {
+             "choices": [
+                 "merged",
+diff --git a/plugins/module_utils/network/ios/config/l3_interfaces/l3_interfaces.py b/plugins/module_utils/network/ios/config/l3_interfaces/l3_interfaces.py
+index b862ac4..4fc657c 100644
+--- a/plugins/module_utils/network/ios/config/l3_interfaces/l3_interfaces.py
++++ b/plugins/module_utils/network/ios/config/l3_interfaces/l3_interfaces.py
+@@ -15,6 +15,8 @@ from __future__ import absolute_import, division, print_function
+ 
+ __metaclass__ = type
+ 
++import re
++
+ from ansible.module_utils.six import iteritems
+ from ansible_collections.ansible.netcommon.plugins.module_utils.network.common.rm_base.resource_module import (
+     ResourceModule,
+@@ -60,6 +62,7 @@ class L3_interfaces(ResourceModule):
+         self.gen_parsers = [
+             "autostate",
+         ]
++        self.interfaces_before = []
+ 
+     def execute_module(self):
+         """Execute the module
+@@ -69,7 +72,14 @@ class L3_interfaces(ResourceModule):
+         """
+         if self.state not in ["parsed", "gathered"]:
+             self.generate_commands()
+-            self.run_commands()
++            if any("vrf forwarding" in cmd for cmd in self.commands) and self._module.params.get(
++                "restore_commands",
++            ):
++                self.interfaces_before = self.get_l3_interfaces()
++                self.run_commands()
++                self.restore_commands()
++            else:
++                self.run_commands()
+         return self.result
+ 
+     def generate_commands(self):
+@@ -121,11 +131,39 @@ class L3_interfaces(ResourceModule):
+             self.commands.insert(begin, self._tmplt.render(want or have, "name", False))
+ 
+     def _compare_lists(self, want, have):
++        _d = {}
++        for idx, var in enumerate((want, have)):
++            _d[idx] = {}
++            if var.get("vrf"):
++                _d[idx].update({"vrf": var.pop("vrf", {})})
++            if var.get("ipv4", {}).get("vrf"):
++                _d[idx].update({"ipv4": {"vrf": var.get("ipv4", {}).pop("vrf")}})
++
++        wvrf, hvrf = _d.values()
++
++        remove_afi = []
++        if wvrf != hvrf:
++            if "ipv4" in wvrf:
++                remove_afi.append("ipv4")
++            else:
++                remove_afi += ["ipv4", "ipv6"]
++
++        self.compare(
++            parsers=["ipv4.vrf", "vrf"],
++            want=wvrf,
++            have=hvrf,
++        )
++
+         for afi in ("ipv4", "ipv6"):
+             wacls = want.pop(afi, {})
+             hacls = have.pop(afi, {})
+ 
+             for key, entry in wacls.items():
++                if afi in remove_afi:
++                    if hacls == wacls:
++                        hacls = {}
++                self.validate_ips(afi, want=entry, have=hacls.get(key, {}))
++
+                 if entry.get("secondary", False) is True:
+                     continue
+                 # entry is set as primary
+@@ -179,6 +217,119 @@ class L3_interfaces(ResourceModule):
+                 self.validate_ips(afi, have=entry)
+                 self.compare(parsers=self.parsers, want={}, have={afi: entry})
+ 
++    def get_l3_interfaces(self):
++        """
++        Gets the current interfaces configuration.
++        This is further used by restore_commands to snapshot the configuration before
++        and after applying or removing VRFs
++
++        :rtype: list
++        :return: list containing re.groupdict matching interfaces and params
++        """
++        intf_sect_pattern = r"^interface\s(?P<intf>\S+)\n(?P<params>(?:\s.*?\n)+)"
++        cfg = self._connection.get_config()
++        m = re.finditer(intf_sect_pattern, cfg, re.M)
++        if m:
++            return [i.groupdict() for i in m]
++
++    def restore_commands(self):
++        """
++        Applying or removing VRFs to/from interfaces also removes commands
++        like ip addresses. Instead of mapping out every command potentially
++        removed, this function compares before and after snapshots to discover
++        the commands removed.
++
++        The func performs the following
++            1. Creates a dict of already deployed commands.
++            2. Takes an after snapshot of the interfaces configuration.
++            3. Generates a list of removed commands by comparing the before and after
++               snapshot.
++            4. Repopulates self.commands with removed commands *unless* the removed
++               commands are part of the play/intent.
++            5. Runs self.run_commands with the new self.commands list
++            6. Rebuilds self.commands with *all* commands deployed for
++               correct representation in the Result Values.
++
++        :return: None
++        """
++        # create dict of deployed commands
++        _k = []
++        deployed = {}
++        for cmd in self.commands:
++            if cmd.startswith("interface"):
++                k_struct = cmd.split(" ")[1]
++                deployed[k_struct] = []
++                _k = deployed[k_struct]
++            else:
++                _k.append(cmd)
++
++        # take the after snapshot
++        interfaces_after = self.get_l3_interfaces()
++
++        def get_before_after(intf):
++            """
++            Gets the before and after snapshot for the given intf.
++            :param intf: str
++            :return: list containing dict entries of interfaces before and after
++            """
++            ret = []
++            for entries in (self.interfaces_before, interfaces_after):
++                ret.append(
++                    next(
++                        (entry for entry in entries if entry.get("intf") == intf),
++                        None,
++                    ),
++                )
++            return ret
++
++        def include_criteria(cmd):
++            """
++            Checks if the removed cmd is part of the play or removed as part of
++            the vrf change. Uses the parsers to compare the removed command
++            with the deployed commands. A match in both assumes the command is put
++            there as a result of the play and should not be reapplied
++
++            :param cmd: str
++            :return: True if cmd should be reapplied to device
++            """
++            for pattern in L3_interfacesTemplate.PARSERS:
++                pattern = pattern.get("getval")
++                # add space for deployed commands for matching PARSERS regex
++                deployed_cmds = [f" {cmd}" for cmd in deployed.get(interface)]
++                if (
++                    re.search(pattern, cmd)
++                    and any(re.search(pattern, _cmd) for _cmd in deployed_cmds)
++                    or "no ip address" in cmd
++                ):
++                    return False
++            return True
++
++        # Iterate over the changed interfaces and regenerate self.commands
++        # with commands that must be reapplied
++        self.commands = []
++        for interface in deployed.keys():
++            if not any("vrf forwarding" in p for p in deployed[interface]):
++                continue
++            before, after = get_before_after(interface)
++            res = list(
++                set(before.get("params").splitlines()) - set(after.get("params").splitlines()),
++            )
++            commands = [cmd.lstrip() for cmd in res if include_criteria(cmd)]
++            if commands:
++                self.commands.append(f"interface {interface}")
++                self.commands += commands
++                deployed[interface] += commands
++        # Reapply the removed commands if any
++        if self.commands:
++            self.run_commands()
++
++        # Regenerate command list for correct repr in return values
++        self.commands = []
++        for intf, params in deployed.items():
++            self.commands.append(f"interface {intf}")
++            for param in params:
++                self.commands.append(param)
++
+     def validate_ips(self, afi, want=None, have=None):
+         if afi == "ipv4" and want:
+             v4_addr = validate_n_expand_ipv4(self._module, want) if want.get("address") else {}
+diff --git a/plugins/module_utils/network/ios/rm_templates/l3_interfaces.py b/plugins/module_utils/network/ios/rm_templates/l3_interfaces.py
+index bd337be..1d9a9aa 100644
+--- a/plugins/module_utils/network/ios/rm_templates/l3_interfaces.py
++++ b/plugins/module_utils/network/ios/rm_templates/l3_interfaces.py
+@@ -119,6 +119,41 @@ class L3_interfacesTemplate(NetworkTemplate):
+                 },
+             },
+         },
++        {
++            "name": "ipv4.vrf",
++            "getval": re.compile(
++                r"""\s+ip\svrf\sforwarding
++                    \s(?P<vrf>\S+)
++                    $""",
++                re.VERBOSE,
++            ),
++            "setval": "ip vrf forwarding {{ipv4.vrf.vrf}}",
++            "result": {
++                "{{ name }}": {
++                    "ipv4": [
++                        {
++                            "vrf": "{{ vrf }}",
++                        },
++                    ],
++                },
++            },
++        },
++        {
++            "name": "vrf",
++            "getval": re.compile(
++                r"""\s+vrf\sforwarding
++                    \s(?P<vrf>\S+)
++                    $""",
++                re.VERBOSE,
++            ),
++            "setval": "vrf forwarding {{ vrf }}",
++            "result": {
++                "{{ name }}": {
++                    "vrf": "{{ vrf }}",
++                },
++            },
++        },
++
+         {
+             "name": "ipv4.pool",
+             "getval": re.compile(
+diff --git a/plugins/modules/ios_l3_interfaces.py b/plugins/modules/ios_l3_interfaces.py
+index f8bf73f..60f831a 100644
+--- a/plugins/modules/ios_l3_interfaces.py
++++ b/plugins/modules/ios_l3_interfaces.py
+@@ -56,6 +56,10 @@ options:
+         type: list
+         elements: dict
+         suboptions:
++          vrf:
++            description:
++            - Name of the vrf to be applied
++            type: str
+           address:
+             description:
+               - Configures the IPv4 address for Interface.
+@@ -177,6 +181,15 @@ options:
+         transforms it into Ansible structured data as per the resource module's argspec
+         and the value is then returned in the I(parsed) key within the result.
+     type: str
++  restore_commands:
++    description:
++       - This option is only relevant with vrf changes.
++       - Applying or removing vrfs from interfaces also removes the ip address and
++         ip addresses used by First Hop Redundancy Protocols (FHRP) and more.
++       - When this option is set to true, the removed configuration will be reapplied to
++         the interface after the vrf change.
++    type: bool
++    default: false
+   state:
+     choices:
+       - merged
